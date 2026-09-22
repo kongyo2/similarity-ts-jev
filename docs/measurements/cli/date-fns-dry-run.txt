@@ -1,0 +1,1 @@
+2207 pairs, 108 requests, 5224926 tokens, ~$0.2194

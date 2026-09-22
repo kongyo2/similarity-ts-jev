@@ -1,0 +1,27 @@
+165 judged pairs; 1 at or over 1.90, 6 within 0.25 of it, 1 reported with confidence under 0.50
+  0.00-0.25  #################                        26
+  0.25-0.50  ######################################## 61
+  0.50-0.75  #############                            20
+  0.75-1.00  #########                                14
+  1.00-1.25  ################                         25
+  1.25-1.50  #####                                    7
+  1.50-1.75  ######                                   9
+  1.75-2.00  #                                        2
+  2.00-2.25  #                                        1
+  2.25-2.50                                           0
+  2.50-2.75                                           0
+  2.75-3.00                                           0
+widest gap 0.20 between 1.81 and 2.01: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.81, lowest at or over it 2.01; confidence median 0.54 (p10 0.03, p90 0.80)
+
+labels: 30 labeled pairs found (5 merge, 25 keep)
+  at 1.90: precision -, recall 0.00, accuracy 0.83 (tp 0, fp 0, fn 5, tn 25)
+  score        AUC 0.81; fitted cutoff 1.17 (not separable: lowest merge 0.60, highest keep 1.81); at the fit precision 0.50 recall 0.60; 5-fold hold-out accuracy 0.73 (fp 6, fn 2; fold cutoffs 0.60 0.60 1.17 1.17 0.60)
+  same_logic   AUC 0.58; fitted cutoff 0.92 (not separable: lowest merge 0.18, highest keep 0.91); at the fit precision 1.00 recall 0.20; 5-fold hold-out accuracy 0.83 (fp 1, fn 4; fold cutoffs 0.92 0.92 0.92 0.90 0.92)
+  same_concept AUC 0.64; fitted cutoff 0.85 (not separable: lowest merge 0.12, highest keep 0.84); at the fit precision - recall 0.00; 5-fold hold-out accuracy 0.63 (fp 7, fn 4; fold cutoffs 0.15 0.41 0.41 0.85 0.85)
+  unsure band (confidence < 0.50): 0 of 0 reported; precision - there, - for the rest
+  wrong: 1.60 (confidence 0.41, logic 0.26, concept 0.41) labeled merge  packages/remeda/src/sortedIndexBy.ts:91:valueFunction <-> packages/remeda/src/sortedLastIndexBy.ts:93:valueFunction
+  wrong: 1.41 (confidence 0.08, logic 0.67, concept 0.15) labeled merge  packages/remeda/src/toCamelCase.ts:108:dataOrOptions <-> packages/remeda/src/toTitleCase.ts:125:dataOrOptions
+  wrong: 1.17 (confidence 0.00, logic 0.18, concept 0.17) labeled merge  packages/remeda/src/sortedIndexBy.ts:37:the <-> packages/remeda/src/sortedLastIndexBy.ts:37:the
+  wrong: 0.74 (confidence 0.26, logic 0.92, concept 0.12) labeled merge  packages/remeda/src/toKebabCase.ts:5:toKebabCase <-> packages/remeda/src/toSnakeCase.ts:5:toKebabCase
+  wrong: 0.60 (confidence 0.40, logic 0.65, concept 0.16) labeled merge  packages/remeda/src/toKebabCase.ts:5:KebabCase <-> packages/remeda/src/toSnakeCase.ts:5:SnakeCase

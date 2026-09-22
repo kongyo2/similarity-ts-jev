@@ -8,13 +8,16 @@ import type { AnalyzerMode } from "@kongyo2/similarity-ts";
 import { TypeSafeClient, TypeSafeError } from "@typesafe-ai/sdk";
 import { Command, CommanderError, Option } from "commander";
 import { FileJudgeCache } from "./cache.ts";
-import { DEFAULT_MIN_SCORE } from "./decide.ts";
+import { calibrate, formatCalibration, readLabels } from "./calibrate.ts";
+import { DEFAULT_MARGIN, DEFAULT_MIN_SCORE, DEFAULT_UNSURE_BELOW } from "./decide.ts";
 import { detect } from "./detect.ts";
-import { formatJsonReport, formatPrettyReport } from "./format.ts";
+import { formatJsonReport, formatPrettyReport, formatStats } from "./format.ts";
 import { judgeReport, orderPairs, readSnippets } from "./index.ts";
+import { DEFAULT_CONCURRENCY, DEFAULT_RETRIES, USD_PER_MILLION_INPUT_TOKENS } from "./judge.ts";
 import type { JudgeClient } from "./judge.ts";
+import { DEFAULT_BUDGET_TOKENS, DEFAULT_PAIRS_PER_REQUEST, batchPairs, estimateTokens, buildState } from "./questions.ts";
+import { buildRecord, loadRecord, replayRecord, saveRecord } from "./record.ts";
 import type { JevReport } from "./types.ts";
-import { batchPairs } from "./questions.ts";
 
 export interface CliIO {
   log: (message: string) => void;
@@ -45,15 +48,26 @@ interface RawOptions {
   fallowMinTokens?: string;
   fallowMinLines?: string;
   minScore: string;
+  unsureBelow: string;
+  margin: string;
   all: boolean;
   maxPairs?: string;
+  repeat: string;
+  conventions?: string;
   concurrency: string;
   pairsPerRequest: string;
+  budgetTokens: string;
+  retries: string;
   model?: string;
   baseUrl?: string;
   cache?: string;
   timeout: string;
   dryRun: boolean;
+  record?: string;
+  replay?: string;
+  calibrate: boolean;
+  labels?: string;
+  stats: boolean;
   format: "pretty" | "json";
   output?: string;
   failOnWarnings: boolean;
@@ -99,7 +113,7 @@ function buildProgram(io: CliIO): Command {
     .name("similarity-ts-jev")
     .description("Similar-code detection (similarity-ts and fallow, always both), filtered by Jev down to the pairs worth refactoring")
     .version(packageJson.version)
-    .argument("<paths...>", "Files and directories to analyze")
+    .argument("[paths...]", "Files and directories to analyze (not needed with --replay)")
     .option("--modes <list>", "Comma-separated modes: functions,types,classes,overlap", DEFAULT_MODES.join(","))
     .option("-t, --threshold <number>", "Similarity threshold (0-1)", "0.8")
     .option("--min-lines <number>", "Minimum function line count", "3")
@@ -123,16 +137,27 @@ function buildProgram(io: CliIO): Command {
     .option("--no-fallow-near", "Disable fallow's function-scoped near-miss clone detection")
     .option("--fallow-min-tokens <number>", "fallow: minimum token count for a clone (default: 50)")
     .option("--fallow-min-lines <number>", "fallow: minimum line count for a clone (default: 5)")
-    .option("--min-score <number>", `Lowest Jev refactor score (0-3) reported as worth refactoring`, String(DEFAULT_MIN_SCORE))
+    .option("--min-score <number>", "Lowest Jev refactor score (0-3) reported as worth refactoring", String(DEFAULT_MIN_SCORE))
+    .option("--unsure-below <number>", "Mark a reported pair as unsure (?) when Jev's confidence is under this (0-1)", String(DEFAULT_UNSURE_BELOW))
+    .option("--margin <number>", "Mark a pair as borderline (~) when its score is within this of --min-score", String(DEFAULT_MARGIN))
     .option("--all", "Also list the pairs Jev would leave as they are", false)
     .option("--max-pairs <number>", "Judge at most this many pairs (highest similarity first)")
-    .option("--concurrency <number>", "Jev requests in flight at once", "4")
-    .option("--pairs-per-request <number>", "Pairs packed into one Jev request", "40")
+    .option("--repeat <number>", "Ask every pair this many times and decide on the mean score; pairs that cross --min-score between passes are marked unstable (!)", "1")
+    .option("--conventions <text>", "Repository conventions a reviewer would know (what is deliberately kept separate); sent with every request")
+    .option("--concurrency <number>", "Jev requests in flight at once; halved after a rate limit", String(DEFAULT_CONCURRENCY))
+    .option("--pairs-per-request <number>", "At most this many pairs in one Jev request", String(DEFAULT_PAIRS_PER_REQUEST))
+    .option("--budget-tokens <number>", "Estimated input tokens packed into one Jev request", String(DEFAULT_BUDGET_TOKENS))
+    .option("--retries <number>", "Extra attempts per request after a rate limit, a server error, or a connection failure (on top of the SDK's own)", String(DEFAULT_RETRIES))
     .option("--model <name>", "Jev model name (default: TYPESAFE_DEFAULT_MODEL or jev-latest)")
     .option("--base-url <url>", "TypeSafe-compatible API root (default: TYPESAFE_BASE_URL or https://api.typesafe.ai)")
     .option("--cache <file>", "Record Jev's answers in this JSON file and replay them on later runs")
     .option("--timeout <ms>", "Timeout per Jev request attempt", "60000")
     .option("--dry-run", "Detect and print the pair, request, and token counts without asking Jev", false)
+    .option("--record <file>", "Write every judgment and the thresholds to this file, for --replay")
+    .option("--replay <file>", "Re-decide a recorded run under its recorded thresholds, or the ones given here; no detection, no requests")
+    .option("--calibrate", "Print the score distribution, gap, headroom, and (with --labels) precision, recall, AUC, and a hold-out fit instead of the results", false)
+    .option("--labels <file>", "JSON of pair keys to true (merge) or false (keep), as scripts/verify.ts writes them; used by --calibrate")
+    .option("--stats", "Print request, token, cost, and timing counts (stderr for pretty, in the document for json)", false)
     .addOption(new Option("--format <format>", "Output format").choices(["pretty", "json"]).default("pretty"))
     .option("--output <path>", "Write the report to a file")
     .option("--fail-on-warnings", "Exit with a non-zero code when the analysis emits any warning", false)
@@ -195,11 +220,60 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     const raw = program.opts<RawOptions>();
     const cwd = run.cwd ?? process.cwd();
 
+    const minScore = number(raw.minScore, "min-score", 0, 3);
+    const unsureBelow = number(raw.unsureBelow, "unsure-below", 0, 1);
+    const margin = number(raw.margin, "margin", 0, 3);
+    const decideOptions = { minScore, unsureBelow, margin };
+    const gates = { failOnWarnings: raw.failOnWarnings, failOnDuplicates: raw.failOnDuplicates };
+
+    const emit = async (text: string): Promise<void> => {
+      if (raw.output !== undefined) {
+        await fs.mkdir(path.dirname(path.resolve(cwd, raw.output)), { recursive: true });
+        await fs.writeFile(path.resolve(cwd, raw.output), text === "" ? "" : `${text}\n`, "utf8");
+      } else if (text !== "") {
+        io.log(text);
+      }
+    };
+
+    const finish = async (report: JevReport, reportCwd: string): Promise<number> => {
+      if (raw.calibrate) {
+        const labels = raw.labels !== undefined ? await readLabels(path.resolve(cwd, raw.labels)) : undefined;
+        const calibration = calibrate(report, reportCwd, labels);
+        const document = raw.stats ? { calibration, thresholds: report.thresholds, stats: report.stats } : { calibration };
+        await emit(raw.format === "json" ? JSON.stringify(document, null, 2) : formatCalibration(calibration));
+      } else {
+        await emit(raw.format === "json" ? formatJsonReport(report, { includeRejected: raw.all, stats: raw.stats }) : formatPrettyReport(report, reportCwd, { includeRejected: raw.all }));
+      }
+      if (raw.stats && raw.format !== "json") {
+        io.error(formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length }));
+      }
+      for (const warning of report.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
+      for (const reason of ["unreadable", "api"] as const) {
+        const failed = report.unjudged.filter((pair) => pair.reason === reason);
+        if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
+      }
+      return exitCode(report, gates);
+    };
+
+    if (raw.replay !== undefined) {
+      const record = await loadRecord(path.resolve(cwd, raw.replay));
+      const given = (key: "minScore" | "unsureBelow" | "margin") => program.getOptionValueSource(key) !== "default";
+      const replayOptions = {
+        minScore: given("minScore") ? minScore : record.thresholds.minScore,
+        unsureBelow: given("unsureBelow") ? unsureBelow : record.thresholds.unsureBelow,
+        margin: given("margin") ? margin : record.thresholds.margin,
+      };
+      return await finish(replayRecord(record, replayOptions), record.cwd);
+    }
+    if (paths.length === 0) throw new Error("missing required argument 'paths' (or pass --replay <file>)");
+
     const modes = parseModes(raw.modes);
     const threshold = number(raw.threshold, "threshold", 0, 1);
-    const minScore = number(raw.minScore, "min-score", 0, 3);
     const concurrency = integer(raw.concurrency, "concurrency");
     const pairsPerRequest = integer(raw.pairsPerRequest, "pairs-per-request");
+    const budgetTokens = integer(raw.budgetTokens, "budget-tokens", 1000);
+    const retries = integer(raw.retries, "retries", 0);
+    const repeat = integer(raw.repeat, "repeat");
     const timeout = integer(raw.timeout, "timeout");
     const maxPairs = raw.maxPairs === undefined ? undefined : integer(raw.maxPairs, "max-pairs", 0);
     if (raw.sameFileOnly && raw.crossFileOnly) throw new Error("Cannot use both --same-file-only and --cross-file-only");
@@ -233,9 +307,11 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
 
     if (raw.dryRun) {
       const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), { cwd, ...(maxPairs !== undefined ? { maxPairs } : {}) });
-      const batches = batchPairs(snippets, { pairsPerRequest });
-      const tokens = snippets.reduce((sum, s) => sum + s.tokens, 0);
-      io.log(`${snippets.length} pairs, ${batches.length} requests, ${tokens} tokens`);
+      const batches = batchPairs(snippets, { pairsPerRequest, budgetTokens });
+      const stateTokens = estimateTokens(buildState(path.basename(path.resolve(cwd)), raw.conventions !== undefined ? { conventions: raw.conventions } : {}));
+      const tokens = (snippets.reduce((sum, s) => sum + s.tokens, 0) + batches.length * stateTokens) * repeat;
+      const requests = batches.length * repeat;
+      io.log(`${snippets.length} pairs, ${requests} requests, ${tokens} tokens, ~$${((tokens / 1_000_000) * USD_PER_MILLION_INPUT_TOKENS).toFixed(4)}${repeat > 1 ? ` (${repeat} passes)` : ""}`);
       for (const warning of detection.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
       const failed = unreadable.filter((pair) => pair.reason === "unreadable");
       if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
@@ -244,6 +320,7 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     }
 
     const cache = raw.cache !== undefined ? await FileJudgeCache.load(path.resolve(cwd, raw.cache)) : undefined;
+    if (cache !== undefined && cache.dropped > 0) io.error(`${raw.cache}: ${cache.dropped} entries from an older version were dropped; the answers will be asked again`);
     const client =
       run.client ??
       lazyClient(
@@ -257,30 +334,20 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
       );
     const judged = await judgeReport(detection, client, {
       cwd,
-      includeRejected: raw.all,
-      minScore,
+      ...decideOptions,
       concurrency,
       pairsPerRequest,
+      budgetTokens,
+      retries,
+      repeat,
+      ...(raw.conventions !== undefined ? { conventions: raw.conventions } : {}),
       ...(maxPairs !== undefined ? { maxPairs } : {}),
       ...(raw.model !== undefined ? { model: raw.model } : {}),
       ...(cache !== undefined ? { cache } : {}),
     });
     if (cache !== undefined && raw.cache !== undefined) await cache.save(path.resolve(cwd, raw.cache));
-
-    const rendered = raw.format === "json" ? formatJsonReport(judged) : formatPrettyReport(judged, cwd);
-    if (raw.output !== undefined) {
-      await fs.mkdir(path.dirname(path.resolve(cwd, raw.output)), { recursive: true });
-      await fs.writeFile(path.resolve(cwd, raw.output), rendered === "" ? "" : `${rendered}\n`, "utf8");
-    } else if (rendered !== "") {
-      io.log(rendered);
-    }
-
-    for (const warning of judged.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
-    for (const reason of ["unreadable", "api"] as const) {
-      const failed = judged.unjudged.filter((pair) => pair.reason === reason);
-      if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
-    }
-    return exitCode(judged, { failOnWarnings: raw.failOnWarnings, failOnDuplicates: raw.failOnDuplicates });
+    if (raw.record !== undefined) await saveRecord(buildRecord(judged, cwd), path.resolve(cwd, raw.record));
+    return await finish(judged, cwd);
   } catch (error) {
     if (error instanceof CommanderError) return error.exitCode;
     io.error(error instanceof Error ? error.message : String(error));

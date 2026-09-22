@@ -1,0 +1,28 @@
+165 judged pairs; 16 at or over 1.90, 25 within 0.25 of it, 11 reported with confidence under 0.50
+  0.00-0.25  ######                                   5
+  0.25-0.50  ######################################## 35
+  0.50-0.75  ##################                       16
+  0.75-1.00  ##############################           26
+  1.00-1.25  ##########################               23
+  1.25-1.50  #########################                22
+  1.50-1.75  ##################                       16
+  1.75-2.00  #############                            11
+  2.00-2.25  ##########                               9
+  2.25-2.50  ##                                       2
+  2.50-2.75                                           0
+  2.75-3.00                                           0
+widest gap 0.17 between 2.28 and 2.46: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.89, lowest at or over it 1.92; confidence median 0.35 (p10 0.02, p90 0.65)
+3 passes: mean spread 0.06, p90 0.12; 2 pairs crossed the cutoff between passes
+
+labels: 30 labeled pairs found (5 merge, 25 keep)
+  at 1.90: precision 0.50, recall 0.60, accuracy 0.83 (tp 3, fp 3, fn 2, tn 22)
+  score        AUC 0.87; fitted cutoff 1.82 (not separable: lowest merge 1.66, highest keep 2.20); at the fit precision 0.57 recall 0.80; 5-fold hold-out accuracy 0.77 (fp 6, fn 1; fold cutoffs 1.66 1.82 1.66 1.82 1.82)
+  same_logic   AUC 0.54; fitted cutoff 0.94 (not separable: lowest merge 0.18, highest keep 0.93); at the fit precision 1.00 recall 0.20; 5-fold hold-out accuracy 0.83 (fp 1, fn 4; fold cutoffs 0.94 0.94 0.94 0.92 0.94)
+  same_concept AUC 0.66; fitted cutoff 0.17 (not separable: lowest merge 0.11, highest keep 0.85); at the fit precision 0.33 recall 0.80; 5-fold hold-out accuracy 0.63 (fp 8, fn 3; fold cutoffs 0.17 0.56 0.17 0.17 0.86)
+  unsure band (confidence < 0.50): 4 of 6 reported; precision 0.50 there, 0.50 for the rest
+  wrong: 2.20 (confidence 0.20, logic 0.70, concept 0.11) labeled keep  packages/remeda/src/endsWith.ts:21:the <-> packages/remeda/src/startsWith.ts:21:the
+  wrong: 2.11 (confidence 0.54, logic 0.77, concept 0.39) labeled keep  packages/remeda/src/find.ts:44:FoundInFixedTuple <-> packages/remeda/src/findLast.ts:37:FoundLastInFixedTuple
+  wrong: 2.04 (confidence 0.04, logic 0.65, concept 0.78) labeled keep  packages/remeda/src/conditional.ts:300:Case <-> packages/remeda/src/conditional.ts:653:Case
+  wrong: 1.82 (confidence 0.55, logic 0.64, concept 0.18) labeled merge  packages/remeda/src/toKebabCase.ts:5:KebabCase <-> packages/remeda/src/toSnakeCase.ts:5:SnakeCase
+  wrong: 1.66 (confidence 0.30, logic 0.18, concept 0.17) labeled merge  packages/remeda/src/sortedIndexBy.ts:37:the <-> packages/remeda/src/sortedLastIndexBy.ts:37:the

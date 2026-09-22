@@ -1,0 +1,26 @@
+596 judged pairs; 31 at or over 1.90, 56 within 0.25 of it, 22 reported with confidence under 0.50
+  0.00-0.25  ###                                      14
+  0.25-0.50  ###########                              44
+  0.50-0.75  ############################             114
+  0.75-1.00  ######################################## 162
+  1.00-1.25  ###########################              110
+  1.25-1.50  ##############                           58
+  1.50-1.75  ###########                              45
+  1.75-2.00  #######                                  30
+  2.00-2.25  ##                                       9
+  2.25-2.50  #                                        5
+  2.50-2.75  #                                        4
+  2.75-3.00                                           1
+widest gap 0.14 between 2.36 and 2.50: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.89, lowest at or over it 1.90; confidence median 0.20 (p10 0.00, p90 0.56)
+
+labels: 38 labeled pairs found (9 merge, 29 keep)
+  at 1.90: precision 0.73, recall 0.89, accuracy 0.89 (tp 8, fp 3, fn 1, tn 26)
+  score        AUC 0.94; fitted cutoff 1.96 (not separable: lowest merge 1.66, highest keep 2.36); at the fit precision 0.73 recall 0.89; 5-fold hold-out accuracy 0.84 (fp 4, fn 2; fold cutoffs 1.96 1.96 1.96 2.14 1.66)
+  same_logic   AUC 0.70; fitted cutoff 0.98 (not separable: lowest merge 0.13, highest keep 0.97); at the fit precision 1.00 recall 0.44; 5-fold hold-out accuracy 0.87 (fp 0, fn 5; fold cutoffs 0.98 0.98 0.98 0.98 0.98)
+  same_concept AUC 0.84; fitted cutoff 0.67 (not separable: lowest merge 0.17, highest keep 0.90); at the fit precision 0.58 recall 0.78; 5-fold hold-out accuracy 0.79 (fp 4, fn 4; fold cutoffs 0.85 0.88 0.67 0.67 0.67)
+  unsure band (confidence < 0.50): 8 of 11 reported; precision 0.63 there, 1.00 for the rest
+  wrong: 2.36 (confidence 0.36, logic 0.88, concept 0.90) labeled keep  src/compat/function/partial.ts:243:(fragment) <-> src/function/partial.ts:597:(fragment)
+  wrong: 2.29 (confidence 0.29, logic 0.68, concept 0.83) labeled keep  src/compat/function/partialRight.ts:19:the <-> src/function/partialRight.ts:35:the
+  wrong: 2.02 (confidence 0.02, logic 0.59, concept 0.85) labeled keep  src/compat/function/partial.ts:17:(fragment) <-> src/function/partial.ts:110:(fragment)
+  wrong: 1.66 (confidence 0.48, logic 0.30, concept 0.24) labeled merge  src/array/fill.ts:115:fill <-> src/array/toFilled.ts:106:toFilled

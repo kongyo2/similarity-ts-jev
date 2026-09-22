@@ -1,0 +1,16 @@
+2.46? copy     packages/remeda/src/groupByProp.ts:68 FixEmptyObject <-> packages/remeda/src/omit.ts:83 FixEmpty
+2.28? extract  packages/remeda/src/toKebabCase.ts:68-73 toKebabCaseImplementation <-> packages/remeda/src/toSnakeCase.ts:68-73 toSnakeCaseImplementation
+2.20? extract  packages/remeda/src/endsWith.ts:21-230 the <-> packages/remeda/src/startsWith.ts:21-230 the
+2.17? copy     packages/remeda/src/conditional.ts:348-372 Case <-> packages/remeda/src/conditional.ts:700-722 Case
+2.11~ extract  packages/remeda/src/find.ts:44-62 FoundInFixedTuple <-> packages/remeda/src/findLast.ts:37-55 FoundLastInFixedTuple
+2.11? extract  packages/remeda/src/toKebabCase.ts:5-73 toKebabCase <-> packages/remeda/src/toSnakeCase.ts:5-73 toKebabCase
+2.10~ extract  packages/remeda/src/sortedIndexBy.ts:91-105 valueFunction <-> packages/remeda/src/sortedLastIndexBy.ts:93-110 valueFunction
+2.09? extract  packages/remeda/src/partialBind.ts:13-36 RemovePrefix <-> packages/remeda/src/partialLastBind.ts:13-36 RemoveSuffix
+2.04? copy     packages/remeda/src/conditional.ts:300-322 Case <-> packages/remeda/src/conditional.ts:653-673 Case
+2.04? extract  packages/remeda/src/endsWith.ts:23-38 IsDisjointSuffix <-> packages/remeda/src/startsWith.ts:23-38 IsDisjointPrefix
+2.02? extract  packages/remeda/src/toCamelCase.ts:108-136 dataOrOptions <-> packages/remeda/src/toTitleCase.ts:125-152 dataOrOptions
+1.99~ extract  packages/remeda/src/omitBy.ts:19-34 PartialEnumerableKeys <-> packages/remeda/src/pickBy.ts:11-26 EnumeratedPartial
+1.97~ extract  packages/remeda/src/difference.ts:45-62 remaining <-> packages/remeda/src/intersection.ts:52-69 remaining
+1.96~ extract  packages/remeda/src/addProp.ts:56-62 addPropImplementation <-> packages/remeda/src/set.ts:50-56 setImplementation
+1.93! copy     packages/remeda/src/conditional.ts:256-276 Case <-> packages/remeda/src/conditional.ts:610-628 Case
+1.92? extract  packages/remeda/src/dropLastWhile.ts:44-50 predicate <-> packages/remeda/src/takeLastWhile.ts:63-69 predicate

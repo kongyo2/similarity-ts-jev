@@ -1,0 +1,163 @@
+{
+  "src/compat/_internal/GetFieldType.ts:9:GetFieldTypeOfStringByKey <-> src/types/Merge.ts:48:GetFieldTypeOfStringByKey": {
+    "merge": false,
+    "note": "different type-level utilities"
+  },
+  "src/compat/function/curry.ts:4:CurriedFunction1 <-> src/compat/function/curry.ts:43:CurriedFunction5": {
+    "merge": false,
+    "note": "arity-specific curried interfaces"
+  },
+  "src/bigint/clamp.ts:15:(fragment) <-> src/bigint/range.ts:26:(fragment)": {
+    "merge": false,
+    "note": "bigint clamp vs range: different operations"
+  },
+  "src/math/clamp.ts:14:the <-> src/math/inRange.ts:12:the": {
+    "merge": false,
+    "note": "clamp vs inRange: different operations"
+  },
+  "src/server/colors/blueBright.ts:14:blueBright <-> src/server/colors/yellowBright.ts:14:yellowBright": {
+    "merge": false,
+    "note": "per-color one-liners over a shared wrapAnsi"
+  },
+  "src/array/unzip.ts:40:Unzip <-> src/fp/array/unzip.ts:3:Unzip": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "identical type alias copied into fp/"
+  },
+  "src/server/colors/greenBright.ts:14:greenBright <-> src/server/colors/red.ts:14:red": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/compat/function/partialRight.ts:19:the <-> src/function/partialRight.ts:35:the": {
+    "merge": false,
+    "note": "compat layer is deliberately separate"
+  },
+  "src/array/fill.ts:115:fill <-> src/array/toFilled.ts:106:toFilled": {
+    "merge": true,
+    "shape": "derive",
+    "note": "toFilled is fill on a copy"
+  },
+  "src/compat/_internal/ObjectIteratee.ts:6:ObjectIterateeCustom <-> src/compat/_internal/ObjectIterateeCustom.ts:4:ObjectIterateeCustom": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "ObjectIterateeCustom defined twice in _internal"
+  },
+  "src/compat/function/curry.ts:4:CurriedFunction1 <-> src/compat/function/curryRight.ts:14:RightCurriedFunction3": {
+    "merge": false,
+    "note": "arity-specific curried interfaces"
+  },
+  "src/server/colors/cyan.ts:14:cyan <-> src/server/colors/yellow.ts:14:yellow": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/compat/math/random.ts:39:random <-> src/compat/math/range.ts:21:random": {
+    "merge": false,
+    "note": "random vs range overloads"
+  },
+  "src/server/colors/bgGreenBright.ts:14:bgGreenBright <-> src/server/colors/bgRed.ts:14:bgRed": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/server/colors/bgCyanBright.ts:14:bgCyanBright <-> src/server/colors/bgGreen.ts:14:bgGreen": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/compat/predicate/isLength.ts:22:isLength <-> src/predicate/isLength.ts:22:isLength": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "compat isLength is a verbatim copy with identical docs; re-export"
+  },
+  "src/server/colors/magentaBright.ts:14:magentaBright <-> src/server/colors/whiteBright.ts:14:whiteBright": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/compat/function/curry.ts:25:CurriedFunction4 <-> src/compat/function/curryRight.ts:42:RightCurriedFunction5": {
+    "merge": false,
+    "note": "arity-specific curried interfaces"
+  },
+  "src/object/toConstantCaseKeys.ts:52:ToConstantCaseKeys <-> src/object/toKebabCaseKeys.ts:52:ToConstantCaseKeys": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "four toXCaseKeys implementations identical except the case function"
+  },
+  "src/server/colors/blue.ts:14:blue <-> src/server/colors/yellowBright.ts:14:yellowBright": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/types/ToCamelCaseKeys.ts:30:ToCamelCaseKeys <-> src/types/ToSnakeCaseKeys.ts:26:ToSnakeCaseKeys": {
+    "merge": false,
+    "note": "ToCamelCaseKeys/ToSnakeCaseKeys cannot be parameterized on a type-level function"
+  },
+  "src/compat/function/curry.ts:9:CurriedFunction2 <-> src/compat/function/curryRight.ts:42:RightCurriedFunction5": {
+    "merge": false,
+    "note": "arity-specific curried interfaces"
+  },
+  "src/server/colors/green.ts:14:green <-> src/server/colors/yellowBright.ts:14:yellowBright": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/server/colors/magenta.ts:14:magenta <-> src/server/colors/yellow.ts:14:yellow": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/map/mapKeys.ts:28:mapKeys <-> src/set/keyBy.ts:28:keyBy": {
+    "merge": false,
+    "note": "Map mapKeys vs Set keyBy"
+  },
+  "src/compat/function/curryRight.ts:145:wrapper <-> src/compat/function/curryRight.ts:168:wrapper": {
+    "merge": true,
+    "shape": "derive",
+    "note": "curryRight wrapper is the makeCurryRight wrapper with empty partial args"
+  },
+  "src/server/colors/bgWhiteBright.ts:14:bgWhiteBright <-> src/server/colors/bgYellowBright.ts:14:bgYellowBright": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/bigint/inRange.ts:46:inRange <-> src/math/inRange.ts:42:inRange": {
+    "merge": false,
+    "note": "bigint and number modules are a deliberate parallel API"
+  },
+  "src/fp/array/flatMapDeep.ts:36:emitDeep <-> src/fp/array/flattenDeep.ts:31:emitDeep": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "private emitDeep helper duplicated in two fp modules"
+  },
+  "src/server/colors/red.ts:14:red <-> src/server/colors/white.ts:14:white": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/compat/function/partial.ts:243:(fragment) <-> src/function/partial.ts:597:(fragment)": {
+    "merge": false,
+    "note": "compat layer is deliberately separate"
+  },
+  "src/server/colors/green.ts:14:green <-> src/server/colors/magenta.ts:14:magenta": {
+    "merge": false,
+    "note": "per-color one-liners"
+  },
+  "src/promise/timeout.ts:3:TimeoutOptions <-> src/promise/withTimeout.ts:3:WithTimeoutOptions": {
+    "merge": false,
+    "note": "tiny sibling option interfaces"
+  },
+  "src/fp/flowAsync.ts:96:Awaited <-> src/fp/flowAsync.ts:328:Awaited": {
+    "merge": false,
+    "note": "generated-style overloads"
+  },
+  "src/compat/function/partial.ts:17:(fragment) <-> src/function/partial.ts:110:(fragment)": {
+    "merge": false,
+    "note": "compat layer is deliberately separate"
+  },
+  "src/fp/pipe.ts:108:(fragment) <-> src/fp/pipe.ts:356:(fragment)": {
+    "merge": false,
+    "note": "generated-style overloads"
+  },
+  "src/compat/predicate/isNull.ts:12:isNull <-> src/predicate/isNull.ts:21:isNull": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "compat isNull is the predicate isNull; re-export"
+  },
+  "src/compat/predicate/isFunction.ts:14:isFunction <-> src/predicate/isFunction.ts:14:isFunction": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "compat isFunction is a verbatim copy with identical docs; re-export"
+  }
+}

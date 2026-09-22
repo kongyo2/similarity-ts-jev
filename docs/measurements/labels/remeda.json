@@ -1,0 +1,127 @@
+{
+  "packages/remeda/src/toCamelCase.ts:108:dataOrOptions <-> packages/remeda/src/toTitleCase.ts:125:dataOrOptions": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "toCamelCase/toTitleCase repeat the words()+lowercase pipeline; borderline"
+  },
+  "packages/remeda/src/entries.ts:12:entries <-> packages/remeda/src/keys.ts:52:entries": {
+    "merge": false,
+    "note": "entries vs keys: distinct public operations sharing the purry wrapper shape"
+  },
+  "packages/remeda/src/findLast.ts:144:(fragment) <-> packages/remeda/src/objOf.ts:26:(fragment)": {
+    "merge": false,
+    "note": "purry wrappers of different functions"
+  },
+  "packages/remeda/src/difference.ts:40:difference <-> packages/remeda/src/uniqueWith.ts:54:uniqueWith": {
+    "merge": false,
+    "note": "purryFromLazy wrappers of different functions"
+  },
+  "packages/remeda/src/dropLastWhile.ts:37:dropLastWhileImplementation <-> packages/remeda/src/dropWhile.ts:37:dropLastWhileImplementation": {
+    "merge": false,
+    "note": "dropWhile vs dropLastWhile wrappers; implementations differ in direction"
+  },
+  "packages/remeda/src/find.ts:24:the <-> packages/remeda/src/findLast.ts:17:the": {
+    "merge": false,
+    "note": "find/findLast mirror-image type machinery; unifying would read worse"
+  },
+  "packages/remeda/src/sortedIndexBy.ts:91:valueFunction <-> packages/remeda/src/sortedLastIndexBy.ts:93:valueFunction": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "sortedIndexBy vs sortedLastIndexBy differ only in < vs <=; the comment says so"
+  },
+  "packages/remeda/src/mapKeys.ts:81:Key <-> packages/remeda/src/mapValues.ts:50:Key": {
+    "merge": false,
+    "note": "mapKeys vs mapValues wrappers"
+  },
+  "packages/remeda/src/mapKeys.ts:93:mapKeysImplementation <-> packages/remeda/src/mapToObj.ts:80:mapToObjImplementation": {
+    "merge": false,
+    "note": "object-building loops over different inputs"
+  },
+  "packages/remeda/src/isStrictEqual.ts:70:(fragment) <-> packages/remeda/src/sortedIndex.ts:24:(fragment)": {
+    "merge": false,
+    "note": "unrelated purry wrappers"
+  },
+  "packages/remeda/src/toKebabCase.ts:5:KebabCase <-> packages/remeda/src/toSnakeCase.ts:5:SnakeCase": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "KebabCase/SnakeCase differ only in the delimiter"
+  },
+  "packages/remeda/src/fromKeys.ts:72:fromKeysImplementation <-> packages/remeda/src/indexBy.ts:52:fromKeysImplementation": {
+    "merge": false,
+    "note": "fromKeys vs indexBy wrappers"
+  },
+  "packages/remeda/src/findLast.ts:145:findLastImplementation <-> packages/remeda/src/partition.ts:87:findLastImplementation": {
+    "merge": false,
+    "note": "findLast vs partition wrappers"
+  },
+  "packages/remeda/src/findIndex.ts:53:findIndexImplementation <-> packages/remeda/src/findLastIndex.ts:53:findIndexImplementation": {
+    "merge": false,
+    "note": "findIndex vs findLastIndex wrappers"
+  },
+  "packages/remeda/src/endsWith.ts:21:the <-> packages/remeda/src/startsWith.ts:21:the": {
+    "merge": false,
+    "note": "endsWith/startsWith mirror-image type machinery; unifying would read worse"
+  },
+  "packages/remeda/src/omitBy.ts:160:omitByImplementation <-> packages/remeda/src/pickBy.ts:185:omitByImplementation": {
+    "merge": false,
+    "note": "omitBy vs pickBy wrappers"
+  },
+  "packages/remeda/src/difference.ts:21:difference <-> packages/remeda/src/sortedIndex.ts:24:difference": {
+    "merge": false,
+    "note": "difference vs sortedIndex wrappers"
+  },
+  "packages/remeda/src/set.ts:41:setImplementation <-> packages/remeda/src/swapProps.ts:40:setImplementation": {
+    "merge": false,
+    "note": "set vs swapProps wrappers"
+  },
+  "packages/remeda/src/prop.ts:176:(fragment) <-> packages/remeda/src/prop.ts:403:(fragment)": {
+    "merge": false,
+    "note": "generated-style overloads"
+  },
+  "packages/remeda/src/unique.ts:40:unique <-> packages/remeda/src/uniqueBy.ts:52:uniqueBy": {
+    "merge": false,
+    "note": "unique vs uniqueBy wrappers"
+  },
+  "packages/remeda/src/find.ts:44:FoundInFixedTuple <-> packages/remeda/src/findLast.ts:37:FoundLastInFixedTuple": {
+    "merge": false,
+    "note": "find/findLast mirror types"
+  },
+  "packages/remeda/src/prop.ts:175:(fragment) <-> packages/remeda/src/prop.ts:397:(fragment)": {
+    "merge": false,
+    "note": "generated-style overloads"
+  },
+  "packages/remeda/src/conditional.ts:300:Case <-> packages/remeda/src/conditional.ts:653:Case": {
+    "merge": false,
+    "note": "generated-style overloads"
+  },
+  "packages/remeda/src/difference.ts:40:difference <-> packages/remeda/src/mapWithFeedback.ts:69:mapWithFeedback": {
+    "merge": false,
+    "note": "difference vs mapWithFeedback wrappers"
+  },
+  "packages/remeda/src/clone.ts:92:deepCloneObject <-> packages/remeda/src/clone.ts:110:deepCloneArray": {
+    "merge": false,
+    "note": "deepCloneObject vs deepCloneArray: different containers"
+  },
+  "packages/remeda/src/toKebabCase.ts:5:toKebabCase <-> packages/remeda/src/toSnakeCase.ts:5:toKebabCase": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "toKebabCase/toSnakeCase modules differ only in the delimiter"
+  },
+  "packages/remeda/src/endsWith.ts:42:IsGuaranteedSuffix <-> packages/remeda/src/startsWith.ts:42:IsGuaranteedPrefix": {
+    "merge": false,
+    "note": "mirror-image types"
+  },
+  "packages/remeda/src/indexBy.ts:59:indexByImplementation <-> packages/remeda/src/mapToObj.ts:80:mapToObjImplementation": {
+    "merge": false,
+    "note": "indexBy vs mapToObj loops with different mapper contracts"
+  },
+  "packages/remeda/src/omitBy.ts:51:ExactProps <-> packages/remeda/src/pickBy.ts:54:ExactProps": {
+    "merge": false,
+    "note": "ExactProps variants differ in Exclude vs Extract and key mapping"
+  },
+  "packages/remeda/src/sortedIndexBy.ts:37:the <-> packages/remeda/src/sortedLastIndexBy.ts:37:the": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "sortedIndexBy vs sortedLastIndexBy modules; implementations differ only in < vs <="
+  }
+}

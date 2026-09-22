@@ -1,0 +1,23 @@
+2207 judged pairs; 82 at or over 1.90, 113 within 0.25 of it, 43 reported with confidence under 0.50
+  0.00-0.25  ###                                      54
+  0.25-0.50  ###############                          260
+  0.50-0.75  ######################################## 683
+  0.75-1.00  ###############################          521
+  1.00-1.25  ################                         281
+  1.25-1.50  ###########                              190
+  1.50-1.75  #####                                    93
+  1.75-2.00  ###                                      58
+  2.00-2.25  ##                                       32
+  2.25-2.50  #                                        20
+  2.50-2.75  #                                        12
+  2.75-3.00                                           3
+widest gap 0.15 between 2.79 and 2.94: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.89, lowest at or over it 1.90; confidence median 0.34 (p10 0.06, p90 0.57)
+3 passes: mean spread 0.07, p90 0.14; 13 pairs crossed the cutoff between passes
+
+labels: 32 labeled pairs found (13 merge, 19 keep)
+  at 1.90: precision 1.00, recall 1.00, accuracy 1.00 (tp 13, fp 0, fn 0, tn 19)
+  score        AUC 1.00; fitted cutoff 1.77 (separable: lowest merge 1.92, highest keep 1.63); at the fit precision 1.00 recall 1.00; 5-fold hold-out accuracy 1.00 (fp 0, fn 0; fold cutoffs 1.76 1.77 1.90 1.77 1.77)
+  same_logic   AUC 0.86; fitted cutoff 0.86 (not separable: lowest merge 0.86, highest keep 0.97); at the fit precision 0.62 recall 1.00; 5-fold hold-out accuracy 0.72 (fp 8, fn 1; fold cutoffs 0.86 0.86 0.87 0.86 0.86)
+  same_concept AUC 0.86; fitted cutoff 0.29 (not separable: lowest merge 0.29, highest keep 0.87); at the fit precision 0.62 recall 1.00; 5-fold hold-out accuracy 0.72 (fp 8, fn 1; fold cutoffs 0.29 0.29 0.36 0.29 0.29)
+  unsure band (confidence < 0.50): 5 of 13 reported; precision 1.00 there, 1.00 for the rest

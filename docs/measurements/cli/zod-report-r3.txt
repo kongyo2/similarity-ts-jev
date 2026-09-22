@@ -1,0 +1,260 @@
+2.81  copy     packages/zod/src/v3/types.ts:4855-4865 MakeReadonly <-> packages/zod/src/v4/core/util.ts:178-188 MakeReadonly
+2.80  copy     packages/zod/src/v4/core/compile.ts:1780-1787 getTupleOptStart <-> packages/zod/src/v4/core/schemas.ts:3101-3108 getTupleOptStart
+2.75  copy     packages/zod/src/v4/classic/in-out.ts:11-15 withChecks <-> packages/zod/src/v4/mini/in-out.ts:11-15 withChecks
+2.74  copy     packages/zod/src/v4/classic/schemas.ts:1568-1576 SafeExtendShape <-> packages/zod/src/v4/mini/schemas.ts:971-979 SafeExtendShape
+2.70  copy
+      packages/zod/src/v3/types.ts:4116-4122 enum
+      packages/zod/src/v3/types.ts:4124-4130 Values
+      packages/zod/src/v3/types.ts:4132-4138 Enum
+2.68  copy     packages/zod/src/v4/locales/be.ts:5-23 getBelarusianPlural <-> packages/zod/src/v4/locales/ru.ts:5-23 getRussianPlural
+2.61  copy     packages/zod/src/v4/core/schemas.ts:3278-3299 issues <-> packages/zod/src/v4/core/schemas.ts:3368-3392 issues
+2.58  copy     packages/zod/src/v3/helpers/util.ts:73-78 jsonStringifyReplacer <-> packages/zod/src/v4/core/util.ts:288-291 jsonStringifyReplacer
+2.54  copy     packages/zod/src/v4/classic/in-out.ts:23-25 inSide <-> packages/zod/src/v4/mini/in-out.ts:23-25 inSide
+2.54  extract  packages/zod/src/v4/classic/in-out.ts:7-28 (fragment) <-> packages/zod/src/v4/mini/in-out.ts:7-28 (fragment)
+2.52  extract  packages/zod/src/v4/locales/fr-CA.ts:96-120 invalide <-> packages/zod/src/v4/locales/fr.ts:112-138 invalide
+2.51  copy
+      packages/zod/src/v4/core/compile.ts:1165-1168 generateUndefinedCheck
+      packages/zod/src/v4/core/compile.ts:1170-1173 generateNullCheck
+      packages/zod/src/v4/core/compile.ts:1175-1178 generateVoidCheck
+2.51  extract
+      packages/zod/src/v4/classic/in-out.ts:28-36 input
+      packages/zod/src/v4/classic/in-out.ts:39-45 rewritten
+      packages/zod/src/v4/mini/in-out.ts:28-36 input
+      packages/zod/src/v4/mini/in-out.ts:39-45 rewritten
+2.51  copy     packages/zod/src/v4/classic/schemas.ts:54-68 core <-> packages/zod/src/v4/mini/schemas.ts:15-28 core
+2.50  copy     packages/zod/src/v4/core/schemas.ts:1847-1852 handleArrayResult <-> packages/zod/src/v4/core/schemas.ts:3110-3115 handleTupleResult
+2.48? copy     packages/zod/src/v3/helpers/util.ts:2 util.AssertEqual <-> packages/zod/src/v4/core/util.ts:86 AssertEqual
+2.45? copy     packages/zod/src/v4/classic/schemas.ts:33 ZodStandardSchemaWithJSON <-> packages/zod/src/v4/core/to-json-schema.ts:826 ZodStandardSchemaWithJSON
+2.42? copy     packages/zod/src/v3/types.ts:4846-4853 BuiltIn <-> packages/zod/src/v4/core/util.ts:170-177 BuiltIn
+2.40? copy
+      packages/zod/src/v3/types.ts:1319-1327 maxLength
+      packages/zod/src/v3/types.ts:1587-1595 maxValue
+      packages/zod/src/v3/types.ts:1810-1818 maxValue
+      packages/zod/src/v3/types.ts:1977-1986 max
+2.38? copy
+      packages/zod/src/v4/core/parse.ts:24-28 _ctx
+      packages/zod/src/v4/core/parse.ts:72-76 _ctx
+      packages/zod/src/v4/core/parse.ts:111-117 _safeParseAsync
+2.37? copy     packages/zod/src/v4/locales/pt-BR.ts:130-160 (fragment) <-> packages/zod/src/v4/locales/pt.ts:128-158 (fragment)
+2.37? extract  packages/zod/src/v4/core/schemas.ts:4048-4063 (fragment) <-> packages/zod/src/v4/core/schemas.ts:4115-4129 (fragment)
+2.37? copy     packages/zod/src/v4/classic/in-out.ts:18-20 outSide <-> packages/zod/src/v4/mini/in-out.ts:18-20 outSide
+2.34? extract  packages/zod/src/v4/core/errors.ts:352-365 issue <-> packages/zod/src/v4/core/errors.ts:424-439 issue
+2.34  extract  packages/zod/src/v4/core/to-json-schema.ts:618-626 refSeen <-> packages/zod/src/v4/core/to-json-schema.ts:637-645 refSeen
+2.33? extract  packages/zod/src/v4/locales/pt-BR.ts:6-43 unit <-> packages/zod/src/v4/locales/pt.ts:6-43 unit
+2.33? copy     packages/zod/src/v3/types.ts:3631-3641 status <-> packages/zod/src/v3/types.ts:3647-3657 status
+2.32? copy
+      packages/zod/src/v3/types.ts:1309-1317 minLength
+      packages/zod/src/v3/types.ts:1577-1585 minValue
+      packages/zod/src/v3/types.ts:1800-1808 minValue
+      packages/zod/src/v3/types.ts:1966-1975 min
+2.32? extract
+      packages/zod/src/v4/locales/ar.ts:5-114 error
+      packages/zod/src/v4/locales/az.ts:5-110 error
+      packages/zod/src/v4/locales/bg.ts:5-127 error
+      packages/zod/src/v4/locales/ca.ts:5-115 error
+      packages/zod/src/v4/locales/el.ts:5-118 error
+      packages/zod/src/v4/locales/eo.ts:5-117 error
+      packages/zod/src/v4/locales/fr-CA.ts:5-115 error
+      packages/zod/src/v4/locales/hu.ts:5-116 error
+      packages/zod/src/v4/locales/id.ts:5-114 error
+      packages/zod/src/v4/locales/is.ts:5-118 error
+      packages/zod/src/v4/locales/it.ts:5-115 error
+      packages/zod/src/v4/locales/ka.ts:5-122 error
+      packages/zod/src/v4/locales/mk.ts:5-117 error
+      packages/zod/src/v4/locales/ms.ts:5-114 error
+      packages/zod/src/v4/locales/nn.ts:5-115 error
+      packages/zod/src/v4/locales/no.ts:5-115 error
+      packages/zod/src/v4/locales/pl.ts:5-117 error
+      packages/zod/src/v4/locales/sl.ts:5-117 error
+      packages/zod/src/v4/locales/sv.ts:5-118 error
+      packages/zod/src/v4/locales/tr.ts:5-110 error
+      packages/zod/src/v4/locales/uk.ts:5-116 error
+      packages/zod/src/v4/locales/uz.ts:5-114 error
+      packages/zod/src/v4/locales/vi.ts:5-116 error
+      packages/zod/src/v4/locales/zh-CN.ts:5-115 error
+      packages/zod/src/v4/locales/zh-TW.ts:5-114 error
+2.31? copy     packages/zod/src/v4/locales/pt-BR.ts:89-95 translateOriginWithArticle <-> packages/zod/src/v4/locales/pt.ts:89-95 translateOriginWithArticle
+2.30? extract  packages/zod/src/v4/locales/cs.ts:5-117 error <-> packages/zod/src/v4/locales/sk.ts:5-117 error
+2.29  extract  packages/zod/src/v4/core/compile.ts:690-698 resVar <-> packages/zod/src/v4/core/compile.ts:2226-2234 resVar
+2.29? extract  packages/zod/src/v4/locales/pt-BR.ts:97-154 issue <-> packages/zod/src/v4/locales/pt.ts:97-152 issue
+2.29? derive   packages/zod/src/v4/classic/compat.ts:38-40 BRAND <-> packages/zod/src/v4/core/core.ts:149-151 $brand
+2.28? extract  packages/zod/src/v3/types.ts:3249-3257 (fragment) <-> packages/zod/src/v4/core/schemas.ts:2841-2850 (fragment)
+2.28? copy     packages/zod/src/v4/locales/nn.ts:104-120 (fragment) <-> packages/zod/src/v4/locales/no.ts:104-120 (fragment)
+2.28? copy     packages/zod/src/v3/helpers/util.ts:105-107 objectUtil.noNeverKeys <-> packages/zod/src/v4/core/util.ts:198-200 NoNeverKeys
+2.25? extract  packages/zod/src/v4/locales/pt-BR.ts:45-79 (fragment) <-> packages/zod/src/v4/locales/pt.ts:45-79 (fragment)
+2.25? copy     packages/zod/src/v4/core/util.ts:219 KeyOf <-> packages/zod/src/v4/core/util.ts:226 Keys
+2.22? copy     packages/zod/src/v3/helpers/util.ts:14 util.Exactly <-> packages/zod/src/v4/core/util.ts:147 Exactly
+2.22  extract  packages/zod/src/v4/core/compile.ts:2185-2197 (fragment) <-> packages/zod/src/v4/core/compile.ts:2286-2301 (fragment)
+2.21? extract  packages/zod/src/v4/classic/schemas.ts:1096-1107 (fragment) <-> packages/zod/src/v4/mini/schemas.ts:583-595 (fragment)
+2.19  extract  packages/zod/src/v4/core/compile.ts:2197-2205 (fragment) <-> packages/zod/src/v4/core/compile.ts:2301-2309 (fragment)
+2.19? derive   packages/zod/src/v4/core/api.ts:1734-1742 (fragment) <-> packages/zod/src/v4/mini/schemas.ts:1879-1887 (fragment)
+2.18? extract
+      packages/zod/src/v4/locales/de.ts:5-115 error
+      packages/zod/src/v4/locales/fa.ts:5-125 error
+      packages/zod/src/v4/locales/ota.ts:5-116 error
+      packages/zod/src/v4/locales/ps.ts:5-125 error
+      packages/zod/src/v4/locales/ta.ts:5-117 error
+2.18  extract  packages/zod/src/v3/ZodError.ts:239-260 _errors <-> packages/zod/src/v4/core/errors.ts:370-392 _errors
+2.17? copy     packages/zod/src/v4/classic/schemas.ts:2825-2830 superRefine <-> packages/zod/src/v4/mini/schemas.ts:1909-1914 superRefine
+2.17  extract  packages/zod/src/v4/classic/from-json-schema.ts:743-753 zodSchema <-> packages/zod/src/v4/classic/from-json-schema.ts:758-768 zodSchema
+2.16? extract
+      packages/zod/src/v4/core/json-schema-processors.ts:731-736 nonoptionalProcessor
+      packages/zod/src/v4/core/json-schema-processors.ts:760-764 (fragment)
+      packages/zod/src/v4/core/json-schema-processors.ts:769-773 (fragment)
+      packages/zod/src/v4/core/json-schema-processors.ts:779-783 (fragment)
+      packages/zod/src/v4/core/json-schema-processors.ts:803-809 (fragment)
+      packages/zod/src/v4/core/json-schema-processors.ts:811-816 (fragment)
+      packages/zod/src/v4/core/json-schema-processors.ts:818-823 optionalProcessor
+2.14~ extract  packages/zod/src/v4/core/compile.ts:1290-1295 knownSet <-> packages/zod/src/v4/core/compile.ts:1323-1330 knownSet
+2.14? extract  packages/zod/src/v4/classic/schemas.ts:1066-1106 core <-> packages/zod/src/v4/mini/schemas.ts:546-594 core
+2.14? copy     packages/zod/src/v3/helpers/util.ts:4 util.isAny <-> packages/zod/src/v4/core/util.ts:141 IsAny
+2.13? extract
+      packages/zod/src/v3/types.ts:1306-1329 ch
+      packages/zod/src/v3/types.ts:1573-1594 ch
+      packages/zod/src/v3/types.ts:1796-1817 ch
+2.13~ extract  packages/zod/src/v4/core/schemas.ts:2489-2517 payload <-> packages/zod/src/v4/core/schemas.ts:2572-2599 payload
+2.13? extract  packages/zod/src/v4/locales/nn.ts:11-38 (fragment) <-> packages/zod/src/v4/locales/no.ts:11-38 (fragment)
+2.12~ extract  packages/zod/src/v4/core/schemas.ts:3638-3650 payload <-> packages/zod/src/v4/core/schemas.ts:3697-3712 payload
+2.12~ extract
+      packages/zod/src/v3/types.ts:734-746 parsedType
+      packages/zod/src/v3/types.ts:1372-1383 parsedType
+      packages/zod/src/v3/types.ts:1838-1849 parsedType
+      packages/zod/src/v3/types.ts:1880-1892 parsedType
+      packages/zod/src/v3/types.ts:2011-2022 parsedType
+      packages/zod/src/v3/types.ts:2046-2056 parsedType
+      packages/zod/src/v3/types.ts:2081-2091 parsedType
+      packages/zod/src/v3/types.ts:2194-2204 parsedType
+      packages/zod/src/v3/types.ts:4703-4714 parsedType
+2.11~ derive
+      packages/zod/src/v4/classic/schemas.ts:2156-2164 _enum
+      packages/zod/src/v4/core/api.ts:1404-1423 _enum
+      packages/zod/src/v4/mini/schemas.ts:1400-1409 (fragment)
+2.11? copy
+      packages/zod/src/v3/helpers/util.ts:11 util.Omit
+      packages/zod/src/v3/helpers/util.ts:12 util.OmitKeys
+      packages/zod/src/v4/core/util.ts:142 Omit
+      packages/zod/src/v4/core/util.ts:143 OmitKeys
+2.11? copy     packages/zod/src/v3/types.ts:4064 typecast <-> packages/zod/src/v4/core/util.ts:88 AssertExtends
+2.10? extract  packages/zod/src/v4/locales/pt-BR.ts:6-155 error <-> packages/zod/src/v4/locales/pt.ts:6-153 error
+2.10? extract  packages/zod/src/v4/core/regexes.ts:14-16 nanoidOfLength <-> packages/zod/src/v4/core/regexes.ts:190-192 fixedBase64url
+2.10~ extract  packages/zod/src/v3/types.ts:687-696 version <-> packages/zod/src/v3/types.ts:720-729 version
+2.10? copy     packages/zod/src/v3/helpers/util.ts:62 util.noUndefined <-> packages/zod/src/v4/core/util.ts:148 NoUndefined
+2.09? extract  packages/zod/src/v4/classic/schemas.ts:1969-1989 valueType <-> packages/zod/src/v4/mini/schemas.ts:1286-1306 valueType
+2.09? copy     packages/zod/src/v3/helpers/util.ts:15 util.InexactPartial <-> packages/zod/src/v4/core/util.ts:166-168 InexactPartial
+2.08? extract
+      packages/zod/src/v4/locales/bn.ts:5-117 error
+      packages/zod/src/v4/locales/gu.ts:5-117 error
+      packages/zod/src/v4/locales/hi.ts:5-120 issue
+      packages/zod/src/v4/locales/kn.ts:5-120 issue
+      packages/zod/src/v4/locales/ne.ts:5-122 issue
+      packages/zod/src/v4/locales/tg.ts:5-129 issue
+      packages/zod/src/v4/locales/tk.ts:20-76 issue
+2.07~ extract  packages/zod/src/v4/core/parse.ts:22-37 _parse <-> packages/zod/src/v4/core/parse.ts:48-61 _parseAsync
+2.07? copy     packages/zod/src/v3/standard-schema.ts:66-75 StandardSchemaV1.Issue <-> packages/zod/src/v4/core/standard-schema.ts:72-77 StandardSchemaV1.Issue
+2.05? extract  packages/zod/src/v4/locales/es.ts:5-139 error <-> packages/zod/src/v4/locales/hr.ts:5-129 error
+2.05? extract  packages/zod/src/v4/core/schemas.ts:2194-2207 (fragment) <-> packages/zod/src/v4/core/schemas.ts:2367-2380 (fragment)
+2.03~ extract
+      packages/zod/src/v3/types.ts:2272-2298 def
+      packages/zod/src/v3/types.ts:2287-2300 (fragment)
+      packages/zod/src/v3/types.ts:3706-3732 def
+2.02~ extract
+      packages/zod/src/v4/core/api.ts:635-646 _int
+      packages/zod/src/v4/core/api.ts:648-659 _float32
+      packages/zod/src/v4/core/api.ts:661-672 _float64
+      packages/zod/src/v4/core/api.ts:674-685 _int32
+      packages/zod/src/v4/core/api.ts:687-698 _uint32
+2.01? copy     packages/zod/src/v3/standard-schema.ts:42-51 StandardSchemaV1.SuccessResult <-> packages/zod/src/v4/core/standard-schema.ts:53-58 StandardSchemaV1.SuccessResult
+2.01? extract
+      packages/zod/src/v4/classic/schemas.ts:2398-2409 defaultValue
+      packages/zod/src/v4/classic/schemas.ts:2428-2439 defaultValue
+      packages/zod/src/v4/core/api.ts:1518-1530 _default
+      packages/zod/src/v4/mini/schemas.ts:1580-1591 defaultValue
+      packages/zod/src/v4/mini/schemas.ts:1606-1617 defaultValue
+2.01~ extract
+      packages/zod/src/v4/core/api.ts:113-124 _guid
+      packages/zod/src/v4/core/api.ts:130-141 _uuid
+      packages/zod/src/v4/core/api.ts:235-246 _nanoid
+      packages/zod/src/v4/core/api.ts:284-295 _cuid2
+      packages/zod/src/v4/core/api.ts:301-312 _ulid
+      packages/zod/src/v4/core/api.ts:318-329 _xid
+      packages/zod/src/v4/core/api.ts:335-346 _ksuid
+2.00~ extract  packages/zod/src/v4/core/schemas.ts:3446-3461 payload <-> packages/zod/src/v4/core/schemas.ts:3558-3571 payload
+2.00~ extract  packages/zod/src/v4/core/compile.ts:1137-1140 generateBooleanCheck <-> packages/zod/src/v4/core/compile.ts:1160-1163 generateSymbolCheck
+2.00? copy     packages/zod/src/v4/core/util.ts:1107-1109 Class <-> packages/zod/src/v4/mini/schemas.ts:1921-1923 Class
+1.99? copy
+      packages/zod/src/v4/locales/ar.ts:14-16 getSizing
+      packages/zod/src/v4/locales/az.ts:14-16 getSizing
+      packages/zod/src/v4/locales/bg.ts:14-16 getSizing
+      packages/zod/src/v4/locales/bn.ts:14-16 getSizing
+      packages/zod/src/v4/locales/ca.ts:14-16 getSizing
+      packages/zod/src/v4/locales/ckb.ts:14-16 getSizing
+      packages/zod/src/v4/locales/cs.ts:14-16 getSizing
+      packages/zod/src/v4/locales/da.ts:14-16 getSizing
+      packages/zod/src/v4/locales/de.ts:14-16 getSizing
+      packages/zod/src/v4/locales/el.ts:14-16 getSizing
+      packages/zod/src/v4/locales/en.ts:14-16 getSizing
+      packages/zod/src/v4/locales/es.ts:13-15 getSizing
+      packages/zod/src/v4/locales/fr-CA.ts:14-16 getSizing
+      packages/zod/src/v4/locales/fr.ts:13-15 getSizing
+      packages/zod/src/v4/locales/is.ts:14-16 getSizing
+      packages/zod/src/v4/locales/ja.ts:14-16 getSizing
+      packages/zod/src/v4/locales/ne.ts:14-16 getSizing
+      packages/zod/src/v4/locales/nn.ts:14-16 getSizing
+      packages/zod/src/v4/locales/ota.ts:14-16 getSizing
+      packages/zod/src/v4/locales/ro.ts:14-16 getSizing
+      packages/zod/src/v4/locales/tg.ts:15-17 getSizing
+      packages/zod/src/v4/locales/th.ts:14-16 getSizing
+      packages/zod/src/v4/locales/tk.ts:14-16 getSizing
+      packages/zod/src/v4/locales/zh-CN.ts:14-16 getSizing
+      packages/zod/src/v4/locales/zh-TW.ts:14-16 getSizing
+1.99? copy     packages/zod/src/v3/helpers/typeAliases.ts:1 Primitive <-> packages/zod/src/v4/core/util.ts:238 Primitive
+1.99? extract  packages/zod/src/v4/locales/be.ts:33-182 issue <-> packages/zod/src/v4/locales/ru.ts:33-182 issue
+1.99? extract  packages/zod/src/v4/classic/schemas.ts:2598-2607 def <-> packages/zod/src/v4/mini/schemas.ts:1764-1773 def
+1.98~ extract  packages/zod/src/v4/core/schemas.ts:3269-3277 (fragment) <-> packages/zod/src/v4/core/schemas.ts:3357-3366 (fragment)
+1.98~ extract  packages/zod/src/v4/classic/deep-partial.ts:67-76 deepPartial <-> packages/zod/src/v4/mini/deep-partial.ts:64-73 deepPartial
+1.98~ extract  packages/zod/src/v4/core/parse.ts:23-35 fn <-> packages/zod/src/v4/core/parse.ts:49-59 fn
+1.97~ extract
+      packages/zod/src/v3/types.ts:2880-2897 create
+      packages/zod/src/v3/types.ts:2899-2910 strictCreate
+      packages/zod/src/v3/types.ts:2912-2923 lazycreate
+1.97~ extract  packages/zod/src/v4/core/schemas.ts:1915-1927 $InferObjectOutput <-> packages/zod/src/v4/core/schemas.ts:1959-1971 $InferObjectInput
+1.97! extract  packages/zod/src/v4/locales/fa.ts:57-83 issue <-> packages/zod/src/v4/locales/ps.ts:57-83 issue
+1.97? copy     packages/zod/src/v4/core/api.ts:1684-1686 $ZodSuperRefineIssue <-> packages/zod/src/v4/core/errors.ts:197 $ZodInternalIssue
+1.96? extract  packages/zod/src/v4/classic/deep-partial.ts:7-64 DeepPartial <-> packages/zod/src/v4/mini/deep-partial.ts:7-61 DeepPartial
+1.96~ extract  packages/zod/src/v3/types.ts:3835-3847 (fragment) <-> packages/zod/src/v3/types.ts:3849-3861 (fragment)
+1.96~ extract  packages/zod/src/v3/types.ts:939-962 (fragment) <-> packages/zod/src/v3/types.ts:963-984 (fragment)
+1.96? copy     packages/zod/src/v4/locales/hr.ts:13-15 getSizing <-> packages/zod/src/v4/locales/hu.ts:14-16 getSizing
+1.95~ extract
+      packages/zod/src/v4/core/api.ts:147-159 _uuidv4
+      packages/zod/src/v4/core/api.ts:165-177 (fragment)
+      packages/zod/src/v4/core/api.ts:183-195 _uuidv7
+1.95~ extract  packages/zod/src/v3/types.ts:4350-4358 (fragment) <-> packages/zod/src/v3/types.ts:4362-4370 (fragment)
+1.95? extract  packages/zod/src/v4/core/json-schema-processors.ts:266-268 anyProcessor <-> packages/zod/src/v4/core/json-schema-processors.ts:270-272 unknownProcessor
+1.94~ extract  packages/zod/src/v4/core/compile.ts:515-523 generateGreaterThanCheck <-> packages/zod/src/v4/core/compile.ts:525-533 generateLessThanCheck
+1.94? extract  packages/zod/src/v4/classic/schemas.ts:2147-2179 ZodEnum <-> packages/zod/src/v4/mini/schemas.ts:1390-1424 ZodEnum
+1.94? extract  packages/zod/src/v4/classic/schemas.ts:2203-2223 (fragment) <-> packages/zod/src/v4/mini/schemas.ts:1436-1458 (fragment)
+1.94~ extract  packages/zod/src/v4/core/compile.ts:1382-1393 outputVar <-> packages/zod/src/v4/core/compile.ts:1543-1555 outputVar
+1.93~ extract  packages/zod/src/v4/locales/he.ts:158-165 (fragment) <-> packages/zod/src/v4/locales/he.ts:197-204 (fragment)
+1.93~ extract  packages/zod/src/v4/classic/schemas.ts:2873-2897 (fragment) <-> packages/zod/src/v4/mini/schemas.ts:1929-1952 (fragment)
+1.92! extract  packages/zod/src/v4/core/checks.ts:939-956 def <-> packages/zod/src/v4/core/checks.ts:977-994 def
+1.92? extract  packages/zod/src/v4/classic/schemas.ts:2510-2521 core <-> packages/zod/src/v4/mini/schemas.ts:1677-1688 core
+1.92~ extract  packages/zod/src/v4/core/schemas.ts:1855-1870 (fragment) <-> packages/zod/src/v4/core/schemas.ts:3009-3021 (fragment)
+1.92! copy     packages/zod/src/v3/types.ts:1400-1405 check <-> packages/zod/src/v3/types.ts:1653-1658 check
+1.92~ extract  packages/zod/src/v4/classic/from-json-schema.ts:738-743 minItems <-> packages/zod/src/v4/classic/from-json-schema.ts:753-758 minItems
+1.92! extract  packages/zod/src/v4/core/json-schema-processors.ts:549-558 json <-> packages/zod/src/v4/core/json-schema-processors.ts:568-577 json
+1.92~ extract
+      packages/zod/src/v3/types.ts:805-815 (fragment)
+      packages/zod/src/v3/types.ts:818-868 (fragment)
+      packages/zod/src/v3/types.ts:825-838 (fragment)
+      packages/zod/src/v3/types.ts:845-858 (fragment)
+      packages/zod/src/v3/types.ts:975-985 (fragment)
+      packages/zod/src/v3/types.ts:1015-1025 (fragment)
+1.91! extract  packages/zod/src/v4/locales/az.ts:11-47 (fragment) <-> packages/zod/src/v4/locales/en.ts:11-47 (fragment)
+1.91! copy     packages/zod/src/v3/types.ts:1410-1419 check <-> packages/zod/src/v3/types.ts:1662-1671 check
+1.91~ extract  packages/zod/src/v3/types.ts:2501-2507 (fragment) <-> packages/zod/src/v3/types.ts:2536-2544 (fragment)
+1.91~ extract  packages/zod/src/v4/core/schemas.ts:4431-4435 right <-> packages/zod/src/v4/core/schemas.ts:4438-4442 right
+1.90! extract
+      packages/zod/src/v4/locales/hi.ts:101-125 issue
+      packages/zod/src/v4/locales/ne.ts:103-127 issue
+      packages/zod/src/v4/locales/tg.ts:89-134 issue
+1.90! extract  packages/zod/src/v4/core/schemas.ts:4403-4429 _zod <-> packages/zod/src/v4/core/schemas.ts:4464-4489 _zod

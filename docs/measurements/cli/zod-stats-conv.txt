@@ -1,0 +1,1 @@
+55 worth refactoring, 5230 left as they are; 5285 pairs from 134 files; 240 requests; 10,784,553 input tokens (~$0.4530); 19.1s (10 retries); thresholds: min-score 1.90, unsure-below 0.50, margin 0.25

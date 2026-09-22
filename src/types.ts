@@ -28,18 +28,33 @@ export interface PairSnippet {
   tokens: number;
 }
 
+export type Shape = "remove_copy" | "derive" | "extract_shared";
+
+export interface Passes {
+  count: number;
+  scores: number[];
+  spread: number;
+}
+
 export interface Judgment {
   score: number;
   confidence: number;
   probabilities: Record<string, number>;
   sameLogic: number;
   sameConcept: number;
+  shape: Shape;
+  shapeConfidence: number;
+  shapeProbabilities: Record<string, number>;
   model: string;
   requestId?: string;
+  passes?: Passes;
 }
 
 export interface Verdict {
   refactor: boolean;
+  unsure: boolean;
+  borderline: boolean;
+  unstable: boolean;
   reason: string;
 }
 
@@ -74,6 +89,11 @@ export interface JudgeStats {
   inputTokens: number;
   outputTokens: number;
   cacheHits: number;
+  retries: number;
+  rateLimited: number;
+  splits: number;
+  passes: number;
+  usd: number;
   elapsedMs: number;
 }
 
@@ -82,6 +102,16 @@ export interface Family {
   pairs: number;
   maxScore: number;
   meanScore: number;
+  shape: Shape;
+  unsure: boolean;
+  borderline: boolean;
+  unstable: boolean;
+}
+
+export interface Thresholds {
+  minScore: number;
+  unsureBelow: number;
+  margin: number;
 }
 
 export interface JevReport {
@@ -90,10 +120,10 @@ export interface JevReport {
   warnings: AnalyzerWarning[];
   results: JudgedPair[];
   families: Family[];
-  rejected?: JudgedPair[];
+  rejected: JudgedPair[];
   rejectedCount: number;
   unjudged: UnjudgedPair[];
-  thresholds: { minScore: number };
+  thresholds: Thresholds;
   stats: DetectionReport["stats"] & JudgeStats;
 }
 

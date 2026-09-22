@@ -1,0 +1,2 @@
+{"exp":"ceilings","probe":"request","lastOk":{"count":114,"tokens":64899,"estimate":70794},"firstBad":{"count":115,"estimate":71892,"error":"BadRequestError 400: {\"error\":{\"message\":\"Invalid request\",\"type\":\"invalid_request_error\",\"code\":\"invalid_request\"}}"}}
+{"exp":"ceilings","probe":"state","lastOk":{"chars":99191,"tokens":32971,"estimate":31124},"firstBad":{"chars":100750,"estimate":31624,"error":"BadRequestError 400: {\"error\":{\"message\":\"Invalid request\",\"type\":\"invalid_request_error\",\"code\":\"invalid_request\"}}"}}
