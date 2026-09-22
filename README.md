@@ -1,5 +1,10 @@
 # @kongyo2/similarity-ts-jev
 
+[![npm](https://img.shields.io/npm/v/@kongyo2/similarity-ts-jev)](https://www.npmjs.com/package/@kongyo2/similarity-ts-jev)
+[![CI](https://github.com/kongyo2/similarity-ts-jev/actions/workflows/ci.yml/badge.svg)](https://github.com/kongyo2/similarity-ts-jev/actions/workflows/ci.yml)
+[![node](https://img.shields.io/node/v/@kongyo2/similarity-ts-jev)](https://nodejs.org)
+[![license](https://img.shields.io/npm/l/@kongyo2/similarity-ts-jev)](LICENSE)
+
 [`@kongyo2/similarity-ts`](https://www.npmjs.com/package/@kongyo2/similarity-ts) and
 [`fallow`](https://www.npmjs.com/package/fallow) find code that looks alike.
 This CLI runs both, has TypeSafe's [Jev](https://docs.typesafe.ai/) judge every
