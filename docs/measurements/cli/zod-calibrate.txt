@@ -17,8 +17,8 @@ headroom: highest score under the cutoff 1.89, lowest at or over it 1.90; confid
 labels: 32 labeled pairs found (3 merge, 29 keep)
   at 1.90: precision 0.23, recall 1.00, accuracy 0.69 (tp 3, fp 10, fn 0, tn 19)
   score        AUC 0.91; fitted cutoff 2.49 (not separable: lowest merge 2.49, highest keep 2.71); at the fit precision 0.43 recall 1.00; 5-fold hold-out accuracy 0.84 (fp 4, fn 1; fold cutoffs 2.49 2.49 2.49 2.55 2.49)
-  same_logic   AUC 0.79; fitted cutoff 0.99 (not separable: lowest merge 0.97, highest keep 0.99); at the fit precision 0.00 recall 0.00; 5-fold hold-out accuracy 0.81 (fp 3, fn 3; fold cutoffs 0.99 0.98 0.99 0.99 0.98)
-  same_concept AUC 0.69; fitted cutoff 0.86 (not separable: lowest merge 0.66, highest keep 0.95); at the fit precision 0.20 recall 0.33; 5-fold hold-out accuracy 0.81 (fp 3, fn 3; fold cutoffs 0.86 0.86 0.86 0.95 0.86)
+  same_logic   AUC 0.79; fitted cutoff 1.00 (not separable: lowest merge 0.97, highest keep 0.99); at the fit precision - recall 0.00; 5-fold hold-out accuracy 0.81 (fp 3, fn 3; fold cutoffs 1.00 0.98 1.00 1.00 0.99)
+  same_concept AUC 0.69; fitted cutoff 0.96 (not separable: lowest merge 0.66, highest keep 0.95); at the fit precision - recall 0.00; 5-fold hold-out accuracy 0.84 (fp 2, fn 3; fold cutoffs 0.96 0.86 0.96 0.96 0.96)
   unsure band (confidence < 0.50): 7 of 13 reported; precision 0.14 there, 0.33 for the rest
   wrong: 2.71 (confidence 0.71, logic 0.99, concept 0.66) labeled keep  packages/zod/src/v4/locales/be.ts:5:getBelarusianPlural <-> packages/zod/src/v4/locales/ru.ts:5:getRussianPlural
   wrong: 2.58 (confidence 0.58, logic 0.98, concept 0.95) labeled keep  packages/zod/src/v3/helpers/util.ts:73:jsonStringifyReplacer <-> packages/zod/src/v4/core/util.ts:288:jsonStringifyReplacer

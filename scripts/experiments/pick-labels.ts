@@ -33,6 +33,7 @@ for (let b = 0; b < bins.length - 1; b += 1) {
   for (const r of inBin) byCorpus.set(r.corpus, [...(byCorpus.get(r.corpus) ?? []), r]);
   for (const list of byCorpus.values()) list.sort(() => random() - 0.5);
   const names = [...byCorpus.keys()];
+  if (names.length === 0) continue;
   let picked = 0;
   let guard = 0;
   while (picked < perBin && guard < perBin * 10) {

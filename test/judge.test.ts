@@ -173,6 +173,22 @@ describe("judgePairs", () => {
     assert.equal(outcome.judgments.get(1)!.passes?.spread, 0);
   });
 
+  it("leaves a pair unjudged when one of its passes failed, instead of deciding on a partial mean", async () => {
+    const snippets = [snippet(0, "MERGE_ME"), snippet(1, "b")];
+    let calls = 0;
+    const client = stubClient((request) => {
+      calls += 1;
+      if (calls === 2) throw new InternalServerError(503, { error: "overloaded" }, new Headers());
+      return answerAll(request);
+    });
+    const outcome = await judgePairs(snippets, client, { repeat: 2, concurrency: 1, retries: 0 });
+    assert.equal(client.calls, 2);
+    assert.equal(outcome.judgments.size, 0, "the first pass answered, the second did not");
+    assert.equal(outcome.stats.unjudged, 2);
+    assert.match(outcome.failures.get(0)!, /InternalServerError: 503 overloaded/);
+    assert.match(outcome.failures.get(1)!, /InternalServerError: 503 overloaded/);
+  });
+
   it("keys the cache by pass, so a repeated run replays every pass", async () => {
     const store = new Map<string, { request: JudgeRequest; response: JudgeResponse | JudgeRejection }>();
     const cache: JudgeCache = {

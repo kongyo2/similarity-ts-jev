@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { TypeSafeClient } from "@typesafe-ai/sdk";
 import { FileJudgeCache } from "../src/cache.ts";
-import { calibrate, formatCalibration, pairKey } from "../src/calibrate.ts";
+import { calibrate, formatCalibration, pairKey, readLabels } from "../src/calibrate.ts";
 import type { Labels } from "../src/calibrate.ts";
 import { formatPrettyReport, formatStats } from "../src/format.ts";
 import { analyzeWithJev } from "../src/index.ts";
@@ -65,7 +65,7 @@ for (const pair of all) {
   console.log(`${j.score.toFixed(2)}   ${j.confidence.toFixed(2)}  ${j.sameLogic.toFixed(2)}  ${j.sameConcept.toFixed(2)}    ${j.shape.padEnd(14)} ${pair.mode.padEnd(9)} ${pairKey(pair, cwd)}${extra}`);
 }
 
-const labels: Labels | undefined = flags.labels !== undefined ? (JSON.parse(await fs.readFile(path.resolve(cwd, flags.labels), "utf8")) as Labels) : undefined;
+const labels: Labels | undefined = flags.labels !== undefined ? await readLabels(path.resolve(cwd, flags.labels)) : undefined;
 console.log(`\n${formatCalibration(calibrate(report, cwd, labels))}`);
 console.log(`\n${formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length })}`);
 for (const u of report.unjudged.slice(0, 5)) console.log(`  unjudged: ${u.error}`);

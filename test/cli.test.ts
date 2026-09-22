@@ -248,6 +248,17 @@ describe("similarity-ts-jev CLI (replayed)", () => {
       const refused = capture();
       assert.equal(await runCli(["--replay", other], refused.io, { cwd: elsewhere }), 1);
       assert.match(refused.err.join("\n"), /not a similarity-ts-jev run record/);
+
+      const tuned = path.join(dir, "tuned.json");
+      assert.equal((await runJson(["--min-score", "2.5", "--margin", "0.1", "--record", tuned])).code, 0);
+      const asRecorded = capture();
+      assert.equal(await runCli(["--replay", tuned, "--format", "json", "--stats"], asRecorded.io, { cwd: elsewhere }), 0);
+      const asRecordedReport = JSON.parse(asRecorded.out.join("\n")) as JsonReport;
+      assert.deepEqual(asRecordedReport.thresholds, { minScore: 2.5, unsureBelow: 0.5, margin: 0.1 }, "a replay without threshold flags keeps the recorded thresholds");
+      assert.ok(asRecordedReport.results.length > 0 && asRecordedReport.results.every((p) => p.score >= 2.5));
+      const overridden = capture();
+      assert.equal(await runCli(["--replay", tuned, "--format", "json", "--stats", "--min-score", "1.9"], overridden.io, { cwd: elsewhere }), 0);
+      assert.deepEqual((JSON.parse(overridden.out.join("\n")) as JsonReport).thresholds, { minScore: 1.9, unsureBelow: 0.5, margin: 0.1 }, "a flag given on the command line wins");
     });
   });
 
@@ -261,6 +272,14 @@ describe("similarity-ts-jev CLI (replayed)", () => {
     assert.doesNotMatch(text, /labels:|passes:/);
     const repeated = await runPretty(["--calibrate", "--repeat", "3"]);
     assert.match(repeated.text, /^3 passes: mean spread \d\.\d\d, p90 \d\.\d\d; \d+ pairs crossed the cutoff between passes$/m);
+    const withStats = await runPretty(["--calibrate", "--stats"]);
+    assert.equal(withStats.err.length, 1);
+    assert.match(withStats.err[0]!, /^6 worth refactoring, 6 left as they are; 12 pairs from 10 files; 0 requests, 1 answered from the cache; /);
+    const jsonWithStats = capture();
+    assert.equal(await runCli([".", "--cache", FIXTURE_CACHE, "--calibrate", "--stats", "--format", "json"], jsonWithStats.io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
+    const document = JSON.parse(jsonWithStats.out.join("\n")) as { calibration: Calibration; thresholds: unknown; stats: { judged: number } };
+    assert.deepEqual(Object.keys(document).sort(), ["calibration", "stats", "thresholds"]);
+    assert.equal(document.stats.judged, 12);
 
     await withTempDir(async (dir) => {
       const file = path.join(dir, "labels.json");

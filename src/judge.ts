@@ -215,6 +215,10 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
   for (const pair of pairs) {
     const list = samples.get(pair.index) ?? [];
     if (list.length === 0) continue;
+    if (list.length < passes) {
+      if (!failures.has(pair.index)) failures.set(pair.index, `only ${list.length} of ${passes} passes answered`);
+      continue;
+    }
     failures.delete(pair.index);
     judgments.set(pair.index, passes > 1 ? mergePasses(list.sort((x, y) => x.pass - y.pass).map((sample) => sample.judgment)) : list[0]!.judgment);
   }

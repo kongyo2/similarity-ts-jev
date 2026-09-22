@@ -1,7 +1,23 @@
+import fs from "node:fs/promises";
 import { toRelativePath } from "./snippets.ts";
 import type { JevReport, JudgedPair, Thresholds } from "./types.ts";
 
 export type Labels = Record<string, boolean>;
+
+export function parseLabels(parsed: unknown, source: string): Labels {
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) throw new Error(`${source}: labels must be a JSON object from pair keys to true (merge), false (keep), or { "merge": boolean }`);
+  const labels: Labels = {};
+  for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+    if (typeof value === "boolean") labels[key] = value;
+    else if (typeof value === "object" && value !== null && typeof (value as { merge?: unknown }).merge === "boolean") labels[key] = (value as { merge: boolean }).merge;
+    else throw new Error(`${source}: label for ${JSON.stringify(key)} must be true, false, or { "merge": boolean }`);
+  }
+  return labels;
+}
+
+export async function readLabels(filePath: string): Promise<Labels> {
+  return parseLabels(JSON.parse(await fs.readFile(filePath, "utf8")), filePath);
+}
 
 export function pairKey(pair: Pick<JudgedPair, "left" | "right">, cwd: string): string {
   const side = (location: JudgedPair["left"]) => `${toRelativePath(location.filePath, cwd)}:${location.startLine}:${location.symbolName}`;
@@ -125,7 +141,9 @@ export function fitCutoff(cases: Labeled[], value: (item: Labeled) => number): {
   const lowestMerge = merges.length > 0 ? Math.min(...merges) : Number.NaN;
   const highestKeep = keeps.length > 0 ? Math.max(...keeps) : Number.NaN;
   if (lowestMerge > highestKeep) return { cutoff: Math.round(((lowestMerge + highestKeep) / 2) * 100) / 100, separable: true, lowestMerge, highestKeep };
-  const candidates = [...new Set(cases.map(value))].sort((x, y) => x - y);
+  const observed = [...new Set(cases.map(value))].sort((x, y) => x - y);
+  const top = observed[observed.length - 1];
+  const candidates = top === undefined ? [] : [...observed, Math.round((top + 0.01) * 100) / 100];
   let best = { cutoff: candidates[0] ?? 0, gain: Number.NEGATIVE_INFINITY };
   for (const candidate of candidates) {
     const c = confusion(cases, value, candidate);
@@ -137,6 +155,7 @@ export function fitCutoff(cases: Labeled[], value: (item: Labeled) => number): {
 
 export function holdOut(cases: Labeled[], value: (item: Labeled) => number, folds = 5): SignalReport["holdOut"] {
   const ordered = [...cases].sort((x, y) => (x.key < y.key ? -1 : x.key > y.key ? 1 : 0));
+  let evaluated = 0;
   let right = 0;
   let falsePositives = 0;
   let falseNegatives = 0;
@@ -149,13 +168,14 @@ export function holdOut(cases: Labeled[], value: (item: Labeled) => number, fold
     const { cutoff } = fitCutoff(train, value);
     cutoffs.push(cutoff);
     for (const item of test) {
+      evaluated += 1;
       const flagged = value(item) >= cutoff;
       if (flagged === item.merge) right += 1;
       else if (flagged) falsePositives += 1;
       else falseNegatives += 1;
     }
   }
-  return { accuracy: ordered.length > 0 ? right / ordered.length : Number.NaN, falsePositives, falseNegatives, cutoffs };
+  return { accuracy: evaluated > 0 ? right / evaluated : Number.NaN, falsePositives, falseNegatives, cutoffs };
 }
 
 function signal(cases: Labeled[], value: (item: Labeled) => number): SignalReport {

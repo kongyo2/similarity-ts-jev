@@ -18,17 +18,21 @@ plus 132 hand-labeled pairs. The write-up is in `docs/measurements.md`.
   disagree across the cutoff. None of them changes what is reported; the labeled
   corpus showed confidence is worth a warning but not a gate.
 - `--repeat <n>`: ask every pair n times and decide on the mean score. The
-  pass-to-pass spread is reported per pair (`passes` in JSON).
+  pass-to-pass spread is reported per pair (`passes` in JSON); a pair whose
+  passes did not all answer is left unjudged rather than decided on a partial
+  mean.
 - `--conventions <text>`: a note on what this repository keeps separate on
   purpose, sent with every request. On the labeled corpus it moved precision
   from 0.60 to 0.88 at the cost of recall (0.90 to 0.73).
-- `--record <file>` and `--replay <file>`: keep every judgment of a run and
-  re-decide it later under other thresholds without detection or requests.
+- `--record <file>` and `--replay <file>`: keep every judgment of a run with
+  its thresholds and re-decide it later, under the recorded thresholds or
+  other ones, without detection or requests.
 - `--calibrate` and `--labels <file>`: print the score histogram, the widest
   gap, the headroom around the cutoff, the confidence quantiles, and, with
   labels, precision, recall, AUC, a fitted cutoff, and a 5-fold hold-out.
 - `--stats`: request, token, cost, retry, and timing counts (stderr for pretty,
-  `thresholds` and `stats` in the JSON document).
+  `thresholds` and `stats` in the JSON document), for results and for
+  `--calibrate` alike.
 - `--budget-tokens` and `--retries`; an adaptive limiter that halves the
   concurrency after a rate limit and recovers one slot per success; a request
   the gateway rejects is split in half and asked again.

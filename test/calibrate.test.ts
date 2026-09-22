@@ -56,6 +56,24 @@ describe("calibrate", () => {
     assert.equal(held.cutoffs.length, 2);
   });
 
+  it("lets the fit report nothing when every labeled pair is a keep, and reports no hold-out accuracy without an evaluated fold", () => {
+    const keeps = [
+      { key: "a", merge: false, pair: judged(0, 0.5) },
+      { key: "b", merge: false, pair: judged(1, 1.0) },
+    ];
+    const fit = fitCutoff(keeps, (c) => c.pair.judgment.score);
+    assert.deepEqual(fit, { cutoff: 1.01, separable: false, lowestMerge: Number.NaN, highestKeep: 1.0 }, "a cutoff above the highest score flags nothing, which beats flagging a keep");
+    const mixed = [...keeps, { key: "c", merge: true, pair: judged(2, 2.0) }, { key: "d", merge: false, pair: judged(3, 2.5) }];
+    assert.equal(fitCutoff(mixed, (c) => c.pair.judgment.score).cutoff, 2.0, "one true positive and one false positive still beat reporting nothing");
+    const single = holdOut([keeps[0]!], (c) => c.pair.judgment.score);
+    assert.ok(Number.isNaN(single.accuracy));
+    assert.deepEqual(single.cutoffs, []);
+    const two = holdOut(keeps, (c) => c.pair.judgment.score);
+    assert.equal(two.accuracy, 0.5, "trained on the lower keep alone, the fit sits just above it and flags the higher keep");
+    assert.equal(two.falsePositives, 1);
+    assert.deepEqual(two.cutoffs, [1.01, 0.51]);
+  });
+
   it("describes the distribution, the headroom, the unsure band, and the labeled accuracy", () => {
     const pairs = [judged(0, 2.6, { confidence: 0.8 }), judged(1, 2.0, { confidence: 0.2 }), judged(2, 1.8), judged(3, 0.4), judged(4, 1.0)];
     const labels = { "a0.ts:1:a0 <-> b0.ts:10:b0": true, "a1.ts:1:a1 <-> b1.ts:10:b1": false, "a2.ts:1:a2 <-> b2.ts:10:b2": true, "a3.ts:1:a3 <-> b3.ts:10:b3": false, "zz <-> zz": false };

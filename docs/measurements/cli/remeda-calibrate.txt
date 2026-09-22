@@ -17,8 +17,8 @@ headroom: highest score under the cutoff 1.86, lowest at or over it 1.93; confid
 labels: 30 labeled pairs found (5 merge, 25 keep)
   at 1.90: precision 0.50, recall 0.60, accuracy 0.83 (tp 3, fp 3, fn 2, tn 22)
   score        AUC 0.90; fitted cutoff 1.69 (not separable: lowest merge 1.69, highest keep 2.19); at the fit precision 0.50 recall 1.00; 5-fold hold-out accuracy 0.80 (fp 5, fn 1; fold cutoffs 1.69 1.69 1.69 1.69 1.81)
-  same_logic   AUC 0.56; fitted cutoff 0.94 (not separable: lowest merge 0.19, highest keep 0.94); at the fit precision 0.50 recall 0.20; 5-fold hold-out accuracy 0.83 (fp 1, fn 4; fold cutoffs 0.94 0.94 0.94 0.91 0.94)
-  same_concept AUC 0.66; fitted cutoff 0.18 (not separable: lowest merge 0.11, highest keep 0.86); at the fit precision 0.33 recall 0.80; 5-fold hold-out accuracy 0.63 (fp 8, fn 3; fold cutoffs 0.18 0.57 0.18 0.18 0.57)
+  same_logic   AUC 0.56; fitted cutoff 0.94 (not separable: lowest merge 0.19, highest keep 0.94); at the fit precision 0.50 recall 0.20; 5-fold hold-out accuracy 0.83 (fp 1, fn 4; fold cutoffs 0.94 0.94 0.94 0.92 0.94)
+  same_concept AUC 0.66; fitted cutoff 0.18 (not separable: lowest merge 0.11, highest keep 0.86); at the fit precision 0.33 recall 0.80; 5-fold hold-out accuracy 0.63 (fp 8, fn 3; fold cutoffs 0.18 0.57 0.18 0.18 0.87)
   unsure band (confidence < 0.50): 4 of 6 reported; precision 0.50 there, 0.50 for the rest
   wrong: 2.19 (confidence 0.19, logic 0.70, concept 0.11) labeled keep  packages/remeda/src/endsWith.ts:21:the <-> packages/remeda/src/startsWith.ts:21:the
   wrong: 2.09 (confidence 0.56, logic 0.76, concept 0.40) labeled keep  packages/remeda/src/find.ts:44:FoundInFixedTuple <-> packages/remeda/src/findLast.ts:37:FoundLastInFixedTuple

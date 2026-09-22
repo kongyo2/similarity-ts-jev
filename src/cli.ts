@@ -8,8 +8,7 @@ import type { AnalyzerMode } from "@kongyo2/similarity-ts";
 import { TypeSafeClient, TypeSafeError } from "@typesafe-ai/sdk";
 import { Command, CommanderError, Option } from "commander";
 import { FileJudgeCache } from "./cache.ts";
-import { calibrate, formatCalibration } from "./calibrate.ts";
-import type { Labels } from "./calibrate.ts";
+import { calibrate, formatCalibration, readLabels } from "./calibrate.ts";
 import { DEFAULT_MARGIN, DEFAULT_MIN_SCORE, DEFAULT_UNSURE_BELOW } from "./decide.ts";
 import { detect } from "./detect.ts";
 import { formatJsonReport, formatPrettyReport, formatStats } from "./format.ts";
@@ -155,7 +154,7 @@ function buildProgram(io: CliIO): Command {
     .option("--timeout <ms>", "Timeout per Jev request attempt", "60000")
     .option("--dry-run", "Detect and print the pair, request, and token counts without asking Jev", false)
     .option("--record <file>", "Write every judgment and the thresholds to this file, for --replay")
-    .option("--replay <file>", "Re-decide a recorded run with the current thresholds; no detection, no requests")
+    .option("--replay <file>", "Re-decide a recorded run under its recorded thresholds, or the ones given here; no detection, no requests")
     .option("--calibrate", "Print the score distribution, gap, headroom, and (with --labels) precision, recall, AUC, and a hold-out fit instead of the results", false)
     .option("--labels <file>", "JSON of pair keys to true (merge) or false (keep), as scripts/verify.ts writes them; used by --calibrate")
     .option("--stats", "Print request, token, cost, and timing counts (stderr for pretty, in the document for json)", false)
@@ -208,17 +207,6 @@ export function exitCode(report: JevReport, gates: { failOnWarnings: boolean; fa
   return 0;
 }
 
-async function readLabels(filePath: string): Promise<Labels> {
-  const parsed = JSON.parse(await fs.readFile(filePath, "utf8")) as Record<string, unknown>;
-  const labels: Labels = {};
-  for (const [key, value] of Object.entries(parsed)) {
-    if (typeof value === "boolean") labels[key] = value;
-    else if (typeof value === "object" && value !== null && typeof (value as { merge?: unknown }).merge === "boolean") labels[key] = (value as { merge: boolean }).merge;
-    else throw new Error(`${filePath}: label for ${JSON.stringify(key)} must be true, false, or { "merge": boolean }`);
-  }
-  return labels;
-}
-
 export interface RunOptions {
   client?: JudgeClient;
   cwd?: string;
@@ -251,12 +239,13 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
       if (raw.calibrate) {
         const labels = raw.labels !== undefined ? await readLabels(path.resolve(cwd, raw.labels)) : undefined;
         const calibration = calibrate(report, reportCwd, labels);
-        await emit(raw.format === "json" ? JSON.stringify({ calibration }, null, 2) : formatCalibration(calibration));
+        const document = raw.stats ? { calibration, thresholds: report.thresholds, stats: report.stats } : { calibration };
+        await emit(raw.format === "json" ? JSON.stringify(document, null, 2) : formatCalibration(calibration));
       } else {
         await emit(raw.format === "json" ? formatJsonReport(report, { includeRejected: raw.all, stats: raw.stats }) : formatPrettyReport(report, reportCwd, { includeRejected: raw.all }));
-        if (raw.stats && raw.format !== "json") {
-          io.error(formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length }));
-        }
+      }
+      if (raw.stats && raw.format !== "json") {
+        io.error(formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length }));
       }
       for (const warning of report.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
       for (const reason of ["unreadable", "api"] as const) {
@@ -268,7 +257,13 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
 
     if (raw.replay !== undefined) {
       const record = await loadRecord(path.resolve(cwd, raw.replay));
-      return await finish(replayRecord(record, decideOptions), record.cwd);
+      const given = (key: "minScore" | "unsureBelow" | "margin") => program.getOptionValueSource(key) !== "default";
+      const replayOptions = {
+        minScore: given("minScore") ? minScore : record.thresholds.minScore,
+        unsureBelow: given("unsureBelow") ? unsureBelow : record.thresholds.unsureBelow,
+        margin: given("margin") ? margin : record.thresholds.margin,
+      };
+      return await finish(replayRecord(record, replayOptions), record.cwd);
     }
     if (paths.length === 0) throw new Error("missing required argument 'paths' (or pass --replay <file>)");
 

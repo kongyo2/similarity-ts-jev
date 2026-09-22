@@ -124,17 +124,21 @@ accuracy at the cutoff, the AUC of each signal, a fitted cutoff, a 5-fold
 hold-out estimate, and the pairs it got wrong. Twenty to forty labels are
 enough to tell whether the default cutoff or a note is doing its job.
 
-**`--record <file>`** keeps every judgment of a run; **`--replay <file>`**
-re-decides it under other `--min-score`, `--unsure-below`, or `--margin`
-values with no detection and no requests, and takes `--calibrate` as well.
+**`--record <file>`** keeps every judgment of a run together with its
+thresholds; **`--replay <file>`** re-decides it with no detection and no
+requests, under the recorded thresholds or whichever of `--min-score`,
+`--unsure-below`, and `--margin` are given again, and takes `--calibrate` as
+well.
 `--cache <file>` does the same at the request level: a re-run after an edit
 asks only about the pairs whose text changed.
 
-**`--repeat <n>`** asks every pair n times and decides on the mean score.
-Two passes differ by 0.055 on average and by 0.14 at the 90th percentile;
-only pairs within 0.25 of the cutoff ever change sides (12% of those, none
-farther away). On zod, whose scores cluster around the cutoff, three passes
-trimmed 317 reported pairs to 284 and marked 240 with `!`.
+**`--repeat <n>`** asks every pair n times and decides on the mean score; a
+pair whose passes did not all answer is listed as not judged rather than
+decided on a partial mean. Two passes differ by 0.055 on average and by 0.14
+at the 90th percentile; only pairs within 0.25 of the cutoff ever change
+sides (12% of those, none farther away). On zod, whose scores cluster around
+the cutoff, three passes trimmed 317 reported pairs to 284 and marked 240
+with `!`.
 
 ## Options
 
@@ -174,7 +178,7 @@ Output and bookkeeping:
 | `--format pretty\|json`, `--output <path>` | `pretty` | as in similarity-ts |
 | `--stats` | off | pairs, requests, tokens, cost, retries, and time (stderr for pretty, in the document for json) |
 | `--cache <file>` | — | record every answer, replay it on later runs |
-| `--record <file>`, `--replay <file>` | — | keep every judgment; re-decide without requests |
+| `--record <file>`, `--replay <file>` | — | keep every judgment and the thresholds; re-decide without requests |
 | `--calibrate`, `--labels <file>` | off | distribution, headroom, and accuracy instead of results |
 | `--dry-run` | off | pair, request, token, and cost counts without asking Jev |
 | `--fail-on-warnings`, `--fail-on-duplicates` | off | CI gates |

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { BadRequestError } from "@typesafe-ai/sdk";
 import type { Questions } from "@typesafe-ai/sdk";
 import { Asker, CORPORA, appendLine, describe, estimateTokens, flag, has, items, loadCorpora, mapConcurrent, numberFlag, progress, resultsRoot, shuffled, subset } from "./lib.ts";
 import type { Item } from "./lib.ts";
@@ -121,6 +122,7 @@ async function ceilings(): Promise<void> {
       const result = await client.ask(state, questions, `request-ceiling-${count}`, { split: false });
       return { ok: true, tokens: result.inputTokens, estimate };
     } catch (error) {
+      if (!(error instanceof BadRequestError)) throw error;
       return { ok: false, tokens: 0, estimate, error: describe(error) };
     }
   };
@@ -150,6 +152,7 @@ async function ceilings(): Promise<void> {
       const result = await client.ask(s, one, `state-ceiling-${chars}`, { split: false });
       return { ok: true, tokens: result.inputTokens, estimate };
     } catch (error) {
+      if (!(error instanceof BadRequestError)) throw error;
       return { ok: false, tokens: 0, estimate, error: describe(error) };
     }
   };

@@ -17,6 +17,6 @@ headroom: highest score under the cutoff 1.89, lowest at or over it 1.91; confid
 labels: 32 labeled pairs found (3 merge, 29 keep)
   at 1.90: precision 1.00, recall 1.00, accuracy 1.00 (tp 3, fp 0, fn 0, tn 29)
   score        AUC 1.00; fitted cutoff 2.01 (separable: lowest merge 2.39, highest keep 1.63); at the fit precision 1.00 recall 1.00; 5-fold hold-out accuracy 1.00 (fp 0, fn 0; fold cutoffs 2.01 1.94 2.01 2.03 2.01)
-  same_logic   AUC 0.91; fitted cutoff 0.97 (not separable: lowest merge 0.97, highest keep 0.98); at the fit precision 0.43 recall 1.00; 5-fold hold-out accuracy 0.81 (fp 4, fn 2; fold cutoffs 0.97 0.97 0.97 0.98 0.97)
+  same_logic   AUC 0.91; fitted cutoff 0.97 (not separable: lowest merge 0.97, highest keep 0.98); at the fit precision 0.43 recall 1.00; 5-fold hold-out accuracy 0.81 (fp 4, fn 2; fold cutoffs 0.97 0.97 0.97 0.99 0.97)
   same_concept AUC 0.95; fitted cutoff 0.67 (not separable: lowest merge 0.67, highest keep 0.79); at the fit precision 0.60 recall 1.00; 5-fold hold-out accuracy 0.91 (fp 2, fn 1; fold cutoffs 0.70 0.67 0.67 0.67 0.67)
   unsure band (confidence < 0.50): 3 of 3 reported; precision 1.00 there, - for the rest

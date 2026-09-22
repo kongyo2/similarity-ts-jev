@@ -17,8 +17,8 @@ headroom: highest score under the cutoff 1.81, lowest at or over it 2.01; confid
 labels: 30 labeled pairs found (5 merge, 25 keep)
   at 1.90: precision -, recall 0.00, accuracy 0.83 (tp 0, fp 0, fn 5, tn 25)
   score        AUC 0.81; fitted cutoff 1.17 (not separable: lowest merge 0.60, highest keep 1.81); at the fit precision 0.50 recall 0.60; 5-fold hold-out accuracy 0.73 (fp 6, fn 2; fold cutoffs 0.60 0.60 1.17 1.17 0.60)
-  same_logic   AUC 0.58; fitted cutoff 0.92 (not separable: lowest merge 0.18, highest keep 0.91); at the fit precision 1.00 recall 0.20; 5-fold hold-out accuracy 0.83 (fp 1, fn 4; fold cutoffs 0.92 0.92 0.92 0.89 0.92)
-  same_concept AUC 0.64; fitted cutoff 0.41 (not separable: lowest merge 0.12, highest keep 0.84); at the fit precision 0.25 recall 0.20; 5-fold hold-out accuracy 0.63 (fp 7, fn 4; fold cutoffs 0.15 0.41 0.41 0.41 0.41)
+  same_logic   AUC 0.58; fitted cutoff 0.92 (not separable: lowest merge 0.18, highest keep 0.91); at the fit precision 1.00 recall 0.20; 5-fold hold-out accuracy 0.83 (fp 1, fn 4; fold cutoffs 0.92 0.92 0.92 0.90 0.92)
+  same_concept AUC 0.64; fitted cutoff 0.85 (not separable: lowest merge 0.12, highest keep 0.84); at the fit precision - recall 0.00; 5-fold hold-out accuracy 0.63 (fp 7, fn 4; fold cutoffs 0.15 0.41 0.41 0.85 0.85)
   unsure band (confidence < 0.50): 0 of 0 reported; precision - there, - for the rest
   wrong: 1.60 (confidence 0.41, logic 0.26, concept 0.41) labeled merge  packages/remeda/src/sortedIndexBy.ts:91:valueFunction <-> packages/remeda/src/sortedLastIndexBy.ts:93:valueFunction
   wrong: 1.41 (confidence 0.08, logic 0.67, concept 0.15) labeled merge  packages/remeda/src/toCamelCase.ts:108:dataOrOptions <-> packages/remeda/src/toTitleCase.ts:125:dataOrOptions
