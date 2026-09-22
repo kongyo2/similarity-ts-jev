@@ -16,6 +16,10 @@ export interface JudgeReportOptions extends JudgeOptions, DecideOptions, Snippet
   maxPairs?: number;
 }
 
+export function orderPairs(pairs: DetectedPair[]): DetectedPair[] {
+  return [...pairs].sort((x, y) => y.similarity - x.similarity);
+}
+
 export async function readSnippets(
   pairs: DetectedPair[],
   options: SnippetOptions & { maxPairs?: number } = {},
@@ -26,7 +30,7 @@ export async function readSnippets(
   const unreadable: UnjudgedPair[] = [];
   for (const [index, pair] of pairs.entries()) {
     if (index >= limit) {
-      unreadable.push({ ...pair, error: `not judged: over the --max-pairs limit (${limit})` });
+      unreadable.push({ ...pair, reason: "capped", error: `over the --max-pairs limit (${limit})` });
       continue;
     }
     try {
@@ -38,7 +42,7 @@ export async function readSnippets(
       snippet.tokens = pairTokens(snippet);
       snippets.push(snippet);
     } catch (error) {
-      unreadable.push({ ...pair, error: `could not read the source: ${error instanceof Error ? error.message : String(error)}` });
+      unreadable.push({ ...pair, reason: "unreadable", error: `could not read the source: ${error instanceof Error ? error.message : String(error)}` });
     }
   }
   return { snippets, unreadable };
@@ -47,8 +51,7 @@ export async function readSnippets(
 export async function judgeReport(detection: DetectionReport, client: JudgeClient, options: JudgeReportOptions = {}): Promise<JevReport> {
   const started = Date.now();
   const cwd = options.cwd ?? process.cwd();
-  const ordered = [...detection.pairs].sort((x, y) => y.similarity - x.similarity);
-  const { snippets, unreadable } = await readSnippets(ordered, options);
+  const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), options);
   const unjudged: UnjudgedPair[] = [...unreadable];
 
   const { maxPairs: _cap, includeRejected: _include, minScore: _min, ...judgeOptions } = options;
@@ -62,7 +65,7 @@ export async function judgeReport(detection: DetectionReport, client: JudgeClien
   for (const snippet of snippets) {
     const judgment = judgments.get(snippet.index);
     if (judgment === undefined) {
-      unjudged.push({ ...snippet.pair, error: failures.get(snippet.index) ?? "no answer" });
+      unjudged.push({ ...snippet.pair, reason: "api", error: failures.get(snippet.index) ?? "no answer" });
       continue;
     }
     const verdict = decide(judgment, options);
@@ -104,8 +107,8 @@ export type { FallowMode, FallowOptions } from "./fallow.ts";
 export { DEFAULT_MIN_SCORE, decide } from "./decide.ts";
 export type { DecideOptions } from "./decide.ts";
 export { groupFamilies } from "./families.ts";
-export { judgePairs, requestHash, toJudgment } from "./judge.ts";
-export type { JudgeCache, JudgeClient, JudgeOptions, JudgeOutcome, JudgeRequest, JudgeResponse } from "./judge.ts";
+export { isRejection, judgePairs, requestHash, toJudgment } from "./judge.ts";
+export type { JudgeCache, JudgeClient, JudgeOptions, JudgeOutcome, JudgeRejection, JudgeRequest, JudgeResponse } from "./judge.ts";
 export { FileJudgeCache } from "./cache.ts";
 export type { CacheEntry, CacheFile } from "./cache.ts";
 export { REFACTOR_LEVELS, REFACTOR_QUESTION, batchPairs, buildState, estimateTokens, pairQuestions, pairTokens, questionIds } from "./questions.ts";
@@ -126,5 +129,6 @@ export type {
   PairSnippet,
   Snippet,
   UnjudgedPair,
+  UnjudgedReason,
   Verdict,
 } from "./types.ts";

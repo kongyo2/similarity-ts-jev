@@ -11,8 +11,9 @@ import { FileJudgeCache } from "./cache.ts";
 import { DEFAULT_MIN_SCORE } from "./decide.ts";
 import { detect } from "./detect.ts";
 import { formatJsonReport, formatPrettyReport } from "./format.ts";
-import { judgeReport, readSnippets } from "./index.ts";
+import { judgeReport, orderPairs, readSnippets } from "./index.ts";
 import type { JudgeClient } from "./judge.ts";
+import type { JevReport } from "./types.ts";
 import { batchPairs } from "./questions.ts";
 
 export interface CliIO {
@@ -49,6 +50,7 @@ interface RawOptions {
   concurrency: string;
   pairsPerRequest: string;
   model?: string;
+  baseUrl?: string;
   cache?: string;
   timeout: string;
   dryRun: boolean;
@@ -127,6 +129,7 @@ function buildProgram(io: CliIO): Command {
     .option("--concurrency <number>", "Jev requests in flight at once", "4")
     .option("--pairs-per-request <number>", "Pairs packed into one Jev request", "40")
     .option("--model <name>", "Jev model name (default: TYPESAFE_DEFAULT_MODEL or jev-latest)")
+    .option("--base-url <url>", "TypeSafe-compatible API root (default: TYPESAFE_BASE_URL or https://api.typesafe.ai)")
     .option("--cache <file>", "Record Jev's answers in this JSON file and replay them on later runs")
     .option("--timeout <ms>", "Timeout per Jev request attempt", "60000")
     .option("--dry-run", "Detect and print the pair, request, and token counts without asking Jev", false)
@@ -143,10 +146,11 @@ function buildProgram(io: CliIO): Command {
   return program;
 }
 
-function createClient(options: { model?: string; timeout: number }): TypeSafeClient {
+function createClient(options: { model?: string; baseURL?: string; timeout: number }): TypeSafeClient {
   try {
     return new TypeSafeClient({
       ...(options.model !== undefined ? { defaultModel: options.model } : {}),
+      ...(options.baseURL !== undefined ? { baseURL: options.baseURL } : {}),
       timeout: options.timeout,
       logLevel: "warn",
     });
@@ -167,6 +171,14 @@ function lazyClient(create: () => TypeSafeClient): JudgeClient {
   return {
     systemOne: ((request, options) => (client ??= create()).systemOne(request, options)) as TypeSafeClient["systemOne"],
   };
+}
+
+export function exitCode(report: JevReport, gates: { failOnWarnings: boolean; failOnDuplicates: boolean }): number {
+  if (report.warnings.length > 0 && (report.stats.fileCount === 0 || gates.failOnWarnings)) return 1;
+  if (report.unjudged.some((pair) => pair.reason === "unreadable")) return 1;
+  if (report.unjudged.some((pair) => pair.reason === "api")) return 2;
+  if (gates.failOnDuplicates && report.results.length > 0) return 1;
+  return 0;
 }
 
 export interface RunOptions {
@@ -219,16 +231,24 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     });
 
     if (raw.dryRun) {
-      const { snippets } = await readSnippets(detection.pairs, { cwd });
+      const { snippets } = await readSnippets(orderPairs(detection.pairs), { cwd, ...(maxPairs !== undefined ? { maxPairs } : {}) });
       const batches = batchPairs(snippets, { pairsPerRequest });
       const tokens = snippets.reduce((sum, s) => sum + s.tokens, 0);
-      io.log(`${detection.stats.pairCount} pairs, ${batches.length} requests, ${tokens} tokens`);
+      io.log(`${snippets.length} pairs, ${batches.length} requests, ${tokens} tokens`);
       for (const warning of detection.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
-      return 0;
+      return detection.warnings.length > 0 && (detection.stats.fileCount === 0 || raw.failOnWarnings) ? 1 : 0;
     }
 
     const cache = raw.cache !== undefined ? await FileJudgeCache.load(path.resolve(cwd, raw.cache)) : undefined;
-    const client = run.client ?? lazyClient(() => createClient({ ...(raw.model !== undefined ? { model: raw.model } : {}), timeout }));
+    const client =
+      run.client ??
+      lazyClient(() =>
+        createClient({
+          ...(raw.model !== undefined ? { model: raw.model } : {}),
+          ...(raw.baseUrl !== undefined ? { baseURL: raw.baseUrl } : {}),
+          timeout,
+        }),
+      );
     const judged = await judgeReport(detection, client, {
       cwd,
       includeRejected: raw.all,
@@ -244,21 +264,17 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     const rendered = raw.format === "json" ? formatJsonReport(judged) : formatPrettyReport(judged, cwd);
     if (raw.output !== undefined) {
       await fs.mkdir(path.dirname(path.resolve(cwd, raw.output)), { recursive: true });
-      await fs.writeFile(path.resolve(cwd, raw.output), `${rendered}
-`, "utf8");
+      await fs.writeFile(path.resolve(cwd, raw.output), rendered === "" ? "" : `${rendered}\n`, "utf8");
     } else if (rendered !== "") {
       io.log(rendered);
     }
 
     for (const warning of judged.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
-    const apiFailures = judged.unjudged.filter((pair) => !pair.error.startsWith("not judged:"));
-    if (apiFailures.length > 0) {
-      io.error(`${apiFailures.length} pair${apiFailures.length === 1 ? "" : "s"} not judged: ${apiFailures[0]!.error}`);
+    for (const reason of ["unreadable", "api"] as const) {
+      const failed = judged.unjudged.filter((pair) => pair.reason === reason);
+      if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
     }
-    if (judged.warnings.length > 0 && (judged.stats.fileCount === 0 || raw.failOnWarnings)) return 1;
-    if (apiFailures.length > 0) return 2;
-    if (raw.failOnDuplicates && judged.results.length > 0) return 1;
-    return 0;
+    return exitCode(judged, { failOnWarnings: raw.failOnWarnings, failOnDuplicates: raw.failOnDuplicates });
   } catch (error) {
     if (error instanceof CommanderError) return error.exitCode;
     io.error(error instanceof Error ? error.message : String(error));

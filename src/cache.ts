@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { JudgeCache, JudgeRequest, JudgeResponse } from "./judge.ts";
+import type { JudgeCache, JudgeRejection, JudgeRequest, JudgeResponse } from "./judge.ts";
 
 export interface CacheEntry {
   request: JudgeRequest;
-  response: JudgeResponse;
+  response: JudgeResponse | JudgeRejection;
 }
 
 export interface CacheFile {
@@ -39,11 +39,11 @@ export class FileJudgeCache implements JudgeCache {
     return this.#entries.size;
   }
 
-  get(hash: string): JudgeResponse | undefined {
+  get(hash: string): JudgeResponse | JudgeRejection | undefined {
     return this.#entries.get(hash)?.response;
   }
 
-  set(hash: string, request: JudgeRequest, response: JudgeResponse): void {
+  set(hash: string, request: JudgeRequest, response: JudgeResponse | JudgeRejection): void {
     this.#entries.set(hash, { request, response });
     this.#dirty = true;
   }

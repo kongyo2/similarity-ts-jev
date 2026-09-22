@@ -7,7 +7,8 @@ import type { DetectedPair, DetectionReport } from "./types.ts";
 
 export interface DetectOptions {
   similarityTs: AnalyzeProjectOptions;
-  fallow?: Omit<FallowOptions, "cwd" | "paths" | "exclude"> & Partial<Pick<FallowOptions, "cwd" | "paths" | "exclude">>;
+  fallow?: Omit<FallowOptions, "cwd" | "paths" | "exclude" | "sameFileOnly" | "crossFileOnly"> &
+    Partial<Pick<FallowOptions, "cwd" | "paths" | "exclude" | "sameFileOnly" | "crossFileOnly">>;
 }
 
 export async function detect(options: DetectOptions): Promise<DetectionReport> {
@@ -19,6 +20,8 @@ export async function detect(options: DetectOptions): Promise<DetectionReport> {
       cwd,
       paths: options.similarityTs.paths,
       ...(options.similarityTs.exclude !== undefined ? { exclude: options.similarityTs.exclude } : {}),
+      ...(options.similarityTs.sameFileOnly !== undefined ? { sameFileOnly: options.similarityTs.sameFileOnly } : {}),
+      ...(options.similarityTs.crossFileOnly !== undefined ? { crossFileOnly: options.similarityTs.crossFileOnly } : {}),
       ...options.fallow,
     }),
   ]);
@@ -54,6 +57,7 @@ export function mergePairs(declarationPairs: DetectedPair[], fragmentPairs: Dete
     }
     const members = unionLocations(match.instances ?? [match.left, match.right], pair.instances ?? [pair.left, pair.right]);
     if (members.length > 2) match.instances = members;
+    match.similarity = Math.max(match.similarity, pair.similarity);
   }
   return merged;
 }

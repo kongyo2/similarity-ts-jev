@@ -11,7 +11,9 @@ export interface SnippetOptions {
   readFile?: (filePath: string) => Promise<string>;
 }
 
-const COMMENT_LINE = /^\s*(\/\/|\/\*|\*)/;
+const LINE_COMMENT = /^\s*\/\//;
+const BLOCK_END = /\*\/\s*$/;
+const BLOCK_START = /\/\*/;
 
 export class SnippetReader {
   readonly #cwd: string;
@@ -62,7 +64,21 @@ export class SnippetReader {
 
 function leadingComment(lines: string[], start: number): string | undefined {
   let first = start - 1;
-  while (first > 0 && COMMENT_LINE.test(lines[first - 1] ?? "")) first -= 1;
+  while (first > 0) {
+    const line = lines[first - 1] ?? "";
+    if (LINE_COMMENT.test(line)) {
+      first -= 1;
+      continue;
+    }
+    if (BLOCK_END.test(line)) {
+      let opener = first - 1;
+      while (opener >= 0 && !BLOCK_START.test(lines[opener] ?? "")) opener -= 1;
+      if (opener < 0) break;
+      first = opener;
+      continue;
+    }
+    break;
+  }
   if (first === start - 1) return undefined;
   return dedent(lines.slice(first, start - 1)).join("\n").trim() || undefined;
 }

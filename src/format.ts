@@ -45,7 +45,7 @@ export interface JsonReport {
   results: JsonPair[];
   families: JsonFamily[];
   rejected?: JsonPair[];
-  unjudged?: (Pick<JsonPair, "mode" | "similarity" | "left" | "right" | "instances"> & { error: string })[];
+  unjudged?: (Pick<JsonPair, "mode" | "similarity" | "left" | "right" | "instances"> & { reason: UnjudgedPair["reason"]; error: string })[];
 }
 
 function toJsonPair(pair: JudgedPair): JsonPair {
@@ -69,6 +69,7 @@ function toJsonUnjudged(pair: UnjudgedPair): NonNullable<JsonReport["unjudged"]>
     left: pair.left,
     right: pair.right,
     ...(pair.instances !== undefined ? { instances: pair.instances } : {}),
+    reason: pair.reason,
     error: pair.error,
   };
 }

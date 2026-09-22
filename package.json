@@ -57,7 +57,8 @@
     "@kongyo2/similarity-ts": "^0.7.0",
     "@typesafe-ai/sdk": "^0.6.0",
     "commander": "^13.1.0",
-    "fallow": "^3.27.0"
+    "fallow": "^3.27.0",
+    "ignore": "^7.0.5"
   },
   "devDependencies": {
     "@kongyo2/ts-comment-scanner": "^1.7.0",

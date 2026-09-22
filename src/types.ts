@@ -48,7 +48,10 @@ export interface JudgedPair extends DetectedPair {
   verdict: Verdict;
 }
 
+export type UnjudgedReason = "capped" | "unreadable" | "api";
+
 export interface UnjudgedPair extends DetectedPair {
+  reason: UnjudgedReason;
   error: string;
 }
 

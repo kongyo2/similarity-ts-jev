@@ -4,7 +4,7 @@ import { BadRequestError, InternalServerError } from "@typesafe-ai/sdk";
 import type { Questions } from "@typesafe-ai/sdk";
 import { decide } from "../src/decide.ts";
 import { judgePairs, requestHash, toJudgment } from "../src/judge.ts";
-import type { JudgeCache, JudgeRequest, JudgeResponse } from "../src/judge.ts";
+import type { JudgeCache, JudgeRejection, JudgeRequest, JudgeResponse } from "../src/judge.ts";
 import { REFACTOR_LEVELS, batchPairs, pairQuestions, pairTokens, questionIds } from "../src/questions.ts";
 import type { PairSnippet } from "../src/types.ts";
 import { answerAll, location, pair, stubClient } from "./helpers.ts";
@@ -68,7 +68,7 @@ describe("judgePairs", () => {
     const snippets = [snippet(0, "MERGE_ME"), snippet(1, "b"), snippet(2, "TOO_BIG"), snippet(3, "d")];
     const client = stubClient((request) => {
       const ids = Object.keys(request.questions);
-      if (ids.length > 3) throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
+      if (ids.length > 9) throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
       if (JSON.stringify(request.questions).includes("TOO_BIG")) throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
       return answerAll(request);
     });
@@ -77,7 +77,34 @@ describe("judgePairs", () => {
     assert.match(outcome.failures.get(2)!, /BadRequestError: 400/);
     assert.equal(outcome.stats.judged, 3);
     assert.equal(outcome.stats.unjudged, 1);
-    assert.ok(client.calls >= 5, `attempts: ${client.calls}`);
+    assert.equal(client.calls, 5, "4 pairs, then 2+2, then 1+1 for the rejected half");
+    assert.equal(outcome.stats.requests, client.calls, "rejected batches count as requests too");
+  });
+
+  it("replays split batches from the cache without reaching the API", async () => {
+    const store = new Map<string, { request: JudgeRequest; response: JudgeResponse | JudgeRejection }>();
+    const cache: JudgeCache = {
+      get: (hash) => store.get(hash)?.response,
+      set: (hash, request, response) => void store.set(hash, { request, response }),
+    };
+    const snippets = [snippet(0, "MERGE_ME"), snippet(1, "b"), snippet(2, "TOO_BIG"), snippet(3, "d")];
+    const rejecting = stubClient((request) => {
+      const text = JSON.stringify(request.questions);
+      if (Object.keys(request.questions).length > 9 || text.includes("TOO_BIG")) throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
+      return answerAll(request);
+    });
+    const first = await judgePairs(snippets, rejecting, { cache, repository: "r", concurrency: 1 });
+    assert.deepEqual([...first.judgments.keys()].sort(), [0, 1, 3]);
+    assert.equal([...store.values()].filter((entry) => "rejected" in entry.response).length, 3, "the parent, the oversized half, and the single oversized pair are recorded as rejections");
+    const offline = stubClient(() => {
+      throw new Error("offline");
+    });
+    const replayed = await judgePairs(snippets, offline, { cache, repository: "r", concurrency: 1 });
+    assert.equal(offline.calls, 0);
+    assert.deepEqual([...replayed.judgments.keys()].sort(), [0, 1, 3]);
+    assert.match(replayed.failures.get(2)!, /400/);
+    assert.equal(replayed.stats.cacheHits, 5);
+    assert.equal(replayed.stats.requests, 0);
   });
 
   it("marks a whole batch unjudged on other API failures and keeps going", async () => {
@@ -94,7 +121,7 @@ describe("judgePairs", () => {
   });
 
   it("replays from the cache and records misses", async () => {
-    const store = new Map<string, { request: JudgeRequest; response: JudgeResponse }>();
+    const store = new Map<string, { request: JudgeRequest; response: JudgeResponse | JudgeRejection }>();
     const cache: JudgeCache = {
       get: (hash) => store.get(hash)?.response,
       set: (hash, request, response) => void store.set(hash, { request, response }),

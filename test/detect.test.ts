@@ -142,6 +142,37 @@ describe("runFallow", () => {
     assert.deepEqual(result.pairs.map((p) => path.basename(p.right.filePath)), ["b.ts"], "the same group from four modes is one pair");
   });
 
+  it("applies --exclude with gitignore semantics", async () => {
+    const groups = [
+      group("dup:a", [["src/a.ts", 1, 6], ["src/b.ts", 1, 6]]),
+      group("dup:b", [["src/a.ts", 10, 16], ["src/gen/x.generated.ts", 1, 6]]),
+      group("dup:c", [["src/a.ts", 20, 26], ["dist/a.ts", 1, 6]]),
+      group("dup:d", [["src/a.ts", 30, 36], ["tests/deep/x.test.ts", 1, 6]]),
+    ];
+    const result = await runFallow({
+      cwd: "/repo",
+      exclude: ["*.generated.ts", "dist/", "tests/**"],
+      exec: async () => ({ stdout: dupes(groups), code: 1 }),
+    });
+    assert.deepEqual(result.pairs.map((p) => path.basename(p.right.filePath)), ["b.ts"]);
+  });
+
+  it("scopes clone groups to one file or across files like the similarity-ts flags", async () => {
+    const groups = [
+      group("dup:mixed", [["a.ts", 1, 6], ["a.ts", 20, 25], ["a.ts", 40, 45], ["b.ts", 1, 6]]),
+      group("dup:same", [["c.ts", 1, 6], ["c.ts", 30, 35]]),
+    ];
+    const exec = async () => ({ stdout: dupes(groups), code: 1 });
+    const same = await runFallow({ cwd: "/repo", sameFileOnly: true, exec });
+    assert.deepEqual(
+      same.pairs.map((p) => `${path.basename(p.left.filePath)}:${p.left.startLine}-${path.basename(p.right.filePath)}:${p.right.startLine}`),
+      ["a.ts:1-a.ts:40", "c.ts:1-c.ts:30"],
+    );
+    assert.equal(same.pairs[0]!.instances?.length, 3, "only the same-file instances stay in the group");
+    const cross = await runFallow({ cwd: "/repo", crossFileOnly: true, exec });
+    assert.deepEqual(cross.pairs.map((p) => `${path.basename(p.left.filePath)}-${path.basename(p.right.filePath)}`), ["a.ts-b.ts"]);
+  });
+
   it("throws FallowError instead of returning half a report", async () => {
     await assert.rejects(runFallow({ exec: async () => ({ stdout: JSON.stringify({ error: true, message: "no project here" }), code: 2 }) }), /fallow dupes did not run: \w+ mode: no project here/);
     await assert.rejects(runFallow({ exec: async () => { throw new Error("spawn ENOENT"); } }), /spawn ENOENT/);
@@ -157,11 +188,13 @@ describe("mergePairs", () => {
     const declaration = pair(a, b);
     const fragment = pair(location("/r/b.ts", 33, 40, "(fragment)", "fragment"), location("/r/a.ts", 12, 19, "(fragment)", "fragment"), {
       mode: "overlap",
+      similarity: 1,
       instances: [location("/r/b.ts", 33, 40), location("/r/a.ts", 12, 19), location("/r/c.ts", 1, 8)],
     });
     const merged = mergePairs([declaration], [fragment]);
     assert.equal(merged.length, 1);
     assert.equal(merged[0]!.mode, "functions");
+    assert.equal(merged[0]!.similarity, 1, "the stronger score of the two reports is kept");
     assert.equal(merged[0]!.left.symbolName, "fnA", "the declaration side wins");
     assert.equal(merged[0]!.instances?.length, 3, "the clone family is carried over");
     assert.equal(declaration.instances, undefined, "inputs are not mutated");

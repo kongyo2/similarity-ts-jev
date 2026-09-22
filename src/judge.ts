@@ -20,9 +20,19 @@ export interface JudgeResponse {
 
 export type JudgeClient = Pick<TypeSafeClient, "systemOne">;
 
+export interface JudgeRejection {
+  rejected: true;
+  status: number;
+  message: string;
+}
+
 export interface JudgeCache {
-  get(hash: string): JudgeResponse | undefined;
-  set(hash: string, request: JudgeRequest, response: JudgeResponse): void;
+  get(hash: string): JudgeResponse | JudgeRejection | undefined;
+  set(hash: string, request: JudgeRequest, response: JudgeResponse | JudgeRejection): void;
+}
+
+export function isRejection(value: JudgeResponse | JudgeRejection): value is JudgeRejection {
+  return (value as JudgeRejection).rejected === true;
 }
 
 export interface JudgeOptions extends BatchOptions {
@@ -55,22 +65,33 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
     const questions: Questions = Object.assign({}, ...batch.map(pairQuestions));
     const request: JudgeRequest = { state, questions, ...(options.model !== undefined ? { model: options.model } : {}) };
     const hash = requestHash(request);
-    let response = options.cache?.get(hash);
-    if (response !== undefined) {
+    const split = async () => {
+      const middle = Math.ceil(batch.length / 2);
+      await runBatch(batch.slice(0, middle));
+      await runBatch(batch.slice(middle));
+    };
+    const cached = options.cache?.get(hash);
+    let response: JudgeResponse;
+    if (cached !== undefined && isRejection(cached)) {
       stats.cacheHits += 1;
+      if (batch.length > 1) return split();
+      for (const pair of batch) failures.set(pair.index, cached.message);
+      report();
+      return;
+    } else if (cached !== undefined) {
+      stats.cacheHits += 1;
+      response = cached;
     } else {
       try {
         response = await call(client, request);
       } catch (error) {
-        if (isRequestRejected(error) && batch.length > 1) {
-          const middle = Math.ceil(batch.length / 2);
-          await runBatch(batch.slice(0, middle));
-          await runBatch(batch.slice(middle));
-          return;
-        }
-        const message = describeError(error);
-        for (const pair of batch) failures.set(pair.index, message);
         stats.requests += 1;
+        const message = describeError(error);
+        if (isRequestRejected(error)) {
+          options.cache?.set(hash, request, { rejected: true, status: error.status, message });
+          if (batch.length > 1) return split();
+        }
+        for (const pair of batch) failures.set(pair.index, message);
         report();
         return;
       }
@@ -128,7 +149,7 @@ export function toJudgment(pair: PairSnippet, response: JudgeResponse): Judgment
   };
 }
 
-function isRequestRejected(error: unknown): boolean {
+function isRequestRejected(error: unknown): error is APIError {
   return error instanceof APIError && (error.status === 400 || error.status === 422 || error.status === 413);
 }
 

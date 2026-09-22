@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { promisify } from "node:util";
 import type { CloneGroupFinding, CloneInstance, DupesOutput, ErrorOutput } from "fallow/types";
+import ignore from "ignore";
 import type { AnalyzerLocation, DetectedPair } from "./types.ts";
 
 export type FallowMode = "strict" | "mild" | "weak" | "semantic";
@@ -15,6 +16,8 @@ export interface FallowOptions {
   cwd?: string;
   paths?: string[];
   exclude?: string[];
+  sameFileOnly?: boolean;
+  crossFileOnly?: boolean;
   near?: boolean;
   minTokens?: number;
   minLines?: number;
@@ -62,20 +65,35 @@ export async function runFallow(options: FallowOptions = {}): Promise<FallowResu
   for (const output of outputs) {
     for (const group of output.clone_groups ?? []) {
       const kept = group.instances.filter(keep);
-      if (kept.length < 2) continue;
-      const pair = toPair(group, kept, cwd);
-      const key = fileKey(pair);
-      const known = (byFiles.get(key) ?? []).find((candidate) => samePair(candidate, pair));
-      if (known !== undefined) {
-        absorb(known, pair);
-        continue;
+      for (const bucket of scopedBuckets(kept, cwd, options)) {
+        const pair = toPair(group, bucket, cwd);
+        const key = fileKey(pair);
+        const known = (byFiles.get(key) ?? []).find((candidate) => samePair(candidate, pair));
+        if (known !== undefined) {
+          absorb(known, pair);
+          continue;
+        }
+        pairs.push(pair);
+        byFiles.set(key, [...(byFiles.get(key) ?? []), pair]);
+        instances += bucket.length;
       }
-      pairs.push(pair);
-      byFiles.set(key, [...(byFiles.get(key) ?? []), pair]);
-      instances += kept.length;
     }
   }
   return { pairs, cloneGroups: pairs.length, cloneInstances: instances, elapsedMs: Date.now() - started };
+}
+
+function scopedBuckets(instances: CloneInstance[], cwd: string, options: FallowOptions): CloneInstance[][] {
+  if (options.sameFileOnly) {
+    const byFile = new Map<string, CloneInstance[]>();
+    for (const instance of instances) {
+      const file = path.resolve(cwd, instance.file);
+      byFile.set(file, [...(byFile.get(file) ?? []), instance]);
+    }
+    return [...byFile.values()].filter((bucket) => bucket.length >= 2);
+  }
+  if (instances.length < 2) return [];
+  if (options.crossFileOnly && new Set(instances.map((instance) => path.resolve(cwd, instance.file))).size < 2) return [];
+  return [instances];
 }
 
 async function runMode(exec: NonNullable<FallowOptions["exec"]>, cwd: string, mode: FallowMode, options: FallowOptions): Promise<DupesOutput> {
@@ -163,30 +181,19 @@ function mostDistant(locations: AnalyzerLocation[]): [AnalyzerLocation, Analyzer
 
 function instanceFilter(cwd: string, paths: string[] | undefined, exclude: string[] | undefined): (instance: CloneInstance) => boolean {
   const roots = (paths ?? []).map((p) => path.resolve(cwd, p));
-  const excludes = exclude ?? [];
+  const excluded = ignore().add(exclude ?? []);
   return (instance) => {
     const absolute = path.resolve(cwd, instance.file);
     if (roots.length > 0 && !roots.some((root) => isInside(root, absolute))) return false;
-    if (excludes.length > 0) {
-      const relative = path.relative(cwd, absolute).split(path.sep).join("/");
-      if (excludes.some((pattern) => matchesGlob(relative, pattern))) return false;
-    }
-    return true;
+    const relative = path.relative(cwd, absolute).split(path.sep).join("/");
+    if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) return true;
+    return !excluded.ignores(relative);
   };
 }
 
 function isInside(root: string, target: string): boolean {
   const relative = path.relative(root, target);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-}
-
-function matchesGlob(relative: string, pattern: string): boolean {
-  const normalized = pattern.replace(/\\/g, "/").replace(/^\.\//, "");
-  const withGlob = path.posix as unknown as { matchesGlob?: (target: string, glob: string) => boolean };
-  if (typeof withGlob.matchesGlob === "function") {
-    return withGlob.matchesGlob(relative, normalized) || withGlob.matchesGlob(relative, `**/${normalized}`);
-  }
-  return relative.includes(normalized.replace(/\*+/g, ""));
 }
 
 function parseJson(text: string): unknown {

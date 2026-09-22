@@ -4,8 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { InternalServerError } from "@typesafe-ai/sdk";
-import { runCli } from "../src/cli.ts";
+import { exitCode, runCli } from "../src/cli.ts";
 import type { JsonReport } from "../src/format.ts";
+import type { JevReport } from "../src/types.ts";
 import { FIXTURE_CACHE, FIXTURE_PROJECT, offline, stubClient } from "./helpers.ts";
 
 function capture() {
@@ -122,11 +123,46 @@ describe("similarity-ts-jev CLI (replayed)", () => {
     assert.equal(await runCli([".", "--cache", FIXTURE_CACHE, "--fail-on-duplicates", "--min-score", "3"], io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
   });
 
-  it("counts without asking Jev in --dry-run", async () => {
-    const { io, out } = capture();
-    const code = await runCli([".", "--dry-run"], io, { client: offline, cwd: FIXTURE_PROJECT });
-    assert.equal(code, 0);
+  it("counts without asking Jev in --dry-run, honoring --max-pairs and the warning gate", async () => {
+    const { io, out, err } = capture();
+    assert.equal(await runCli([".", "--dry-run"], io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
     assert.match(out.join("\n"), /^12 pairs, 1 requests, \d+ tokens$/);
+    out.length = 0;
+    assert.equal(await runCli([".", "--dry-run", "--max-pairs", "3"], io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
+    assert.match(out.join("\n"), /^3 pairs, 1 requests, \d+ tokens$/);
+    out.length = 0;
+    assert.equal(await runCli(["src", "missing-dir", "--dry-run"], io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
+    assert.match(err.join("\n"), /missing-dir/);
+    assert.equal(await runCli(["src", "missing-dir", "--dry-run", "--fail-on-warnings"], io, { client: offline, cwd: FIXTURE_PROJECT }), 1);
+    out.length = 0;
+    assert.equal(await runCli([".", "--dry-run", "--same-file-only"], io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
+    assert.match(out.join("\n"), /^0 pairs, 0 requests, 0 tokens$/, "every duplicate in the fixture spans two files");
+  });
+
+  it("writes an empty file for an empty report", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "similarity-ts-jev-"));
+    try {
+      const { io } = capture();
+      const file = path.join(dir, "empty.txt");
+      assert.equal(await runCli([".", "--cache", FIXTURE_CACHE, "--min-score", "3", "--output", file], io, { client: offline, cwd: FIXTURE_PROJECT }), 0);
+      assert.equal((await fs.stat(file)).size, 0);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("maps analysis problems to 1 and judgment failures to 2", () => {
+    const base = { analyzedFiles: [], skippedFiles: [], warnings: [], results: [], families: [], rejectedCount: 0, unjudged: [], thresholds: { minScore: 1.9 } } as unknown as JevReport;
+    const pair = { mode: "functions", similarity: 1, left: { filePath: "a", startLine: 1, endLine: 1, symbolName: "a", kind: "function" }, right: { filePath: "b", startLine: 1, endLine: 1, symbolName: "b", kind: "function" } } as const;
+    const stats = { fileCount: 1 } as JevReport["stats"];
+    const gates = { failOnWarnings: false, failOnDuplicates: false };
+    assert.equal(exitCode({ ...base, stats }, gates), 0);
+    assert.equal(exitCode({ ...base, stats, unjudged: [{ ...pair, reason: "capped", error: "over the --max-pairs limit (1)" }] }, gates), 0);
+    assert.equal(exitCode({ ...base, stats, unjudged: [{ ...pair, reason: "unreadable", error: "could not read the source: ENOENT" }] }, gates), 1);
+    assert.equal(exitCode({ ...base, stats, unjudged: [{ ...pair, reason: "api", error: "InternalServerError: 503" }] }, gates), 2);
+    assert.equal(exitCode({ ...base, stats, warnings: [{ message: "w" }] }, gates), 0);
+    assert.equal(exitCode({ ...base, stats, warnings: [{ message: "w" }] }, { ...gates, failOnWarnings: true }), 1);
+    assert.equal(exitCode({ ...base, stats: { fileCount: 0 } as JevReport["stats"], warnings: [{ message: "w" }] }, gates), 1);
   });
 
   it("exits 2 and lists the pairs it could not judge when Jev fails", async () => {
@@ -139,16 +175,18 @@ describe("similarity-ts-jev CLI (replayed)", () => {
     const report = JSON.parse(out.join("\n")) as JsonReport;
     assert.deepEqual(report.results, []);
     assert.equal(report.unjudged!.length, 12);
+    assert.ok(report.unjudged!.every((p) => p.reason === "api"));
     assert.match(report.unjudged![0]!.error, /503 overloaded/);
     assert.match(err.join("\n"), /12 pairs not judged: InternalServerError: 503 overloaded/);
   });
 
   it("rejects bad options and unknown modes", async () => {
-    const { io, err } = capture();
+    const { io, err, out } = capture();
     assert.equal(await runCli([".", "--modes", "functions,bogus"], io, { client: offline, cwd: FIXTURE_PROJECT }), 1);
     assert.match(err.join("\n"), /unknown mode "bogus"/);
     assert.equal(await runCli([".", "--min-score", "9"], io, { client: offline, cwd: FIXTURE_PROJECT }), 1);
     assert.equal(await runCli([".", "--same-file-only", "--cross-file-only"], io, { client: offline, cwd: FIXTURE_PROJECT }), 1);
     assert.equal(await runCli(["--help"], io), 0);
+    assert.match(err.join("\n") + out.join("\n"), /--base-url <url>/);
   });
 });

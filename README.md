@@ -105,7 +105,8 @@ Detection options mirror `similarity-ts` (same names and defaults, except
 | Option | Default | |
 | --- | --- | --- |
 | `--modes <list>` | `functions,types,classes` | similarity-ts modes; add `overlap` for token windows |
-| `-t, --threshold`, `--min-lines`, `--min-tokens`, `--no-size-penalty`, `--same-file-only`, `--cross-file-only`, `--extensions`, `--exclude` (repeatable), `--types-only`, `--no-allow-cross-kind`, `--type-literals`, `--overlap-*` | as in similarity-ts | passed through to `analyzeProject`; `--exclude` also filters fallow's instances |
+| `-t, --threshold`, `--min-lines`, `--min-tokens`, `--no-size-penalty`, `--extensions`, `--types-only`, `--no-allow-cross-kind`, `--type-literals`, `--overlap-*` | as in similarity-ts | passed through to `analyzeProject` |
+| `--same-file-only`, `--cross-file-only`, `--exclude` (repeatable, gitignore syntax) | as in similarity-ts | applied to both detectors: a clone group is split per file or dropped when it does not cross files, and excluded files leave every group |
 | `--no-fallow-near` | near-miss on | disable `fallow dupes --near` (every mode still runs) |
 | `--fallow-min-tokens`, `--fallow-min-lines` | fallow's own (50, 5) | clone size floor |
 
@@ -115,20 +116,24 @@ Judgment and output:
 | --- | --- | --- |
 | `--min-score <0-3>` | `1.9` | lowest `refactor` score reported |
 | `--all` | off | also list the pairs Jev would leave as they are (after a blank line; JSON: `rejected`) |
-| `--max-pairs <n>` | all | judge only the n highest-similarity pairs; the rest are listed as not judged |
+| `--max-pairs <n>` | all | judge only the n highest-similarity pairs (`--dry-run` counts the same n) |
 | `--concurrency <n>` | `4` | Jev requests in flight |
 | `--pairs-per-request <n>` | `40` | pairs packed into one request |
 | `--model <name>` | `TYPESAFE_DEFAULT_MODEL` or `jev-latest` | Jev model |
+| `--base-url <url>` | `TYPESAFE_BASE_URL` or `https://api.typesafe.ai` | TypeSafe-compatible API root |
 | `--cache <file>` | — | record Jev's answers and replay them on later runs (re-thresholding costs no requests) |
 | `--timeout <ms>` | `60000` | per request attempt |
-| `--dry-run` | off | print `<pairs> pairs, <requests> requests, <tokens> tokens` without asking Jev |
+| `--dry-run` | off | print `<pairs> pairs, <requests> requests, <tokens> tokens` without asking Jev; `--fail-on-warnings` applies |
 | `--format pretty\|json`, `--output <path>` | `pretty` | as in similarity-ts |
-| `--fail-on-warnings`, `--fail-on-duplicates` | off | exit 1 on analyzer warnings / when any pair is worth refactoring (CI gate) |
+| `--fail-on-warnings`, `--fail-on-duplicates` | off | exit 1 on detector warnings / when any pair is worth refactoring (CI gate) |
 
-Exit codes: `0` done, `1` usage or analysis error (or a CI gate), `2` some
-pairs could not be judged (Jev failed after the SDK's retries; stderr says
-how many and why, JSON lists them under `unjudged`). A run whose answers all
-come from `--cache` needs no API key.
+Exit codes: `0` done, `1` usage or analysis error (a detector failed, a
+reported source file could not be read, or a CI gate fired), `2` some pairs
+could not be judged (Jev failed after the SDK's retries). stderr says how many
+and why; JSON lists them under `unjudged` with a `reason` (`capped`,
+`unreadable`, `api`). A run whose answers all come from `--cache` needs no
+API key; rejected requests are recorded too, so a replay never contacts the
+API.
 
 ### JSON
 
@@ -138,15 +143,16 @@ refactoring, best first: `score`, `confidence`, `sameLogic`,
 `overlap`), `left`/`right` (`filePath`, `startLine`, `endLine`,
 `symbolName`, `kind`), and `instances` when a fragment appears in more than
 two places) and `families` (`score`, `members`). `rejected` is added with
-`--all`, `unjudged` (each with its `error`) only when Jev could not judge
-some pairs. There are no other fields.
+`--all`, `unjudged` (each with its `reason` and `error`) only when some pairs
+were not judged. There are no other fields.
 
 ### Environment
 
 Only `@typesafe-ai/sdk`'s variables: `TYPESAFE_API_KEY` (required),
 `TYPESAFE_BASE_URL` and `TYPESAFE_DEFAULT_MODEL` for a TypeSafe-compatible
 endpoint (Lolipop AI Gateway: `TYPESAFE_BASE_URL=https://ai-gateway.lolipop.jp
-TYPESAFE_DEFAULT_MODEL=typesafe/jev-latest`), `TYPESAFE_LOG_LEVEL`. Nothing
+TYPESAFE_DEFAULT_MODEL=typesafe/jev-latest`; `--base-url` and `--model` set
+the same two), `TYPESAFE_LOG_LEVEL`. Nothing
 is sent anywhere but that endpoint; the code of each reported pair is part of
 the request.
 
@@ -172,7 +178,7 @@ for (const pair of report.results) console.log(pair.judgment.score, pair.left.sy
 ## Development
 
 ```sh
-npm test               # 28 offline tests: real detection on test/fixtures/project, Jev replayed from test/fixtures/jev-cache.json
+npm test               # 35 offline tests: real detection on test/fixtures/project, Jev replayed from test/fixtures/jev-cache.json
 npm run typecheck
 npm run lint:comments  # the sources carry no comments; CI fails on any
 npm run build          # tsc -> dist/
