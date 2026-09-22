@@ -1,0 +1,23 @@
+2207 judged pairs; 81 at or over 1.90, 111 within 0.25 of it, 42 reported with confidence under 0.50
+  0.00-0.25  ###                                      55
+  0.25-0.50  ###############                          254
+  0.50-0.75  ######################################## 693
+  0.75-1.00  #############################            509
+  1.00-1.25  ################                         284
+  1.25-1.50  ###########                              194
+  1.50-1.75  #####                                    89
+  1.75-2.00  ####                                     61
+  2.00-2.25  ##                                       31
+  2.25-2.50  #                                        23
+  2.50-2.75  #                                        11
+  2.75-3.00                                           3
+widest gap 0.14 between 2.80 and 2.94: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.89, lowest at or over it 1.90; confidence median 0.34 (p10 0.05, p90 0.57)
+
+labels: 32 labeled pairs found (13 merge, 19 keep)
+  at 1.90: precision 1.00, recall 0.92, accuracy 0.97 (tp 12, fp 0, fn 1, tn 19)
+  score        AUC 1.00; fitted cutoff 1.77 (separable: lowest merge 1.89, highest keep 1.65); at the fit precision 1.00 recall 1.00; 5-fold hold-out accuracy 0.97 (fp 0, fn 1; fold cutoffs 1.73 1.77 1.91 1.77 1.77)
+  same_logic   AUC 0.87; fitted cutoff 0.86 (not separable: lowest merge 0.86, highest keep 0.97); at the fit precision 0.65 recall 1.00; 5-fold hold-out accuracy 0.75 (fp 7, fn 1; fold cutoffs 0.87 0.86 0.86 0.86 0.86)
+  same_concept AUC 0.88; fitted cutoff 0.27 (not separable: lowest merge 0.27, highest keep 0.87); at the fit precision 0.62 recall 1.00; 5-fold hold-out accuracy 0.72 (fp 8, fn 1; fold cutoffs 0.27 0.27 0.37 0.27 0.27)
+  unsure band (confidence < 0.50): 6 of 12 reported; precision 1.00 there, 1.00 for the rest
+  wrong: 1.89 (confidence 0.50, logic 0.87, concept 0.27) labeled merge  pkgs/core/src/eachHourOfInterval/index.ts:15:EachHourOfIntervalResult <-> pkgs/core/src/eachWeekOfInterval/index.ts:28:EachWeekOfIntervalResult

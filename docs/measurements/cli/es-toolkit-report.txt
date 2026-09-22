@@ -1,0 +1,105 @@
+2.78  copy     src/compat/object/clone.ts:175-205 isCloneableObject <-> src/object/cloneDeepWith.ts:279-309 isCloneableObject
+2.76  copy     src/fp/array/flatMapDeep.ts:36-45 emitDeep <-> src/fp/array/flattenDeep.ts:31-40 emitDeep
+2.70  copy     src/compat/_internal/ObjectIteratee.ts:6-8 ObjectIterateeCustom <-> src/compat/_internal/ObjectIterateeCustom.ts:4-6 ObjectIterateeCustom
+2.67  copy     src/array/unzip.ts:40 Unzip <-> src/fp/array/unzip.ts:3 Unzip
+2.67  copy     src/compat/function/partialRight.ts:19-777 the <-> src/function/partialRight.ts:35-797 the
+2.56  copy     src/compat/function/partial.ts:243-341 (fragment) <-> src/function/partial.ts:597-749 (fragment)
+2.53  copy     src/compat/predicate/isLength.ts:22-24 isLength <-> src/predicate/isLength.ts:22-24 isLength
+2.50  copy     src/compat/predicate/isFunction.ts:14-16 isFunction <-> src/predicate/isFunction.ts:14-16 isFunction
+2.47? copy     src/compat/predicate/isNull.ts:12-14 isNull <-> src/predicate/isNull.ts:21-23 isNull
+2.47? copy     src/iterator/cartesianProduct.ts:3 IteratorValue <-> src/iterator/zip.ts:3 IteratorValue
+2.42? extract
+      src/object/toConstantCaseKeys.ts:52-73 ToConstantCaseKeys
+      src/object/toKebabCaseKeys.ts:52-73 ToConstantCaseKeys
+      src/object/toPascalCaseKeys.ts:52-73 ToConstantCaseKeys
+      src/object/toSnakeCaseKeys.ts:52-73 ToConstantCaseKeys
+2.39? copy     src/array/compact.ts:1 NotFalsey <-> src/fp/array/compact.ts:4 NotFalsey
+2.37? copy
+      src/fp/flow.ts:9-74 (fragment)
+      src/function/flow.ts:34-145 (fragment)
+      src/function/flowRight.ts:38-159 (fragment)
+2.36? extract
+      src/compat/function/curry.ts:218-229 wrapper
+      src/compat/function/curry.ts:236-256 providedArgs
+      src/compat/function/curryRight.ts:145-156 wrapper
+      src/compat/function/curryRight.ts:163-183 providedArgs
+2.35? derive
+      src/map/keyBy.ts:29-41 keyBy
+      src/map/mapKeys.ts:28-36 mapKeys
+      src/map/mapValues.ts:28-36 (fragment)
+2.31? extract  src/compat/object/assign.ts:142-151 source <-> src/compat/object/assignIn.ts:143-152 source
+2.29? copy     src/compat/predicate/isNil.ts:20-22 isNil <-> src/predicate/isNil.ts:20-22 isNil
+2.27? copy     src/compat/_internal/Many.ts:1 Many <-> src/compat/object/at.ts:6 Many
+2.27? copy     src/compat/object/assignInWith.ts:5 AssignCustomizer <-> src/compat/object/assignWith.ts:5 AssignCustomizer
+2.26? extract  src/compat/object/assignInWith.ts:190-208 (fragment) <-> src/compat/object/assignWith.ts:190-208 (fragment)
+2.24? extract  src/compat/_internal/GetFieldType.ts:1-7 GetFieldTypeOfArrayLikeByKey <-> src/compat/_internal/GetFieldType.ts:9-15 GetFieldTypeOfStringByKey
+2.20? copy     src/compat/array/sortedIndexBy.ts:11 Iteratee <-> src/compat/array/sortedLastIndexBy.ts:7 Iteratee
+2.20  extract  src/compat/math/maxBy.ts:48-61 current <-> src/compat/math/minBy.ts:48-61 current
+2.19? extract  src/compat/array/dropRightWhile.ts:70-89 predicate <-> src/compat/array/dropWhile.ts:41-60 predicate
+2.19? copy     src/compat/function/partialRight.ts:717-777 partially <-> src/function/partialRight.ts:742-797 partially
+2.18? extract  src/compat/object/has.ts:89-106 resolvedPath <-> src/compat/object/hasIn.ts:51-68 resolvedPath
+2.17? copy
+      src/fp/flowAsync.ts:96-102 Awaited
+      src/fp/flowAsync.ts:118-125 Awaited
+      src/fp/flowAsync.ts:142-149 Awaited
+      src/fp/flowAsync.ts:168-175 Awaited
+      src/fp/flowAsync.ts:196-203 Awaited
+      src/fp/flowAsync.ts:226-233 Awaited
+      src/fp/flowAsync.ts:258-265 Awaited
+      src/fp/flowAsync.ts:292-299 Awaited
+      src/fp/flowAsync.ts:328-335 Awaited
+2.15  extract  src/compat/object/keys.ts:40-65 filteredKeys <-> src/compat/object/keysIn.ts:71-96 filteredKeys
+2.14~ extract  src/compat/object/toPairs.ts:64-74 (fragment) <-> src/compat/object/toPairsIn.ts:62-72 (fragment)
+2.12? copy
+      src/fp/pipe.ts:108-115 (fragment)
+      src/fp/pipe.ts:132-139 (fragment)
+      src/fp/pipe.ts:158-165 (fragment)
+      src/fp/pipe.ts:186-193 (fragment)
+      src/fp/pipe.ts:216-223 (fragment)
+      src/fp/pipe.ts:248-255 (fragment)
+      src/fp/pipe.ts:282-289 (fragment)
+      src/fp/pipe.ts:318-325 (fragment)
+      src/fp/pipe.ts:356-363 (fragment)
+2.09? extract
+      src/types/ToCamelCaseKeys.ts:30-36 ToCamelCaseKeys
+      src/types/ToConstantCaseKeys.ts:26-32 ToConstantCaseKeys
+      src/types/ToKebabCaseKeys.ts:32-38 ToKebabCaseKeys
+      src/types/ToPascalCaseKeys.ts:30-36 ToPascalCaseKeys
+      src/types/ToSnakeCaseKeys.ts:26-32 ToSnakeCaseKeys
+2.08~ extract
+      src/compat/array/some.ts:126-136 (fragment)
+      src/compat/array/some.ts:137-147 (fragment)
+      src/compat/array/some.ts:150-160 (fragment)
+2.08~ extract  src/array/maxBy.ts:83-93 (fragment) <-> src/array/minBy.ts:83-93 (fragment)
+2.07? extract
+      src/compat/string/kebabCase.ts:19-23 kebabCase
+      src/compat/string/lowerCase.ts:19-23 lowerCase
+      src/compat/string/snakeCase.ts:19-23 snakeCase
+2.07? copy     src/compat/function/partial.ts:17-86 (fragment) <-> src/function/partial.ts:110-251 (fragment)
+2.06~ extract
+      src/compat/function/bind.ts:38-47 providedArgs
+      src/compat/function/bindKey.ts:95-104 providedArgs
+      src/compat/function/curry.ts:264-272 providedArgs
+2.06~ extract  src/function/curry.ts:169-179 makeCurry <-> src/function/curryRight.ts:178-187 makeCurryRight
+2.06? extract  src/types/ToConstantCaseKeys.ts:3-10 ConstantCase <-> src/types/ToSnakeCaseKeys.ts:3-10 SnakeCase
+2.04? extract  src/bigint/inRange.ts:46-57 inRange <-> src/math/inRange.ts:42-53 inRange
+2.04? extract  src/array/maxBy.ts:74-100 maxBy <-> src/array/minBy.ts:74-100 minBy
+2.03? extract  src/compat/math/maxBy.ts:34-65 maxBy <-> src/compat/math/minBy.ts:34-65 minBy
+2.02~ extract  src/object/cloneDeepWith.ts:102-107 valueToClone <-> src/object/cloneDeepWith.ts:163-168 valueToClone
+2.01~ extract  src/compat/string/camelCase.ts:23-31 splitWords <-> src/string/camelCase.ts:21-29 splitWords
+2.01~ extract  src/string/kebabCase.ts:18-21 kebabCase <-> src/string/snakeCase.ts:18-21 snakeCase
+2.00~ extract  src/compat/function/curry.ts:211-219 arity <-> src/compat/function/curryRight.ts:138-146 arity
+1.98~ extract  src/compat/math/range.ts:53-74 range <-> src/compat/math/rangeRight.ts:52-73 rangeRight
+1.98? extract  src/compat/function/curry.ts:207-234 arity <-> src/compat/function/curryRight.ts:134-161 arity
+1.97~ extract  src/compat/object/keys.ts:58-64 inheritedKeys <-> src/compat/object/keysIn.ts:89-95 inheritedKeys
+1.96? extract  src/compat/math/max.ts:8-28 (fragment) <-> src/compat/math/min.ts:8-28 (fragment)
+1.96~ extract  src/function/debounce.ts:1-15 DebounceOptions <-> src/function/throttle.ts:3-17 ThrottleOptions
+1.94? derive   src/compat/function/unary.ts:17-19 unary <-> src/function/unary.ts:17-19 unary
+1.94~ extract  src/bigint/range.ts:57-75 range <-> src/bigint/rangeRight.ts:56-74 rangeRight
+1.94~ extract  src/array/flatten.ts:18-28 currentDepth <-> src/compat/array/flattenDepth.ts:27-37 currentDepth
+1.93~ extract  src/array/pull.ts:22-37 resultIndex <-> src/compat/array/pullAllBy.ts:134-149 resultIndex
+1.92~ extract  src/compat/object/toPairs.ts:49-75 (fragment) <-> src/compat/object/toPairsIn.ts:47-73 (fragment)
+1.92~ extract  src/compat/array/dropRightWhile.ts:73-80 predicate <-> src/compat/array/dropWhile.ts:44-51 predicate
+1.92? extract  src/compat/function/flow.ts:29-57 (fragment) <-> src/fp/flow.ts:74-101 (fragment)
+1.92? extract  src/types/ToConstantCaseKeys.ts:3-32 (fragment) <-> src/types/ToSnakeCaseKeys.ts:3-32 (fragment)
+1.90~ extract  src/compat/object/omitBy.ts:90-97 (fragment) <-> src/compat/object/pickBy.ts:137-144 (fragment)

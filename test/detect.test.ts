@@ -8,7 +8,13 @@ import { FallowError, runFallow } from "../src/fallow.ts";
 import { groupFamilies } from "../src/families.ts";
 import { toRelativePath } from "../src/snippets.ts";
 import type { DetectedPair, JudgedPair } from "../src/types.ts";
-import { FIXTURE_PROJECT, location, pair } from "./helpers.ts";
+import { FIXTURE_PROJECT, judgment, location, pair } from "./helpers.ts";
+
+const judged = (p: DetectedPair, score: number, shape: JudgedPair["judgment"]["shape"] = "remove_copy"): JudgedPair => ({
+  ...p,
+  judgment: judgment(score, { shape }),
+  verdict: { refactor: true, unsure: false, borderline: false, unstable: false, reason: "" },
+});
 
 const rel = (p: { filePath: string }) => toRelativePath(p.filePath, FIXTURE_PROJECT);
 const describePair = (p: DetectedPair) => `${rel(p.left)}:${p.left.symbolName}<->${rel(p.right)}:${p.right.symbolName}`;
@@ -255,11 +261,6 @@ describe("mergePairs", () => {
 
 describe("groupFamilies", () => {
   it("keeps a declaration nested in another one apart, while shifted fragments are one member", () => {
-    const judged = (p: DetectedPair, score: number): JudgedPair => ({
-      ...p,
-      judgment: { score, confidence: 0.5, probabilities: {}, sameLogic: 0.9, sameConcept: 0.9, model: "jev" },
-      verdict: { refactor: true, reason: "" },
-    });
     const klass = location("/r/a.ts", 1, 10, "Klass", "class");
     const method = location("/r/a.ts", 3, 9, "method", "function");
     const otherClass = location("/r/b.ts", 1, 10, "Other", "class");
@@ -274,20 +275,17 @@ describe("groupFamilies", () => {
     assert.deepEqual(shifted[0]!.members.map((m: { filePath: string }) => path.basename(m.filePath)), ["x.ts", "y.ts", "z.ts"]);
   });
 
-  it("connects declarations through pairs and clone instances", () => {
-    const judged = (p: DetectedPair, score: number): JudgedPair => ({
-      ...p,
-      judgment: { score, confidence: 0.5, probabilities: {}, sameLogic: 0.9, sameConcept: 0.9, model: "jev" },
-      verdict: { refactor: true, reason: "" },
-    });
+  it("connects declarations through pairs and clone instances, and takes the shape and flags of the best pair", () => {
     const x = location("/r/x.ts", 1, 5, "x");
     const y = location("/r/y.ts", 1, 5, "y");
     const z = location("/r/z.ts", 1, 5, "z");
     const w = location("/r/w.ts", 1, 5, "w");
     const v = location("/r/v.ts", 1, 5, "v");
+    const best = judged(pair(y, z), 2.6, "extract_shared");
+    best.verdict = { ...best.verdict, unsure: true };
     const families = groupFamilies([
-      judged(pair(x, y), 2.2),
-      judged(pair(y, z), 2.6),
+      judged(pair(x, y), 2.2, "derive"),
+      best,
       judged(pair(w, v, { mode: "overlap", instances: [w, v, location("/r/u.ts", 1, 5, "u")] }), 2.0),
     ]);
     assert.equal(families.length, 2);
@@ -295,7 +293,10 @@ describe("groupFamilies", () => {
     assert.equal(families[0]!.pairs, 2);
     assert.equal(families[0]!.maxScore, 2.6);
     assert.ok(Math.abs(families[0]!.meanScore - 2.4) < 1e-9);
+    assert.equal(families[0]!.shape, "extract_shared", "the shape of the highest-scoring pair");
+    assert.equal(families[0]!.unsure, true, "the flags of the highest-scoring pair");
     assert.deepEqual(families[1]!.members.map((m: { symbolName: string }) => m.symbolName), ["u", "v", "w"]);
-    assert.deepEqual(Object.keys(families[1]!).sort(), ["maxScore", "meanScore", "members", "pairs"]);
+    assert.equal(families[1]!.shape, "remove_copy");
+    assert.deepEqual(Object.keys(families[1]!).sort(), ["borderline", "maxScore", "meanScore", "members", "pairs", "shape", "unstable", "unsure"]);
   });
 });

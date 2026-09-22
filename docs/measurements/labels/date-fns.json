@@ -1,0 +1,143 @@
+{
+  "pkgs/core/src/differenceInDays/index.ts:8:DifferenceInDaysOptions <-> pkgs/core/src/isFriday/index.ts:7:IsFridayOptions": {
+    "merge": false,
+    "note": "per-function Options interfaces are the repository's convention"
+  },
+  "pkgs/core/src/setMinutes/index.ts:7:SetMinutesOptions <-> pkgs/core/src/subQuarters/index.ts:7:SubQuartersOptions": {
+    "merge": false,
+    "note": "per-function Options interfaces"
+  },
+  "pkgs/core/src/getDayOfYear/index.ts:9:GetDayOfYearOptions <-> pkgs/core/src/getISODay/index.ts:7:GetISODayOptions": {
+    "merge": false,
+    "note": "per-function Options interfaces"
+  },
+  "pkgs/core/src/nextSaturday/index.ts:7:NextSaturdayOptions <-> pkgs/core/src/nextThursday/index.ts:7:NextThursdayOptions": {
+    "merge": false,
+    "note": "per-function Options interfaces"
+  },
+  "pkgs/core/src/addDays/test.ts:68:dstTransitions <-> pkgs/core/src/differenceInCalendarDays/test.ts:105:dstTransitions": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/_lib/format/formatters/index.ts:678:(fragment) <-> pkgs/core/src/_lib/format/formatters/index.ts:704:(fragment)": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "X and x timezone formatters identical except the token letter"
+  },
+  "pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:6:AMPMMidnightParser <-> pkgs/core/src/parse/_lib/parsers/DayPeriodParser.ts:7:DayPeriodParser": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "AMPMMidnightParser and DayPeriodParser identical except token letters"
+  },
+  "pkgs/core/src/parse/_lib/parsers/ISOWeekParser.ts:24:validate <-> pkgs/core/src/parse/_lib/parsers/LocalWeekParser.ts:24:validate": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "sibling parsers duplicate validate; a shared week parser base"
+  },
+  "pkgs/core/src/eachHourOfInterval/index.ts:15:EachHourOfIntervalResult <-> pkgs/core/src/eachWeekOfInterval/index.ts:28:EachWeekOfIntervalResult": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "EachXOfIntervalResult types identical except the options type name"
+  },
+  "pkgs/core/src/getDaysInMonth/index.ts:8:GetDaysInMonthOptions <-> pkgs/core/src/isSameMonth/index.ts:7:IsSameMonthOptions": {
+    "merge": false,
+    "note": "per-function Options interfaces"
+  },
+  "pkgs/core/src/format/test.ts:365:(fragment) <-> pkgs/core/src/lightFormat/test.ts:55:(fragment)": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/isFriday/test.ts:6:isFriday <-> pkgs/core/src/isLeapYear/test.ts:6:isFriday": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/parse/test.ts:871:expect <-> pkgs/core/src/parse/test.ts:1077:expect": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/addDays/test.ts:89:date <-> pkgs/core/src/addDays/test.ts:109:date": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/parse/_lib/utils.ts:155:isLeapYearIndex <-> pkgs/core/src/parseISO/index.ts:278:isLeapYearIndex": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "isLeapYearIndex copied into parseISO"
+  },
+  "pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:79:set <-> pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:80:set": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "LocalDayParser/StandAloneLocalDayParser identical set"
+  },
+  "pkgs/core/src/format/test.ts:189:date <-> pkgs/core/src/format/test.ts:222:date": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/intlFormatDistance/test.ts:174:with <-> pkgs/core/src/intlFormatDistance/test.ts:218:with": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/parse/_lib/parsers/MonthParser.ts:75:validate <-> pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:60:validate": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "MonthParser/StandAloneMonthParser identical validate"
+  },
+  "pkgs/core/src/getISOWeeksInYear/test.ts:21:getISOWeeksInYear <-> pkgs/core/src/getUnixTime/test.ts:12:getISOWeeksInYear": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/endOfMonth/index.ts:40:_date <-> pkgs/core/src/lastDayOfMonth/index.ts:33:_date": {
+    "merge": false,
+    "note": "endOfMonth vs lastDayOfMonth: distinct documented public functions"
+  },
+  "pkgs/core/src/startOfDecade/index.ts:7:StartOfDecadeOptions <-> pkgs/core/src/startOfMinute/index.ts:7:StartOfMinuteOptions": {
+    "merge": false,
+    "note": "per-function Options interfaces"
+  },
+  "pkgs/core/src/add/test.ts:69:dstTransitions <-> pkgs/core/src/addMonths/test.ts:49:dstTransitions": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/formatDistanceStrict/test.ts:300:getTime <-> pkgs/core/src/formatDistanceToNowStrict/test.ts:243:getTime": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/intlFormatDistance/test.ts:105:(fragment) <-> pkgs/core/src/intlFormatDistance/test.ts:505:(fragment)": {
+    "merge": false,
+    "note": "test code"
+  },
+  "pkgs/core/src/_lib/format/formatters/index.ts:294:(fragment) <-> pkgs/core/src/_lib/format/formatters/index.ts:325:(fragment)": {
+    "merge": false,
+    "note": "different formatter tokens"
+  },
+  "pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:67:DateType <-> pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:68:DateType": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "LocalDayParser/StandAloneLocalDayParser bodies identical except the context"
+  },
+  "pkgs/core/src/_lib/test/index.ts:24:tzOffset <-> pkgs/core/src/formatISO/index.ts:78:tzOffset": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "timezone offset formatting duplicated in three places"
+  },
+  "pkgs/core/src/parse/_lib/parsers/DayParser.ts:58:set <-> pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:79:set": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "DayParser/LocalDayParser identical set"
+  },
+  "pkgs/core/src/parse/_lib/parsers/MonthParser.ts:82:set <-> pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:67:set": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "MonthParser/StandAloneMonthParser identical set"
+  },
+  "pkgs/core/src/parse/_lib/parsers/DayParser.ts:58:set <-> pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:80:set": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "DayParser/StandAloneLocalDayParser identical set"
+  },
+  "pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:52:set <-> pkgs/core/src/parse/_lib/parsers/AMPMParser.ts:52:set": {
+    "merge": true,
+    "shape": "extract_shared",
+    "note": "AMPMMidnightParser/AMPMParser identical set"
+  }
+}

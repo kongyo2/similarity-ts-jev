@@ -1,0 +1,24 @@
+2207 judged pairs; 63 at or over 1.90, 51 within 0.25 of it, 48 reported with confidence under 0.50
+  0.00-0.25  ######################################## 976
+  0.25-0.50  ###################################      842
+  0.50-0.75  #####                                    127
+  0.75-1.00  ##                                       52
+  1.00-1.25  ##                                       52
+  1.25-1.50  ##                                       54
+  1.50-1.75  #                                        25
+  1.75-2.00  #                                        26
+  2.00-2.25  #                                        30
+  2.25-2.50  #                                        18
+  2.50-2.75                                           5
+  2.75-3.00                                           0
+widest gap 0.09 between 2.31 and 2.40: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.87, lowest at or over it 1.90; confidence median 0.74 (p10 0.38, p90 0.84)
+
+labels: 32 labeled pairs found (13 merge, 19 keep)
+  at 1.90: precision 1.00, recall 0.85, accuracy 0.94 (tp 11, fp 0, fn 2, tn 19)
+  score        AUC 0.99; fitted cutoff 1.03 (not separable: lowest merge 1.03, highest keep 1.63); at the fit precision 0.87 recall 1.00; 5-fold hold-out accuracy 0.91 (fp 2, fn 1; fold cutoffs 1.03 1.03 1.75 1.03 1.03)
+  same_logic   AUC 0.87; fitted cutoff 0.85 (not separable: lowest merge 0.85, highest keep 0.95); at the fit precision 0.65 recall 1.00; 5-fold hold-out accuracy 0.75 (fp 7, fn 1; fold cutoffs 0.85 0.85 0.86 0.85 0.85)
+  same_concept AUC 0.89; fitted cutoff 0.29 (not separable: lowest merge 0.20, highest keep 0.84); at the fit precision 0.71 recall 0.92; 5-fold hold-out accuracy 0.75 (fp 6, fn 2; fold cutoffs 0.29 0.39 0.29 0.29 0.20)
+  unsure band (confidence < 0.50): 11 of 11 reported; precision 1.00 there, - for the rest
+  wrong: 1.86 (confidence 0.00, logic 0.91, concept 0.29) labeled merge  pkgs/core/src/_lib/format/formatters/index.ts:678:(fragment) <-> pkgs/core/src/_lib/format/formatters/index.ts:704:(fragment)
+  wrong: 1.03 (confidence 0.00, logic 0.85, concept 0.20) labeled merge  pkgs/core/src/eachHourOfInterval/index.ts:15:EachHourOfIntervalResult <-> pkgs/core/src/eachWeekOfInterval/index.ts:28:EachWeekOfIntervalResult

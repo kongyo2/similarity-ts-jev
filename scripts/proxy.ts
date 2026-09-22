@@ -1,9 +1,8 @@
 import http from "node:http";
-import { APIError } from "@typesafe-ai/sdk";
-import { createAdapterClient } from "./adapter.ts";
+import { APIError, TypeSafeClient } from "@typesafe-ai/sdk";
 
 const port = Number(process.argv[2] ?? 8787);
-const client = await createAdapterClient({ logLevel: "info" });
+const client = new TypeSafeClient({ timeout: 120_000, logLevel: "info" });
 
 const server = http.createServer(async (request, response) => {
   const chunks: Buffer[] = [];
@@ -15,10 +14,9 @@ const server = http.createServer(async (request, response) => {
   };
   try {
     if (request.method === "POST" && request.url === "/v1/systemone") {
-      const { data, response: upstream, requestId } = await client.systemOne(JSON.parse(body)).withResponse();
-      const backend = upstream.headers.get("x-typesafe-adapter-backend") ?? "?";
-      console.log(`systemone -> ${backend} ${requestId ?? ""} (${Object.keys(data.answers).length} answers, ${data.usage.input_tokens} tokens)`);
-      send(200, data, { "x-typesafe-request-id": requestId ?? "", "x-typesafe-adapter-backend": backend });
+      const { data, requestId } = await client.systemOne(JSON.parse(body)).withResponse();
+      console.log(`systemone ${requestId ?? ""} (${Object.keys(data.answers).length} answers, ${data.usage.input_tokens} tokens, ${data.model})`);
+      send(200, data, { "x-typesafe-request-id": requestId ?? "" });
       return;
     }
     if (request.method === "GET" && request.url === "/v1/models") {
@@ -37,5 +35,5 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(`adapter proxy listening on http://127.0.0.1:${port} (TypeSafe-compatible; forwards through the sdk-adapter chain)`);
+  console.log(`proxy listening on http://127.0.0.1:${port} (TypeSafe-compatible; forwards to ${client.baseURL} with the key from the environment)`);
 });

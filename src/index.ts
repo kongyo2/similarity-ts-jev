@@ -1,5 +1,5 @@
 import path from "node:path";
-import { DEFAULT_MIN_SCORE, decide } from "./decide.ts";
+import { DEFAULT_MIN_SCORE, decide, thresholds } from "./decide.ts";
 import type { DecideOptions } from "./decide.ts";
 import { detect } from "./detect.ts";
 import type { DetectOptions } from "./detect.ts";
@@ -12,7 +12,6 @@ import type { SnippetOptions } from "./snippets.ts";
 import type { DetectedPair, DetectionReport, JevReport, JudgedPair, PairSnippet, UnjudgedPair } from "./types.ts";
 
 export interface JudgeReportOptions extends JudgeOptions, DecideOptions, SnippetOptions {
-  includeRejected?: boolean;
   maxPairs?: number;
 }
 
@@ -54,7 +53,7 @@ export async function judgeReport(detection: DetectionReport, client: JudgeClien
   const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), options);
   const unjudged: UnjudgedPair[] = [...unreadable];
 
-  const { maxPairs: _cap, includeRejected: _include, minScore: _min, ...judgeOptions } = options;
+  const { maxPairs: _cap, minScore: _min, unsureBelow: _unsure, margin: _margin, ...judgeOptions } = options;
   const { judgments, failures, stats } = await judgePairs(snippets, client, {
     ...judgeOptions,
     repository: options.repository ?? path.basename(path.resolve(cwd)),
@@ -81,10 +80,10 @@ export async function judgeReport(detection: DetectionReport, client: JudgeClien
     warnings: detection.warnings,
     results,
     families: groupFamilies(results),
-    ...(options.includeRejected ? { rejected } : {}),
+    rejected,
     rejectedCount: rejected.length,
     unjudged,
-    thresholds: { minScore: options.minScore ?? DEFAULT_MIN_SCORE },
+    thresholds: thresholds(options),
     stats: { ...detection.stats, ...stats, elapsedMs: Date.now() - started },
   };
 }
@@ -104,19 +103,41 @@ export { detect } from "./detect.ts";
 export type { DetectOptions } from "./detect.ts";
 export { FALLOW_MODES, FallowError } from "./fallow.ts";
 export type { FallowMode, FallowOptions } from "./fallow.ts";
-export { DEFAULT_MIN_SCORE, decide } from "./decide.ts";
+export { DEFAULT_MARGIN, DEFAULT_MIN_SCORE, DEFAULT_UNSURE_BELOW, decide, thresholds } from "./decide.ts";
 export type { DecideOptions } from "./decide.ts";
-export { groupFamilies } from "./families.ts";
-export { isRejection, judgePairs, requestHash, toJudgment } from "./judge.ts";
+export { SHAPE_LABELS, groupFamilies } from "./families.ts";
+export { AdaptiveLimiter, DEFAULT_CONCURRENCY, DEFAULT_RETRIES, USD_PER_MILLION_INPUT_TOKENS, isRejection, judgePairs, mergePasses, requestHash, toJudgment } from "./judge.ts";
 export type { JudgeCache, JudgeClient, JudgeOptions, JudgeOutcome, JudgeRejection, JudgeRequest, JudgeResponse } from "./judge.ts";
-export { FileJudgeCache } from "./cache.ts";
+export { CACHE_VERSION, FileJudgeCache } from "./cache.ts";
 export type { CacheEntry, CacheFile } from "./cache.ts";
-export { REFACTOR_LEVELS, REFACTOR_QUESTION, batchPairs, buildState, estimateTokens, pairQuestions, pairTokens, questionIds } from "./questions.ts";
-export type { BatchOptions } from "./questions.ts";
+export {
+  DEFAULT_BUDGET_TOKENS,
+  DEFAULT_PAIRS_PER_REQUEST,
+  MAX_REQUEST_TOKENS,
+  REFACTOR_LEVELS,
+  REFACTOR_QUESTION,
+  SAME_CONCEPT,
+  SAME_LOGIC,
+  SHAPES,
+  SHAPE_OPTIONS,
+  SHAPE_QUESTION,
+  TASK,
+  batchPairs,
+  buildState,
+  estimateTokens,
+  pairQuestions,
+  pairTokens,
+  questionIds,
+} from "./questions.ts";
+export type { BatchOptions, QuestionIds, StateOptions } from "./questions.ts";
 export { SnippetReader, toRelativePath } from "./snippets.ts";
 export type { SnippetOptions } from "./snippets.ts";
-export { formatJsonReport, formatPrettyReport, toJsonReport } from "./format.ts";
-export type { JsonFamily, JsonPair, JsonReport } from "./format.ts";
+export { flagOf, formatJsonReport, formatPrettyReport, formatStats, toJsonReport } from "./format.ts";
+export type { JsonFamily, JsonOptions, JsonPair, JsonReport, PrettyOptions } from "./format.ts";
+export { RECORD_SCHEMA, buildRecord, loadRecord, replayRecord, saveRecord } from "./record.ts";
+export type { RecordedPair, RunRecord } from "./record.ts";
+export { WIDE_GAP, auc, calibrate, fitCutoff, formatCalibration, holdOut, labelOf, labelReport, pairKey, widestGap } from "./calibrate.ts";
+export type { Calibration, Confusion, Gap, HistogramBin, LabelReport, Labels, SignalReport } from "./calibrate.ts";
 export type {
   DetectedPair,
   DetectionReport,
@@ -127,7 +148,10 @@ export type {
   Judgment,
   PairMode,
   PairSnippet,
+  Passes,
+  Shape,
   Snippet,
+  Thresholds,
   UnjudgedPair,
   UnjudgedReason,
   Verdict,

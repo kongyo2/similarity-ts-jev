@@ -1,0 +1,98 @@
+2.62  extract  pkgs/core/src/parse/_lib/parsers/ISOTimezoneParser.ts:37-47 set <-> pkgs/core/src/parse/_lib/parsers/ISOTimezoneWithZParser.ts:37-47 set
+2.61  copy
+      pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:52-59 set
+      pkgs/core/src/parse/_lib/parsers/AMPMParser.ts:52-59 set
+      pkgs/core/src/parse/_lib/parsers/DayPeriodParser.ts:53-60 set
+2.61  copy     pkgs/core/src/format/index.ts:444-452 cleanEscapedString <-> pkgs/core/src/lightFormat/index.ts:134-138 cleanEscapedString
+2.52  copy     pkgs/core/src/parse/_lib/parsers/QuarterParser.ts:63-71 set <-> pkgs/core/src/parse/_lib/parsers/StandAloneQuarterParser.ts:63-71 set
+2.48? extract  pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:16-20 valueCallback <-> pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:17-21 valueCallback
+2.48? extract  pkgs/core/src/parse/_lib/parsers/LocalWeekYearParser.ts:27-48 DateType <-> pkgs/core/src/parse/_lib/parsers/YearParser.ts:37-58 DateType
+2.47? extract
+      pkgs/core/src/parse/_lib/parsers/DayParser.ts:58-67 set
+      pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:79-88 set
+      pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:80-89 date
+2.46? extract
+      pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:9-50 parse
+      pkgs/core/src/parse/_lib/parsers/AMPMParser.ts:9-50 parse
+      pkgs/core/src/parse/_lib/parsers/DayParser.ts:10-49 dateString
+      pkgs/core/src/parse/_lib/parsers/DayPeriodParser.ts:10-51 parse
+      pkgs/core/src/parse/_lib/parsers/EraParser.ts:9-31 dateString
+2.41? copy     pkgs/core/src/parse/_lib/utils.ts:155-157 isLeapYearIndex <-> pkgs/core/src/parseISO/index.ts:278-280 isLeapYearIndex
+2.40? extract  pkgs/core/src/parse/_lib/parsers/MonthParser.ts:82-90 set <-> pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:67-75 set
+2.31? extract  pkgs/core/src/parse/_lib/parsers/LocalWeekYearParser.ts:13-36 parse <-> pkgs/core/src/parse/_lib/parsers/YearParser.ts:23-46 parse
+2.28  extract
+      pkgs/core/src/parse/_lib/parsers/DayParser.ts:40-46 dateString
+      pkgs/core/src/parse/_lib/parsers/ISODayParser.ts:70-85 dateString
+      pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:61-67 dateString
+      pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:62-68 dateString
+2.27? extract  pkgs/core/src/parse/_lib/parsers/LocalWeekYearParser.ts:38-43 validate <-> pkgs/core/src/parse/_lib/parsers/YearParser.ts:48-53 validate
+2.26? extract  pkgs/core/src/parse/_lib/parsers/QuarterParser.ts:56-61 validate <-> pkgs/core/src/parse/_lib/parsers/StandAloneQuarterParser.ts:56-61 validate
+2.25? copy
+      pkgs/core/src/parse/_lib/parsers/DayParser.ts:51-56 validate
+      pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:72-77 validate
+      pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:73-78 validate
+2.25? extract
+      pkgs/core/src/parse/_lib/parsers/Hour0To11Parser.ts:21-26 validate
+      pkgs/core/src/parse/_lib/parsers/MonthParser.ts:75-80 validate
+      pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:60-65 validate
+2.25? extract  pkgs/core/src/parse/_lib/parsers/ISOWeekParser.ts:24-29 validate <-> pkgs/core/src/parse/_lib/parsers/LocalWeekParser.ts:24-29 validate
+2.20? extract  pkgs/core/src/parse/_lib/parsers/ISOTimezoneParser.ts:12-35 parse <-> pkgs/core/src/parse/_lib/parsers/ISOTimezoneWithZParser.ts:12-35 parse
+2.20? extract  pkgs/core/src/parse/_lib/parsers/QuarterParser.ts:9-54 parse <-> pkgs/core/src/parse/_lib/parsers/StandAloneQuarterParser.ts:9-54 parse
+2.19? extract  pkgs/core/src/_lib/format/formatters/index.ts:497-522 (fragment) <-> pkgs/core/src/_lib/format/formatters/index.ts:537-562 (fragment)
+2.18? extract  pkgs/core/src/parse/_lib/parsers/MinuteParser.ts:21-26 validate <-> pkgs/core/src/parse/_lib/parsers/SecondParser.ts:21-26 validate
+2.17? copy     pkgs/core/src/closestTo/index.tp.ts:7-33 (fragment) <-> pkgs/core/src/closestTo/index.ts:64-90 (fragment)
+2.16? extract
+      pkgs/core/src/parse/_lib/parsers/DayParser.ts:46-63 DateType
+      pkgs/core/src/parse/_lib/parsers/ISOWeekParser.ts:18-34 DateType
+      pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:10-70 parse
+      pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:59-106 DateType
+      pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:67-84 DateType
+      pkgs/core/src/parse/_lib/parsers/LocalWeekParser.ts:20-36 DateType
+      pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:11-71 parse
+      pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:68-85 DateType
+2.16? copy     pkgs/core/src/clamp/index.tp.ts:7-21 (fragment) <-> pkgs/core/src/clamp/index.ts:71-85 (fragment)
+2.15? copy     pkgs/core/src/daysToWeeks/index.tp.ts:3-7 tpyDaysToWeeks <-> pkgs/core/src/daysToWeeks/index.ts:31-35 daysToWeeks
+2.15  extract  pkgs/core/src/parse/_lib/parsers/MonthParser.ts:25-73 parse <-> pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:10-58 parse
+2.14? extract
+      pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:34-61 (fragment)
+      pkgs/core/src/parse/_lib/parsers/AMPMParser.ts:34-61 (fragment)
+      pkgs/core/src/parse/_lib/parsers/DayPeriodParser.ts:35-62 (fragment)
+2.14? extract
+      pkgs/core/src/_lib/test/index.ts:24-36 tzOffset
+      pkgs/core/src/formatISO/index.ts:78-90 tzOffset
+      pkgs/core/src/formatRFC3339/index.ts:71-83 tzOffset
+2.10? extract  pkgs/core/src/parse/_lib/parsers/QuarterParser.ts:48-75 DateType <-> pkgs/core/src/parse/_lib/parsers/StandAloneQuarterParser.ts:48-75 DateType
+2.09? extract  pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:8-107 LocalDayParser <-> pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:8-108 StandAloneLocalDayParser
+2.08? extract
+      pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:6-62 AMPMMidnightParser
+      pkgs/core/src/parse/_lib/parsers/AMPMParser.ts:6-62 AMPMParser
+      pkgs/core/src/parse/_lib/parsers/DayPeriodParser.ts:7-63 DayPeriodParser
+2.08? extract  pkgs/core/src/_lib/format/formatters/index.ts:724-738 timezoneOffset <-> pkgs/core/src/_lib/format/formatters/index.ts:741-755 timezoneOffset
+2.06~ extract  pkgs/core/src/parse/_lib/utils.ts:77-93 dateString <-> pkgs/core/src/parse/_lib/utils.ts:95-111 dateString
+2.06~ extract  pkgs/core/src/parse/_lib/parsers/ExtendedYearParser.ts:8-14 parse <-> pkgs/core/src/parse/_lib/parsers/ISOWeekYearParser.ts:11-17 parse
+2.05? extract  pkgs/core/src/parse/_lib/parsers/QuarterParser.ts:6-89 QuarterParser <-> pkgs/core/src/parse/_lib/parsers/StandAloneQuarterParser.ts:6-89 StandAloneQuarterParser
+2.02~ extract  pkgs/core/src/parse/_lib/parsers/LocalDayParser.ts:8-24 wholeWeekDays <-> pkgs/core/src/parse/_lib/parsers/StandAloneLocalDayParser.ts:8-25 wholeWeekDays
+2.02? copy     pkgs/core/src/differenceInSeconds/index.tp.ts:6-12 (fragment) <-> pkgs/core/src/differenceInSeconds/index.ts:50-56 (fragment)
+2.02~ extract  pkgs/core/src/parse/_lib/parsers/ISOWeekParser.ts:13-22 parse <-> pkgs/core/src/parse/_lib/parsers/LocalWeekParser.ts:13-22 parse
+2.01? extract  pkgs/core/src/_lib/format/formatters/index.ts:369-378 localDayOfWeek <-> pkgs/core/src/_lib/format/formatters/index.ts:410-419 localDayOfWeek
+1.99~ extract
+      pkgs/core/src/parse/_lib/parsers/AMPMMidnightParser.ts:6-26 dateString
+      pkgs/core/src/parse/_lib/parsers/AMPMParser.ts:6-26 dateString
+      pkgs/core/src/parse/_lib/parsers/DayParser.ts:7-21 dateString
+      pkgs/core/src/parse/_lib/parsers/DayPeriodParser.ts:7-27 dateString
+      pkgs/core/src/parse/_lib/parsers/EraParser.ts:6-16 (fragment)
+1.98? extract
+      pkgs/core/src/_lib/format/formatters/index.ts:341-365 dayOfWeek
+      pkgs/core/src/_lib/format/formatters/index.ts:382-406 dayOfWeek
+      pkgs/core/src/_lib/format/formatters/index.ts:423-447 dayOfWeek
+      pkgs/core/src/_lib/format/formatters/index.ts:465-489 dayOfWeek
+1.98? extract  pkgs/core/src/parse/_lib/parsers/MonthParser.ts:70-89 DateType <-> pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:55-74 DateType
+1.97? copy
+      pkgs/core/src/differenceInQuarters/index.tp.ts:6-13 (fragment)
+      pkgs/core/src/differenceInQuarters/index.ts:36-43 (fragment)
+      pkgs/core/src/differenceInWeeks/index.tp.ts:6-13 (fragment)
+      pkgs/core/src/differenceInWeeks/index.ts:57-64 (fragment)
+1.96? extract  pkgs/core/src/parse/_lib/parsers/TimestampMillisecondsParser.ts:9-11 parse <-> pkgs/core/src/parse/_lib/parsers/TimestampSecondsParser.ts:9-11 parse
+1.95? copy     pkgs/core/src/differenceInMinutes/index.tp.ts:7-14 (fragment) <-> pkgs/core/src/differenceInMinutes/index.ts:58-65 (fragment)
+1.92? extract  pkgs/core/src/parse/_lib/parsers/ISOTimezoneParser.ts:9-50 ISOTimezoneParser <-> pkgs/core/src/parse/_lib/parsers/ISOTimezoneWithZParser.ts:9-50 ISOTimezoneWithZParser
+1.90? extract  pkgs/core/src/parse/_lib/parsers/MonthParser.ts:7-91 MonthParser <-> pkgs/core/src/parse/_lib/parsers/StandAloneMonthParser.ts:7-92 StandAloneMonthParser

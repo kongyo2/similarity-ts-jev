@@ -1,7 +1,7 @@
 {
   "name": "@kongyo2/similarity-ts-jev",
-  "version": "0.1.0",
-  "description": "similarity-ts + fallow duplicate detection for TypeScript, filtered by TypeSafe's Jev (via @typesafe-ai/sdk) down to the pairs actually worth refactoring.",
+  "version": "0.2.0",
+  "description": "similarity-ts + fallow duplicate detection for TypeScript, judged by TypeSafe's Jev (via @typesafe-ai/sdk): the pairs worth refactoring, the shape of the refactoring, and a calibration report.",
   "type": "module",
   "license": "MIT",
   "author": "kongyo2",
@@ -18,6 +18,7 @@
     "jev",
     "typesafe",
     "fallow",
+    "calibration",
     "cli"
   ],
   "bin": {
@@ -50,7 +51,9 @@
     "verify": "node scripts/verify.ts",
     "prepack": "npm run clean && npm run build && npm run typecheck && npm run lint:comments && npm test",
     "record-fixtures": "node scripts/record-fixtures.ts",
-    "proxy": "node scripts/adapter-proxy.ts",
+    "proxy": "node scripts/proxy.ts",
+    "experiment": "node scripts/experiments/run.ts",
+    "analyze": "node scripts/experiments/analyze.ts",
     "lint:comments": "ts-comment-scanner --fail-on-comment --ignore node_modules/ --ignore dist/ ."
   },
   "dependencies": {

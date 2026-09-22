@@ -1,0 +1,30 @@
+596 judged pairs; 72 at or over 1.90, 91 within 0.25 of it, 40 reported with confidence under 0.50
+  0.00-0.25  ###                                      10
+  0.25-0.50  ##########                               32
+  0.50-0.75  #################                        57
+  0.75-1.00  ####################################     120
+  1.00-1.25  ######################################## 133
+  1.25-1.50  #######################                  78
+  1.50-1.75  ###################                      64
+  1.75-2.00  ###############                          51
+  2.00-2.25  #########                                31
+  2.25-2.50  ####                                     12
+  2.50-2.75  ##                                       6
+  2.75-3.00  #                                        2
+widest gap 0.11 between 2.56 and 2.67: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.89, lowest at or over it 1.90; confidence median 0.19 (p10 0.00, p90 0.57)
+
+labels: 38 labeled pairs found (9 merge, 29 keep)
+  at 1.90: precision 0.53, recall 0.89, accuracy 0.79 (tp 8, fp 7, fn 1, tn 22)
+  score        AUC 0.93; fitted cutoff 2.18 (not separable: lowest merge 1.80, highest keep 2.67); at the fit precision 0.80 recall 0.89; 5-fold hold-out accuracy 0.89 (fp 2, fn 2; fold cutoffs 2.42 2.18 2.18 2.18 2.18)
+  same_logic   AUC 0.75; fitted cutoff 0.98 (not separable: lowest merge 0.13, highest keep 0.97); at the fit precision 1.00 recall 0.56; 5-fold hold-out accuracy 0.89 (fp 0, fn 4; fold cutoffs 0.98 0.98 0.98 0.98 0.98)
+  same_concept AUC 0.84; fitted cutoff 0.91 (not separable: lowest merge 0.19, highest keep 0.92); at the fit precision 0.67 recall 0.67; 5-fold hold-out accuracy 0.76 (fp 5, fn 4; fold cutoffs 0.92 0.75 0.91 0.75 0.91)
+  unsure band (confidence < 0.50): 7 of 15 reported; precision 0.29 there, 0.75 for the rest
+  wrong: 2.67 (confidence 0.67, logic 0.73, concept 0.88) labeled keep  src/compat/function/partialRight.ts:19:the <-> src/function/partialRight.ts:35:the
+  wrong: 2.56 (confidence 0.56, logic 0.87, concept 0.91) labeled keep  src/compat/function/partial.ts:243:(fragment) <-> src/function/partial.ts:597:(fragment)
+  wrong: 2.14 (confidence 0.14, logic 0.95, concept 0.92) labeled keep  src/fp/flowAsync.ts:96:Awaited <-> src/fp/flowAsync.ts:328:Awaited
+  wrong: 2.12 (confidence 0.12, logic 0.95, concept 0.91) labeled keep  src/fp/pipe.ts:108:(fragment) <-> src/fp/pipe.ts:356:(fragment)
+  wrong: 2.07 (confidence 0.07, logic 0.61, concept 0.87) labeled keep  src/compat/function/partial.ts:17:(fragment) <-> src/function/partial.ts:110:(fragment)
+  wrong: 2.04 (confidence 0.33, logic 0.97, concept 0.81) labeled keep  src/bigint/inRange.ts:46:inRange <-> src/math/inRange.ts:42:inRange
+  wrong: 1.92 (confidence 0.47, logic 0.72, concept 0.14) labeled keep  src/types/ToCamelCaseKeys.ts:30:ToCamelCaseKeys <-> src/types/ToSnakeCaseKeys.ts:26:ToSnakeCaseKeys
+  wrong: 1.80 (confidence 0.58, logic 0.35, concept 0.31) labeled merge  src/array/fill.ts:115:fill <-> src/array/toFilled.ts:106:toFilled

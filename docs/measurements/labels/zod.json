@@ -1,0 +1,133 @@
+{
+  "packages/zod/src/v3/types.ts:5097:effectsType <-> packages/zod/src/v4/classic/deep-partial.ts:7:effectsType": {
+    "merge": false,
+    "note": "unrelated fragments (v3 export list vs v4 DeepPartial type)"
+  },
+  "packages/zod/src/v4/core/schemas.ts:3000:$ZodTuple <-> packages/zod/src/v4/core/schemas.ts:4478:$ZodCodec": {
+    "merge": false,
+    "note": "distinct schema interfaces with the same boilerplate shape"
+  },
+  "packages/zod/src/v4/locales/bn.ts:119:default <-> packages/zod/src/v4/locales/no.ts:117:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/locales/cs.ts:119:default <-> packages/zod/src/v4/locales/gu.ts:119:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/locales/fr.ts:13:getSizing <-> packages/zod/src/v4/locales/zh-CN.ts:14:getSizing": {
+    "merge": false,
+    "note": "getSizing is the per-locale-file convention"
+  },
+  "packages/zod/src/v4/locales/pt-BR.ts:130:(fragment) <-> packages/zod/src/v4/locales/pt.ts:128:(fragment)": {
+    "merge": false,
+    "note": "pt vs pt-BR locale files: per-locale convention, translations differ; borderline"
+  },
+  "packages/zod/src/v4/locales/mk.ts:5:error <-> packages/zod/src/v4/locales/uk.ts:5:error": {
+    "merge": false,
+    "note": "different locales with the template structure"
+  },
+  "packages/zod/src/v4/core/schemas.ts:3000:$ZodTuple <-> packages/zod/src/v4/core/schemas.ts:5083:$ZodCustom": {
+    "merge": false,
+    "note": "distinct schema interfaces"
+  },
+  "packages/zod/src/v3/helpers/util.ts:90:objectUtil.optionalKeys <-> packages/zod/src/v3/helpers/util.ts:93:objectUtil.requiredKeys": {
+    "merge": false,
+    "note": "optionalKeys/requiredKeys mirror types; common idiom"
+  },
+  "packages/zod/src/v4/classic/in-out.ts:8:output <-> packages/zod/src/v4/mini/in-out.ts:7:input": {
+    "merge": false,
+    "note": "input vs output aliases"
+  },
+  "packages/zod/src/v3/types.ts:4116:enum <-> packages/zod/src/v3/types.ts:4132:Enum": {
+    "merge": true,
+    "shape": "derive",
+    "note": "get Enum duplicates get enum; alias one to the other"
+  },
+  "packages/zod/src/v4/core/api.ts:130:_uuid <-> packages/zod/src/v4/core/api.ts:165:_uuidv6": {
+    "merge": false,
+    "note": "_uuid/_uuidv6 factory boilerplate"
+  },
+  "packages/zod/src/v4/core/parse.ts:65:$SafeParse <-> packages/zod/src/v4/core/parse.ts:174:$ValidateAsync": {
+    "merge": false,
+    "note": "different function types"
+  },
+  "packages/zod/src/v4/locales/fr-CA.ts:117:default <-> packages/zod/src/v4/locales/lt.ts:239:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/locales/he.ts:249:default <-> packages/zod/src/v4/locales/ta.ts:119:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/mini/schemas.ts:1207:core <-> packages/zod/src/v4/mini/schemas.ts:1428:core": {
+    "merge": false,
+    "note": "mini schema boilerplate"
+  },
+  "packages/zod/src/v4/locales/kn.ts:122:default <-> packages/zod/src/v4/locales/uk.ts:118:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/core/schemas.ts:3546:$ZodSet <-> packages/zod/src/v4/core/schemas.ts:4252:$ZodSuccess": {
+    "merge": false,
+    "note": "distinct schema interfaces"
+  },
+  "packages/zod/src/v3/helpers/util.ts:73:jsonStringifyReplacer <-> packages/zod/src/v4/core/util.ts:288:jsonStringifyReplacer": {
+    "merge": false,
+    "note": "v3 and v4 are separate frozen versions"
+  },
+  "packages/zod/src/v4/locales/no.ts:5:error <-> packages/zod/src/v4/locales/vi.ts:5:error": {
+    "merge": false,
+    "note": "different locales"
+  },
+  "packages/zod/src/v4/locales/en.ts:14:getSizing <-> packages/zod/src/v4/locales/zh-CN.ts:14:getSizing": {
+    "merge": false,
+    "note": "getSizing per-locale convention"
+  },
+  "packages/zod/src/v4/core/compile.ts:1165:generateUndefinedCheck <-> packages/zod/src/v4/core/compile.ts:1175:generateVoidCheck": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "generateVoidCheck is generateUndefinedCheck verbatim"
+  },
+  "packages/zod/src/v4/locales/ta.ts:119:default <-> packages/zod/src/v4/locales/tk.ts:109:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/locales/be.ts:5:getBelarusianPlural <-> packages/zod/src/v4/locales/ru.ts:5:getRussianPlural": {
+    "merge": false,
+    "note": "Slavic plural helper duplicated across locale files; per-locale convention; borderline"
+  },
+  "packages/zod/src/v4/locales/id.ts:116:default <-> packages/zod/src/v4/locales/zh-TW.ts:116:default": {
+    "merge": false,
+    "note": "per-locale default export wiring"
+  },
+  "packages/zod/src/v4/locales/da.ts:88:(fragment) <-> packages/zod/src/v4/locales/es.ts:105:(fragment)": {
+    "merge": false,
+    "note": "different locales"
+  },
+  "packages/zod/src/v4/core/api.ts:420:_cidrv6 <-> packages/zod/src/v4/core/api.ts:454:_base64url": {
+    "merge": false,
+    "note": "string-format factory boilerplate"
+  },
+  "packages/zod/src/v4/locales/no.ts:5:error <-> packages/zod/src/v4/locales/sv.ts:5:error": {
+    "merge": false,
+    "note": "different locales"
+  },
+  "packages/zod/src/v3/helpers/util.ts:2:util.AssertEqual <-> packages/zod/src/v4/core/util.ts:86:AssertEqual": {
+    "merge": false,
+    "note": "v3 and v4 are separate frozen versions"
+  },
+  "packages/zod/src/v4/locales/fr-CA.ts:96:invalide <-> packages/zod/src/v4/locales/fr.ts:112:invalide": {
+    "merge": false,
+    "note": "fr vs fr-CA locale files: per-locale convention; borderline"
+  },
+  "packages/zod/src/v4/core/schemas.ts:1847:handleArrayResult <-> packages/zod/src/v4/core/schemas.ts:3110:handleTupleResult": {
+    "merge": true,
+    "shape": "remove_copy",
+    "note": "handleTupleResult is handleArrayResult verbatim"
+  },
+  "packages/zod/src/v4/locales/mk.ts:5:error <-> packages/zod/src/v4/locales/nn.ts:5:error": {
+    "merge": false,
+    "note": "different locales"
+  }
+}

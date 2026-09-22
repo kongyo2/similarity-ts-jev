@@ -1,0 +1,6 @@
+{"concurrency":4,"requests":102,"ok":102,"failed":0,"retries":0,"rateLimited":0,"inputTokens":2218181,"wallMs":29532,"meanMs":1124,"requestsPerSecond":3.4538805363673304,"tokensPerSecond":75111.09982391981}
+{"concurrency":8,"requests":102,"ok":102,"failed":0,"retries":0,"rateLimited":0,"inputTokens":2218181,"wallMs":15434,"meanMs":1174,"requestsPerSecond":6.6087857975897375,"tokensPerSecond":143720.4224439549}
+{"concurrency":16,"requests":102,"ok":102,"failed":0,"retries":0,"rateLimited":0,"inputTokens":2218181,"wallMs":8246,"meanMs":1176,"requestsPerSecond":12.369633761823914,"tokensPerSecond":269000.84889643465}
+{"concurrency":32,"requests":102,"ok":102,"failed":0,"retries":0,"rateLimited":0,"inputTokens":2218181,"wallMs":5108,"meanMs":1340,"requestsPerSecond":19.968676585747847,"tokensPerSecond":434256.26468285045}
+{"concurrency":64,"requests":102,"ok":102,"failed":0,"retries":0,"rateLimited":0,"inputTokens":2218181,"wallMs":3334,"meanMs":1505,"requestsPerSecond":30.593881223755247,"tokensPerSecond":665321.2357528494}
+{"concurrency":100,"requests":102,"ok":102,"failed":0,"retries":0,"rateLimited":0,"inputTokens":2218181,"wallMs":3030,"meanMs":1949,"requestsPerSecond":33.663366336633665,"tokensPerSecond":732072.9372937294}

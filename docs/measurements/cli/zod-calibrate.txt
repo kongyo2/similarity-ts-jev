@@ -1,0 +1,32 @@
+5285 judged pairs; 317 at or over 1.90, 1955 within 0.25 of it, 231 reported with confidence under 0.50
+  0.00-0.25  #                                        27
+  0.25-0.50  ##                                       78
+  0.50-0.75  ##                                       88
+  0.75-1.00  #####                                    203
+  1.00-1.25  ######################################## 1763
+  1.25-1.50  ###########                              482
+  1.50-1.75  ################################         1390
+  1.75-2.00  #########################                1105
+  2.00-2.25  ##                                       108
+  2.25-2.50  #                                        23
+  2.50-2.75                                           14
+  2.75-3.00                                           4
+widest gap 0.07 between 2.42 and 2.49: the answers are not separated, so no cutoff is safer than another and the borderline band is where to look
+headroom: highest score under the cutoff 1.89, lowest at or over it 1.90; confidence median 0.23 (p10 0.00, p90 0.48)
+
+labels: 32 labeled pairs found (3 merge, 29 keep)
+  at 1.90: precision 0.23, recall 1.00, accuracy 0.69 (tp 3, fp 10, fn 0, tn 19)
+  score        AUC 0.91; fitted cutoff 2.49 (not separable: lowest merge 2.49, highest keep 2.71); at the fit precision 0.43 recall 1.00; 5-fold hold-out accuracy 0.84 (fp 4, fn 1; fold cutoffs 2.49 2.49 2.49 2.55 2.49)
+  same_logic   AUC 0.79; fitted cutoff 0.99 (not separable: lowest merge 0.97, highest keep 0.99); at the fit precision 0.00 recall 0.00; 5-fold hold-out accuracy 0.81 (fp 3, fn 3; fold cutoffs 0.99 0.98 0.99 0.99 0.98)
+  same_concept AUC 0.69; fitted cutoff 0.86 (not separable: lowest merge 0.66, highest keep 0.95); at the fit precision 0.20 recall 0.33; 5-fold hold-out accuracy 0.81 (fp 3, fn 3; fold cutoffs 0.86 0.86 0.86 0.95 0.86)
+  unsure band (confidence < 0.50): 7 of 13 reported; precision 0.14 there, 0.33 for the rest
+  wrong: 2.71 (confidence 0.71, logic 0.99, concept 0.66) labeled keep  packages/zod/src/v4/locales/be.ts:5:getBelarusianPlural <-> packages/zod/src/v4/locales/ru.ts:5:getRussianPlural
+  wrong: 2.58 (confidence 0.58, logic 0.98, concept 0.95) labeled keep  packages/zod/src/v3/helpers/util.ts:73:jsonStringifyReplacer <-> packages/zod/src/v4/core/util.ts:288:jsonStringifyReplacer
+  wrong: 2.54 (confidence 0.54, logic 0.96, concept 0.95) labeled keep  packages/zod/src/v3/helpers/util.ts:2:util.AssertEqual <-> packages/zod/src/v4/core/util.ts:86:AssertEqual
+  wrong: 2.54 (confidence 0.54, logic 0.95, concept 0.84) labeled keep  packages/zod/src/v4/locales/fr-CA.ts:96:invalide <-> packages/zod/src/v4/locales/fr.ts:112:invalide
+  wrong: 2.37 (confidence 0.37, logic 0.96, concept 0.73) labeled keep  packages/zod/src/v4/locales/pt-BR.ts:130:(fragment) <-> packages/zod/src/v4/locales/pt.ts:128:(fragment)
+  wrong: 2.14 (confidence 0.14, logic 0.71, concept 0.75) labeled keep  packages/zod/src/v4/locales/no.ts:5:error <-> packages/zod/src/v4/locales/vi.ts:5:error
+  wrong: 2.07 (confidence 0.07, logic 0.68, concept 0.73) labeled keep  packages/zod/src/v4/locales/no.ts:5:error <-> packages/zod/src/v4/locales/sv.ts:5:error
+  wrong: 2.05 (confidence 0.05, logic 0.79, concept 0.78) labeled keep  packages/zod/src/v4/locales/mk.ts:5:error <-> packages/zod/src/v4/locales/uk.ts:5:error
+  wrong: 1.96 (confidence 0.00, logic 0.88, concept 0.75) labeled keep  packages/zod/src/v4/locales/mk.ts:5:error <-> packages/zod/src/v4/locales/nn.ts:5:error
+  wrong: 1.92 (confidence 0.00, logic 0.98, concept 0.90) labeled keep  packages/zod/src/v4/locales/fr.ts:13:getSizing <-> packages/zod/src/v4/locales/zh-CN.ts:14:getSizing
