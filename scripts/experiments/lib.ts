@@ -35,10 +35,10 @@ export interface Corpus {
   snippets: PairSnippet[];
 }
 
-export async function loadCorpus(spec: CorpusSpec): Promise<Corpus> {
+export async function loadCorpus(spec: CorpusSpec, refresh = false): Promise<Corpus> {
   const snapshotDir = path.join(resultsRoot(), "snapshots");
   const file = path.join(snapshotDir, `${spec.name}.json`);
-  if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8")) as Corpus;
+  if (!refresh && fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8")) as Corpus;
   const cwd = path.join(corporaRoot(), spec.dir);
   const detection = await detect({ similarityTs: { paths: spec.paths, cwd, modes: ["functions", "types", "classes"], exclude: spec.exclude } });
   const { snippets } = await readSnippets(orderPairs(detection.pairs), { cwd });
@@ -48,13 +48,13 @@ export async function loadCorpus(spec: CorpusSpec): Promise<Corpus> {
   return corpus;
 }
 
-export async function loadCorpora(names: string[]): Promise<Corpus[]> {
+export async function loadCorpora(names: string[], refresh = false): Promise<Corpus[]> {
   const wanted = names.length === 1 && names[0] === "all" ? Object.keys(CORPORA) : names;
   const out: Corpus[] = [];
   for (const name of wanted) {
     const spec = CORPORA[name];
     if (spec === undefined) throw new Error(`unknown corpus ${name} (known: ${Object.keys(CORPORA).join(", ")})`);
-    out.push(await loadCorpus(spec));
+    out.push(await loadCorpus(spec, refresh));
   }
   return out;
 }
@@ -238,7 +238,7 @@ export class Asker {
         this.stats.splits += 1;
         const middle = Math.ceil(ids.length / 2);
         const halves = [ids.slice(0, middle), ids.slice(middle)].map((part) => Object.fromEntries(part.map((id) => [id, questions[id]!])));
-        const results = await Promise.all(halves.map((half, i) => this.ask(state, half, `${tag}/${i}`, options)));
+        const results = await Promise.all(halves.map((half, i) => this.ask(pruneState(state, Object.keys(half)), half, `${tag}/${i}`, options)));
         return {
           answers: Object.assign({}, ...results.map((r) => r.answers)),
           model: results[0]!.model,
@@ -252,6 +252,14 @@ export class Asker {
       throw error;
     }
   }
+}
+
+export function pruneState(state: unknown, questionIds: string[]): unknown {
+  if (typeof state !== "object" || state === null) return state;
+  const pairs = (state as { pairs?: unknown }).pairs;
+  if (typeof pairs !== "object" || pairs === null || Array.isArray(pairs)) return state;
+  const wanted = new Set(questionIds.map((id) => id.replace(/_[a-z_]+$/, "")));
+  return { ...(state as Record<string, unknown>), pairs: Object.fromEntries(Object.entries(pairs as Record<string, unknown>).filter(([ref]) => wanted.has(ref))) };
 }
 
 export function describe(error: unknown): string {

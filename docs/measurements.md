@@ -318,7 +318,8 @@ node scripts/experiments/export-labels.ts
 node scripts/experiments/analyze.ts --labels "$RESULTS_DIR/labels/labels.json" --out "$RESULTS_DIR/summary.json"
 ```
 
-`run.ts --help` lists every option. Each request is appended to
-`$RESULTS_DIR/requests.jsonl` with its estimate, billed tokens, latency, and
-status. The corpora were cloned from `date-fns/date-fns`, `toss/es-toolkit`,
+`run.ts --help` lists every option. The snapshot is reused by every later
+arm; after updating a corpus, run `run.ts snapshot --refresh` so the pairs are
+detected again. Each request is appended to `$RESULTS_DIR/requests.jsonl`
+with its estimate, billed tokens, latency, and status. The corpora were cloned from `date-fns/date-fns`, `toss/es-toolkit`,
 `remeda/remeda`, and `colinhacks/zod` at the commits above.

@@ -52,8 +52,10 @@ function fmt(n: number): string {
 }
 
 function loadArm(exp: string, arm: string): Result[] {
-  return readLines<Result>(path.join(root, exp, `${arm}.jsonl`)).filter((r) => r.error === undefined && r.answers.refactor !== undefined);
+  return readLines<Result>(path.join(root, exp, `${arm}.jsonl`)).filter((r) => r.error === undefined);
 }
+
+const withRefactor = (results: Result[]): Result[] => results.filter((r) => r.answers.refactor !== undefined);
 
 function byKey(results: Result[]): Map<string, Result[]> {
   const out = new Map<string, Result[]>();
@@ -144,9 +146,9 @@ function agreement(a: Map<string, Result>, b: Map<string, Result>): Agreement {
   for (const c of CUTOFFS) flips[String(c)] = 0;
   for (const [key, x] of a) {
     const y = b.get(key);
-    if (y === undefined) continue;
-    const s1 = x.answers.refactor!.score;
-    const s2 = y.answers.refactor!.score;
+    if (y === undefined || x.answers.refactor === undefined || y.answers.refactor === undefined) continue;
+    const s1 = x.answers.refactor.score;
+    const s2 = y.answers.refactor.score;
     diffs.push(Math.abs(s1 - s2));
     signed.push(s2 - s1);
     sa.push(s1);
@@ -193,18 +195,24 @@ function tokensPerPair(results: Result[]): { tokensPerPair: number; msPerRequest
 }
 
 function stability(results: Result[], label: string): Record<string, unknown> {
-  const groups = byKey(results);
+  const scored = withRefactor(results);
+  const groups = byKey(scored);
+  const expectedPasses = new Set(scored.map((r) => r.repeat)).size;
   const spreads: number[] = [];
   const sds: number[] = [];
   const flips: Record<string, number> = {};
   const near: Record<string, { flipped: number; total: number }> = {};
   let n = 0;
+  let rows = 0;
+  let incomplete = 0;
   const logicSpreads: number[] = [];
   const conceptSpreads: number[] = [];
   const shapeChanges: number[] = [];
   for (const list of groups.values()) {
+    if (list.length < expectedPasses) incomplete += 1;
     if (list.length < 2) continue;
     n += 1;
+    rows += list.length;
     const scores = list.map((r) => r.answers.refactor!.score);
     spreads.push(Math.max(...scores) - Math.min(...scores));
     sds.push(sd(scores));
@@ -229,7 +237,9 @@ function stability(results: Result[], label: string): Record<string, unknown> {
   const out = {
     label,
     pairs: n,
-    passes: results.length / Math.max(1, n),
+    passes: expectedPasses,
+    rowsPerPair: n > 0 ? rows / n : Number.NaN,
+    incompletePairs: incomplete,
     spreadMean: mean(spreads),
     spreadMedian: quantile(spreads, 0.5),
     spreadP90: quantile(spreads, 0.9),
@@ -245,11 +255,12 @@ function stability(results: Result[], label: string): Record<string, unknown> {
 }
 
 function positionEffect(results: Result[]): Record<string, unknown> {
-  const groups = byKey(results);
+  const scored = withRefactor(results);
+  const groups = byKey(scored);
   const means = new Map<string, number>();
   for (const [key, list] of groups) means.set(key, mean(list.map((r) => r.answers.refactor!.score)));
   const buckets = new Map<string, number[]>();
-  for (const r of results) {
+  for (const r of scored) {
     if (r.position === undefined || r.batchSize === undefined) continue;
     const frac = r.position / Math.max(1, r.batchSize - 1);
     const bucket = frac < 0.34 ? "first third" : frac < 0.67 ? "middle" : "last third";
@@ -259,7 +270,7 @@ function positionEffect(results: Result[]): Record<string, unknown> {
 }
 
 function distribution(results: Result[]): Record<string, unknown> {
-  const first = [...firstPass(results).values()];
+  const first = [...firstPass(withRefactor(results)).values()];
   const scores = first.map((r) => r.answers.refactor!.score);
   const bins: Record<string, number> = {};
   for (let b = 0; b < 12; b += 1) bins[`${(b / 4).toFixed(2)}-${((b + 1) / 4).toFixed(2)}`] = 0;
@@ -334,7 +345,9 @@ function fitCutoff(cases: Labeled[], value: (c: Labeled) => number): { cutoff: n
   const loMerge = merges[0] ?? Number.NaN;
   const hiKeep = keeps[0] ?? Number.NaN;
   if (loMerge > hiKeep) return { cutoff: (loMerge + hiKeep) / 2, separable: true };
-  const candidates = [...new Set(cases.map(value))].sort((a, b) => a - b);
+  const observed = [...new Set(cases.map(value))].sort((a, b) => a - b);
+  const top = observed[observed.length - 1];
+  const candidates = top === undefined ? [] : [...observed, Math.round((top + 0.01) * 100) / 100];
   let best = { cutoff: candidates[0] ?? 0, gain: -Infinity };
   for (const c of candidates) {
     const tp = cases.filter((x) => x.merge && value(x) >= c).length;
@@ -363,6 +376,7 @@ function precisionRecall(cases: Labeled[], value: (c: Labeled) => number, cutoff
 
 function crossValidate(cases: Labeled[], value: (c: Labeled) => number, folds = 5): { heldOutAccuracy: number; heldOutFp: number; heldOutFn: number; cutoffs: number[] } {
   const shuffledCases = [...cases].sort((a, b) => (a.key < b.key ? -1 : 1));
+  let evaluated = 0;
   let right = 0;
   let fp = 0;
   let fn = 0;
@@ -370,29 +384,31 @@ function crossValidate(cases: Labeled[], value: (c: Labeled) => number, folds = 
   for (let f = 0; f < folds; f += 1) {
     const test = shuffledCases.filter((_, i) => i % folds === f);
     const train = shuffledCases.filter((_, i) => i % folds !== f);
+    if (train.length === 0 || test.length === 0) continue;
     const { cutoff } = fitCutoff(train, value);
     cutoffs.push(cutoff);
     for (const c of test) {
+      evaluated += 1;
       const flagged = value(c) >= cutoff;
       if (flagged === c.merge) right += 1;
       else if (flagged) fp += 1;
       else fn += 1;
     }
   }
-  return { heldOutAccuracy: right / cases.length, heldOutFp: fp, heldOutFn: fn, cutoffs };
+  return { heldOutAccuracy: evaluated > 0 ? right / evaluated : Number.NaN, heldOutFp: fp, heldOutFn: fn, cutoffs };
 }
 
 function labelReport(labels: Record<string, Label>, arm: Map<string, Result>, name: string): Record<string, unknown> {
   const cases: Labeled[] = [];
   for (const [key, label] of Object.entries(labels)) {
     const r = arm.get(key);
-    if (r === undefined) continue;
+    if (r === undefined || r.answers.refactor === undefined) continue;
     cases.push({
       key,
       merge: label.merge,
       ...(label.shape !== undefined ? { shape: label.shape } : {}),
-      score: r.answers.refactor!.score,
-      confidence: r.answers.refactor!.confidence,
+      score: r.answers.refactor.score,
+      confidence: r.answers.refactor.confidence,
       logic: r.answers.same_logic ?? Number.NaN,
       concept: r.answers.same_concept ?? Number.NaN,
       ...(r.answers.shape !== undefined ? { shapeChoice: r.answers.shape.choice } : {}),
@@ -547,7 +563,10 @@ function main(): void {
   say("## Stability across passes");
   say();
   table(["arm", "pairs", "passes", "spread mean", "median", "p90", "max", "logic spread", "concept spread", "shape changed", "flip rate @1.9"], stabilityRows);
-  for (const [name, s] of Object.entries(stabilities)) say(`- ${name}: flips by distance to cutoff ${JSON.stringify((s as Record<string, unknown>).flipRateByDistance)}`);
+  for (const [name, s] of Object.entries(stabilities)) {
+    const detail = s as Record<string, unknown>;
+    say(`- ${name}: ${detail.incompletePairs} pairs missing a pass; flips by distance to cutoff ${JSON.stringify(detail.flipRateByDistance)}`);
+  }
   say();
 
   const positions: Record<string, unknown> = {};
@@ -596,7 +615,7 @@ function main(): void {
     ];
     if (["all-r1", "all-r2", "all-r3"].every((a) => solo.has(a))) {
       const meanMap = new Map<string, Result>();
-      for (const [key, list] of byKey(soloPasses)) {
+      for (const [key, list] of byKey(withRefactor(soloPasses))) {
         const first = list[0]!;
         meanMap.set(key, { ...first, answers: { ...first.answers, refactor: { ...first.answers.refactor!, score: mean(list.map((r) => r.answers.refactor!.score)), confidence: mean(list.map((r) => r.answers.refactor!.confidence)) } } });
       }

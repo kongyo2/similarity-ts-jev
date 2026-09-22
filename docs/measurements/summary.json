@@ -1525,6 +1525,8 @@
       "label": "batched compact-b40k",
       "pairs": 1000,
       "passes": 3,
+      "rowsPerPair": 3,
+      "incompletePairs": 0,
       "spreadMean": 0.11072999999999991,
       "spreadMedian": 0.09999999999999998,
       "spreadP90": 0.20000000000000007,
@@ -1561,6 +1563,8 @@
       "label": "batched labeled-conventions",
       "pairs": 132,
       "passes": 3,
+      "rowsPerPair": 3,
+      "incompletePairs": 0,
       "spreadMean": 0.06424242424242418,
       "spreadMedian": 0.050000000000000044,
       "spreadP90": 0.1299999999999999,
@@ -1597,6 +1601,8 @@
       "label": "batched labeled-plain",
       "pairs": 132,
       "passes": 3,
+      "rowsPerPair": 3,
+      "incompletePairs": 0,
       "spreadMean": 0.06795454545454545,
       "spreadMedian": 0.06,
       "spreadP90": 0.1299999999999999,
@@ -1634,6 +1640,8 @@
       "label": "batched long-b10k",
       "pairs": 1000,
       "passes": 2,
+      "rowsPerPair": 2,
+      "incompletePairs": 0,
       "spreadMean": 0.05264000000000009,
       "spreadMedian": 0.040000000000000036,
       "spreadP90": 0.1100000000000001,
@@ -1670,6 +1678,8 @@
       "label": "batched long-b20k",
       "pairs": 1000,
       "passes": 2,
+      "rowsPerPair": 2,
+      "incompletePairs": 0,
       "spreadMean": 0.053360000000000046,
       "spreadMedian": 0.040000000000000036,
       "spreadP90": 0.1100000000000001,
@@ -1706,6 +1716,8 @@
       "label": "batched long-b40k-fixed",
       "pairs": 1000,
       "passes": 5,
+      "rowsPerPair": 5,
+      "incompletePairs": 0,
       "spreadMean": 0.11021999999999985,
       "spreadMedian": 0.10000000000000009,
       "spreadP90": 0.17999999999999994,
@@ -1743,6 +1755,8 @@
       "label": "batched long-b40k-nodoc",
       "pairs": 1000,
       "passes": 2,
+      "rowsPerPair": 2,
+      "incompletePairs": 0,
       "spreadMean": 0.0539900000000001,
       "spreadMedian": 0.040000000000000036,
       "spreadP90": 0.11999999999999988,
@@ -1779,6 +1793,8 @@
       "label": "batched long-b40k-nopaths",
       "pairs": 1000,
       "passes": 2,
+      "rowsPerPair": 2,
+      "incompletePairs": 0,
       "spreadMean": 0.04123000000000007,
       "spreadMedian": 0.03000000000000025,
       "spreadP90": 0.09000000000000002,
@@ -1816,6 +1832,8 @@
       "label": "batched long-b40k-shuffled",
       "pairs": 1000,
       "passes": 5,
+      "rowsPerPair": 5,
+      "incompletePairs": 0,
       "spreadMean": 0.11005999999999984,
       "spreadMedian": 0.10000000000000009,
       "spreadP90": 0.17999999999999994,
@@ -1853,6 +1871,8 @@
       "label": "batched long-b60k",
       "pairs": 1000,
       "passes": 2,
+      "rowsPerPair": 2,
+      "incompletePairs": 0,
       "spreadMean": 0.05458000000000004,
       "spreadMedian": 0.040000000000000036,
       "spreadP90": 0.12,
@@ -1890,6 +1910,8 @@
       "label": "batched state-b40k",
       "pairs": 1000,
       "passes": 3,
+      "rowsPerPair": 3,
+      "incompletePairs": 0,
       "spreadMean": 0.11982999999999998,
       "spreadMedian": 0.10999999999999988,
       "spreadP90": 0.20999999999999996,
@@ -1926,6 +1948,8 @@
       "label": "solo all (passes r1..r3)",
       "pairs": 8253,
       "passes": 3,
+      "rowsPerPair": 3,
+      "incompletePairs": 0,
       "spreadMean": 0.08161395856052135,
       "spreadMedian": 0.07000000000000006,
       "spreadP90": 0.14000000000000012,
@@ -2016,16 +2040,16 @@
       "requests": 8253
     },
     "concept-only": {
-      "tokensPerPair": null,
-      "msPerRequest": null,
-      "pairsPerRequest": null,
-      "requests": 0
+      "tokensPerPair": 870.7924391130498,
+      "msPerRequest": 648.8041924148795,
+      "pairsPerRequest": 1,
+      "requests": 8253
     },
     "logic-only": {
-      "tokensPerPair": null,
-      "msPerRequest": null,
-      "pairsPerRequest": null,
-      "requests": 0
+      "tokensPerPair": 870.0090876045075,
+      "msPerRequest": 640.9385677935296,
+      "pairsPerRequest": 1,
+      "requests": 8253
     },
     "refactor-only": {
       "tokensPerPair": 971.7924391130498,
@@ -2034,10 +2058,10 @@
       "requests": 8253
     },
     "shape-only": {
-      "tokensPerPair": null,
-      "msPerRequest": null,
-      "pairsPerRequest": null,
-      "requests": 0
+      "tokensPerPair": 1007.7924391130498,
+      "msPerRequest": 693.5870592511814,
+      "pairsPerRequest": 1,
+      "requests": 8253
     },
     "smoke": {
       "tokensPerPair": 2546.6,
@@ -2811,13 +2835,13 @@
             "accuracy": 0.8181818181818182
           },
           "crossValidated": {
-            "heldOutAccuracy": 0.6363636363636364,
-            "heldOutFp": 4,
+            "heldOutAccuracy": 0.6818181818181818,
+            "heldOutFp": 3,
             "heldOutFn": 4,
             "cutoffs": [
               0.96,
               0.96,
-              0.59,
+              0.91,
               0.39,
               0.39
             ]

@@ -18,6 +18,7 @@ experiments:
 
 options:
   --corpus <a,b|all>      corpora (default all)
+  --refresh               snapshot: detect again even when a snapshot exists
   --arm <name>            result file name (default: experiment)
   --variant <v>           long | compact | state (default long)
   --kinds <k,k>           refactor,same_logic,same_concept,shape (default all)
@@ -101,7 +102,7 @@ function summarize(client: Asker, started: number): void {
 }
 
 async function snapshot(): Promise<void> {
-  const corpora = await loadCorpora(corpusNames);
+  const corpora = await loadCorpora(corpusNames, has(argv, "refresh"));
   for (const corpus of corpora) {
     const tokens = corpus.snippets.reduce((sum, s) => sum + s.tokens, 0);
     process.stdout.write(`${corpus.name}: ${corpus.snippets.length} pairs, ~${tokens} tokens (v1 estimate)\n`);
