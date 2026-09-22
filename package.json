@@ -1,0 +1,72 @@
+{
+  "name": "@kongyo2/similarity-ts-jev",
+  "version": "0.1.0",
+  "description": "similarity-ts + fallow duplicate detection for TypeScript, filtered by TypeSafe's Jev (via @typesafe-ai/sdk) down to the pairs actually worth refactoring.",
+  "type": "module",
+  "license": "MIT",
+  "author": "kongyo2",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kongyo2/similarity-ts-jev.git"
+  },
+  "keywords": [
+    "typescript",
+    "similarity",
+    "duplication",
+    "clones",
+    "refactoring",
+    "jev",
+    "typesafe",
+    "fallow",
+    "cli"
+  ],
+  "bin": {
+    "similarity-ts-jev": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/*.test.ts\"",
+    "verify": "node scripts/verify.ts",
+    "prepack": "npm run clean && npm run build && npm run typecheck && npm run lint:comments && npm test",
+    "record-fixtures": "node scripts/record-fixtures.ts",
+    "proxy": "node scripts/adapter-proxy.ts",
+    "lint:comments": "ts-comment-scanner --fail-on-comment --ignore node_modules/ --ignore dist/ ."
+  },
+  "dependencies": {
+    "@kongyo2/similarity-ts": "^0.7.0",
+    "@typesafe-ai/sdk": "^0.6.0",
+    "commander": "^13.1.0",
+    "fallow": "^3.27.0",
+    "ignore": "^7.0.5"
+  },
+  "devDependencies": {
+    "@kongyo2/ts-comment-scanner": "^1.7.0",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "homepage": "https://github.com/kongyo2/similarity-ts-jev#readme",
+  "bugs": {
+    "url": "https://github.com/kongyo2/similarity-ts-jev/issues"
+  }
+}
