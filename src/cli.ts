@@ -166,9 +166,10 @@ function createClient(options: { model?: string; baseURL?: string; timeout: numb
   }
 }
 
-function lazyClient(create: () => TypeSafeClient): JudgeClient {
+function lazyClient(create: () => TypeSafeClient, defaultModel: string): JudgeClient {
   let client: TypeSafeClient | undefined;
   return {
+    defaultModel,
     systemOne: ((request, options) => (client ??= create()).systemOne(request, options)) as TypeSafeClient["systemOne"],
   };
 }
@@ -231,23 +232,28 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     });
 
     if (raw.dryRun) {
-      const { snippets } = await readSnippets(orderPairs(detection.pairs), { cwd, ...(maxPairs !== undefined ? { maxPairs } : {}) });
+      const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), { cwd, ...(maxPairs !== undefined ? { maxPairs } : {}) });
       const batches = batchPairs(snippets, { pairsPerRequest });
       const tokens = snippets.reduce((sum, s) => sum + s.tokens, 0);
       io.log(`${snippets.length} pairs, ${batches.length} requests, ${tokens} tokens`);
       for (const warning of detection.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
-      return detection.warnings.length > 0 && (detection.stats.fileCount === 0 || raw.failOnWarnings) ? 1 : 0;
+      const failed = unreadable.filter((pair) => pair.reason === "unreadable");
+      if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
+      if (detection.warnings.length > 0 && (detection.stats.fileCount === 0 || raw.failOnWarnings)) return 1;
+      return failed.length > 0 ? 1 : 0;
     }
 
     const cache = raw.cache !== undefined ? await FileJudgeCache.load(path.resolve(cwd, raw.cache)) : undefined;
     const client =
       run.client ??
-      lazyClient(() =>
-        createClient({
-          ...(raw.model !== undefined ? { model: raw.model } : {}),
-          ...(raw.baseUrl !== undefined ? { baseURL: raw.baseUrl } : {}),
-          timeout,
-        }),
+      lazyClient(
+        () =>
+          createClient({
+            ...(raw.model !== undefined ? { model: raw.model } : {}),
+            ...(raw.baseUrl !== undefined ? { baseURL: raw.baseUrl } : {}),
+            timeout,
+          }),
+        raw.model ?? (process.env.TYPESAFE_DEFAULT_MODEL?.trim() || "jev-latest"),
       );
     const judged = await judgeReport(detection, client, {
       cwd,

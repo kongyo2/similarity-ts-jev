@@ -45,7 +45,8 @@ empty when nothing is worth refactoring.
 1. **Detect.** `analyzeProject` from `@kongyo2/similarity-ts` (functions,
    types, classes; `overlap` on request) and `fallow dupes --near` in each
    of its modes (strict, mild, weak, semantic) run on the same paths on every
-   invocation, and their findings form one list. A group several modes
+   invocation (fallow is rooted at the working directory and, for a requested
+   path outside it, at that path), and their findings form one list. A group several modes
    report is kept once with the union of its instances. A clone group becomes
    one pair (its two most distant instances) that carries every other place
    the fragment appears (`instances`); fragment-level findings of either tool
@@ -133,7 +134,8 @@ could not be judged (Jev failed after the SDK's retries). stderr says how many
 and why; JSON lists them under `unjudged` with a `reason` (`capped`,
 `unreadable`, `api`). A run whose answers all come from `--cache` needs no
 API key; rejected requests are recorded too, so a replay never contacts the
-API.
+API. Cache entries are keyed by the request, including the model in effect
+(`--model`, `TYPESAFE_DEFAULT_MODEL`, or `jev-latest`).
 
 ### JSON
 
@@ -178,7 +180,7 @@ for (const pair of report.results) console.log(pair.judgment.score, pair.left.sy
 ## Development
 
 ```sh
-npm test               # 35 offline tests: real detection on test/fixtures/project, Jev replayed from test/fixtures/jev-cache.json
+npm test               # 39 offline tests: real detection on test/fixtures/project, Jev replayed from test/fixtures/jev-cache.json
 npm run typecheck
 npm run lint:comments  # the sources carry no comments; CI fails on any
 npm run build          # tsc -> dist/

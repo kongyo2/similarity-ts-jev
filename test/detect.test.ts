@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { detect, mergePairs } from "../src/detect.ts";
@@ -173,6 +175,48 @@ describe("runFallow", () => {
     assert.deepEqual(cross.pairs.map((p) => `${path.basename(p.left.filePath)}-${path.basename(p.right.filePath)}`), ["a.ts-b.ts"]);
   });
 
+  it("merges the same group when modes list its instances in a different order", async () => {
+    const result = await runFallow({
+      cwd: "/repo",
+      exec: async (args) => {
+        const mode = args[args.indexOf("--mode") + 1]!;
+        const order = mode === "strict" ? [["a.ts", 1, 6], ["b.ts", 1, 6], ["c.ts", 1, 6]] : [["c.ts", 1, 6], ["a.ts", 1, 6], ["b.ts", 1, 6]];
+        return { stdout: dupes([group(`dup:${mode}`, order as [string, number, number][])]), code: 1 };
+      },
+    });
+    assert.equal(result.pairs.length, 1);
+    assert.deepEqual(result.pairs[0]!.instances?.map((i) => path.basename(i.filePath)), ["a.ts", "b.ts", "c.ts"]);
+  });
+
+  it("runs fallow at every requested root outside the working directory", async () => {
+    const base = await fs.mkdtemp(path.join(os.tmpdir(), "similarity-ts-jev-roots-"));
+    try {
+      const cwd = path.join(base, "repo");
+      const sibling = path.join(base, "sibling", "src");
+      await fs.mkdir(cwd, { recursive: true });
+      await fs.mkdir(sibling, { recursive: true });
+      await fs.writeFile(path.join(sibling, "one.ts"), "");
+      const roots: string[] = [];
+      const result = await runFallow({
+        cwd,
+        paths: ["src", path.join("..", "sibling", "src"), path.join(sibling, "one.ts")],
+        exec: async (args) => {
+          const root = args[args.indexOf("--root") + 1]!;
+          roots.push(root);
+          if (root === cwd) return { stdout: dupes([group("dup:home", [["src/a.ts", 1, 6], ["src/b.ts", 1, 6]])]), code: 1 };
+          return { stdout: dupes([group("dup:away", [["one.ts", 1, 6], ["two.ts", 1, 6]])]), code: 1 };
+        },
+      });
+      assert.deepEqual([...new Set(roots)].sort(), [cwd, sibling].sort(), "the sibling directory is a root of its own");
+      assert.deepEqual(
+        result.pairs.map((p) => path.relative(base, p.left.filePath).split(path.sep).join("/")).sort(),
+        ["repo/src/a.ts", "sibling/src/one.ts"],
+      );
+    } finally {
+      await fs.rm(base, { recursive: true, force: true });
+    }
+  });
+
   it("throws FallowError instead of returning half a report", async () => {
     await assert.rejects(runFallow({ exec: async () => ({ stdout: JSON.stringify({ error: true, message: "no project here" }), code: 2 }) }), /fallow dupes did not run: \w+ mode: no project here/);
     await assert.rejects(runFallow({ exec: async () => { throw new Error("spawn ENOENT"); } }), /spawn ENOENT/);
@@ -210,6 +254,26 @@ describe("mergePairs", () => {
 });
 
 describe("groupFamilies", () => {
+  it("keeps a declaration nested in another one apart, while shifted fragments are one member", () => {
+    const judged = (p: DetectedPair, score: number): JudgedPair => ({
+      ...p,
+      judgment: { score, confidence: 0.5, probabilities: {}, sameLogic: 0.9, sameConcept: 0.9, model: "jev" },
+      verdict: { refactor: true, reason: "" },
+    });
+    const klass = location("/r/a.ts", 1, 10, "Klass", "class");
+    const method = location("/r/a.ts", 3, 9, "method", "function");
+    const otherClass = location("/r/b.ts", 1, 10, "Other", "class");
+    const otherMethod = location("/r/c.ts", 1, 7, "other", "function");
+    const families = groupFamilies([judged(pair(klass, otherClass), 2.5), judged(pair(method, otherMethod), 2.2)]);
+    assert.equal(families.length, 2, "the class and its method are different members");
+    const shifted = groupFamilies([
+      judged(pair(location("/r/x.ts", 1, 8, "(fragment)", "fragment"), location("/r/y.ts", 1, 8, "(fragment)", "fragment"), { mode: "overlap" }), 2.0),
+      judged(pair(location("/r/x.ts", 2, 8, "(fragment)", "fragment"), location("/r/z.ts", 1, 7, "(fragment)", "fragment"), { mode: "overlap" }), 2.1),
+    ]);
+    assert.equal(shifted.length, 1);
+    assert.deepEqual(shifted[0]!.members.map((m: { filePath: string }) => path.basename(m.filePath)), ["x.ts", "y.ts", "z.ts"]);
+  });
+
   it("connects declarations through pairs and clone instances", () => {
     const judged = (p: DetectedPair, score: number): JudgedPair => ({
       ...p,

@@ -12,9 +12,10 @@ export const silent = { log() {}, error() {} };
 
 type Handler = (request: { state: unknown; questions: Questions; model?: string }) => Promise<SystemOneResult<Questions>> | SystemOneResult<Questions>;
 
-export function stubClient(handler: Handler, requestId = "req_test"): JudgeClient & { calls: number } {
+export function stubClient(handler: Handler, requestId = "req_test", defaultModel?: string): JudgeClient & { calls: number } {
   const client = {
     calls: 0,
+    ...(defaultModel !== undefined ? { defaultModel } : {}),
     systemOne(request: { state: unknown; questions: Questions; model?: string }) {
       client.calls += 1;
       const pending = Promise.resolve().then(() => handler(request));
@@ -26,9 +27,13 @@ export function stubClient(handler: Handler, requestId = "req_test"): JudgeClien
   return client as unknown as JudgeClient & { calls: number };
 }
 
-export const offline = stubClient(() => {
-  throw new Error("the network was reached although every answer should come from the cache");
-});
+export const offline = stubClient(
+  () => {
+    throw new Error("the network was reached although every answer should come from the cache");
+  },
+  "req_test",
+  "jev-latest",
+);
 
 export function answerAll(request: { questions: Questions }): SystemOneResult<Questions> {
   const answers: Record<string, unknown> = {};

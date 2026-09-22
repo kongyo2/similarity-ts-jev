@@ -18,7 +18,7 @@ export interface JudgeResponse {
   requestId?: string;
 }
 
-export type JudgeClient = Pick<TypeSafeClient, "systemOne">;
+export type JudgeClient = Pick<TypeSafeClient, "systemOne"> & { defaultModel?: string };
 
 export interface JudgeRejection {
   rejected: true;
@@ -63,7 +63,8 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
 
   const runBatch = async (batch: PairSnippet[]): Promise<void> => {
     const questions: Questions = Object.assign({}, ...batch.map(pairQuestions));
-    const request: JudgeRequest = { state, questions, ...(options.model !== undefined ? { model: options.model } : {}) };
+    const model = options.model ?? client.defaultModel;
+    const request: JudgeRequest = { state, questions, ...(model !== undefined ? { model } : {}) };
     const hash = requestHash(request);
     const split = async () => {
       const middle = Math.ceil(batch.length / 2);

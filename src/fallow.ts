@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { statSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -56,30 +57,93 @@ export async function runFallow(options: FallowOptions = {}): Promise<FallowResu
   const started = Date.now();
   const cwd = path.resolve(options.cwd ?? process.cwd());
   const exec = options.exec ?? runFallowBinary;
-  const outputs = await Promise.all(FALLOW_MODES.map((mode) => runMode(exec, cwd, mode, options)));
+  const roots = fallowRoots(cwd, options.paths);
+  const runs = await Promise.all(
+    roots.flatMap((root) => FALLOW_MODES.map(async (mode) => ({ root, output: await runMode(exec, root, mode, options) }))),
+  );
 
   const keep = instanceFilter(cwd, options.paths, options.exclude);
-  const pairs: DetectedPair[] = [];
-  const byFiles = new Map<string, DetectedPair[]>();
+  const groups = new GroupIndex();
   let instances = 0;
-  for (const output of outputs) {
+  for (const { root, output } of runs) {
     for (const group of output.clone_groups ?? []) {
-      const kept = group.instances.filter(keep);
+      const kept = group.instances.map((instance) => ({ ...instance, file: path.resolve(root, instance.file) })).filter(keep);
       for (const bucket of scopedBuckets(kept, cwd, options)) {
         const pair = toPair(group, bucket, cwd);
-        const key = fileKey(pair);
-        const known = (byFiles.get(key) ?? []).find((candidate) => samePair(candidate, pair));
+        const known = groups.find(pair);
         if (known !== undefined) {
           absorb(known, pair);
+          groups.index(known);
           continue;
         }
-        pairs.push(pair);
-        byFiles.set(key, [...(byFiles.get(key) ?? []), pair]);
+        groups.add(pair);
         instances += bucket.length;
       }
     }
   }
+  const pairs = groups.all();
   return { pairs, cloneGroups: pairs.length, cloneInstances: instances, elapsedMs: Date.now() - started };
+}
+
+function fallowRoots(cwd: string, paths: string[] | undefined): string[] {
+  if (paths === undefined || paths.length === 0) return [cwd];
+  const roots = new Set<string>();
+  for (const requested of paths) {
+    const absolute = path.resolve(cwd, requested);
+    if (isInside(cwd, absolute)) {
+      roots.add(cwd);
+      continue;
+    }
+    let directory = absolute;
+    try {
+      if (!statSync(absolute).isDirectory()) directory = path.dirname(absolute);
+    } catch {
+      continue;
+    }
+    roots.add(directory);
+  }
+  return roots.size === 0 ? [cwd] : [...roots];
+}
+
+class GroupIndex {
+  readonly #pairs: DetectedPair[] = [];
+  readonly #byFile = new Map<string, Set<DetectedPair>>();
+
+  add(pair: DetectedPair): void {
+    this.#pairs.push(pair);
+    this.index(pair);
+  }
+
+  index(pair: DetectedPair): void {
+    for (const location of pair.instances ?? [pair.left, pair.right]) {
+      const file = path.resolve(location.filePath);
+      let set = this.#byFile.get(file);
+      if (set === undefined) {
+        set = new Set();
+        this.#byFile.set(file, set);
+      }
+      set.add(pair);
+    }
+  }
+
+  find(pair: DetectedPair): DetectedPair | undefined {
+    const candidates = this.#byFile.get(path.resolve(pair.left.filePath));
+    if (candidates === undefined) return undefined;
+    const others = this.#byFile.get(path.resolve(pair.right.filePath));
+    for (const candidate of candidates) {
+      if (others?.has(candidate) && sameGroup(candidate, pair)) return candidate;
+    }
+    return undefined;
+  }
+
+  all(): DetectedPair[] {
+    return this.#pairs;
+  }
+}
+
+function sameGroup(known: DetectedPair, pair: DetectedPair): boolean {
+  const members = known.instances ?? [known.left, known.right];
+  return [pair.left, pair.right].every((location) => members.some((member) => overlaps(member, location)));
 }
 
 function scopedBuckets(instances: CloneInstance[], cwd: string, options: FallowOptions): CloneInstance[][] {
@@ -128,10 +192,6 @@ export function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation
   return members;
 }
 
-function fileKey(pair: DetectedPair): string {
-  return [pair.left.filePath, pair.right.filePath].map((p) => path.resolve(p)).sort().join("|");
-}
-
 export function samePair(x: DetectedPair, y: DetectedPair): boolean {
   const straight = overlaps(x.left, y.left) && overlaps(x.right, y.right);
   const crossed = overlaps(x.left, y.right) && overlaps(x.right, y.left);
@@ -147,7 +207,9 @@ export function overlaps(a: AnalyzerLocation, b: AnalyzerLocation): boolean {
 }
 
 function toPair(group: CloneGroupFinding, instances: CloneInstance[], cwd: string): DetectedPair {
-  const locations = instances.map((instance) => toLocation(instance, group, cwd));
+  const locations = instances
+    .map((instance) => toLocation(instance, group, cwd))
+    .sort((x, y) => x.filePath.localeCompare(y.filePath) || x.startLine - y.startLine);
   const [left, right] = mostDistant(locations);
   return {
     mode: "overlap",
@@ -180,11 +242,11 @@ function mostDistant(locations: AnalyzerLocation[]): [AnalyzerLocation, Analyzer
 }
 
 function instanceFilter(cwd: string, paths: string[] | undefined, exclude: string[] | undefined): (instance: CloneInstance) => boolean {
-  const roots = (paths ?? []).map((p) => path.resolve(cwd, p));
+  const requested = (paths ?? []).map((p) => path.resolve(cwd, p));
   const excluded = ignore().add(exclude ?? []);
   return (instance) => {
     const absolute = path.resolve(cwd, instance.file);
-    if (roots.length > 0 && !roots.some((root) => isInside(root, absolute))) return false;
+    if (requested.length > 0 && !requested.some((root) => isInside(root, absolute))) return false;
     const relative = path.relative(cwd, absolute).split(path.sep).join("/");
     if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) return true;
     return !excluded.ignores(relative);

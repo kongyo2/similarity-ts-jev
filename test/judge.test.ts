@@ -142,6 +142,24 @@ describe("judgePairs", () => {
     assert.equal(hash, requestHash(store.get(hash!)!.request));
   });
 
+  it("puts the client's default model into the request, so caches are keyed by model", async () => {
+    const seen: (string | undefined)[] = [];
+    const record = (request: { model?: string; questions: Questions }) => {
+      seen.push(request.model);
+      return answerAll(request);
+    };
+    const snippets = [snippet(0, "x")];
+    await judgePairs(snippets, stubClient(record, "req", "typesafe/jev-latest"), { repository: "r" });
+    await judgePairs(snippets, stubClient(record), { repository: "r" });
+    await judgePairs(snippets, stubClient(record, "req", "typesafe/jev-latest"), { repository: "r", model: "jev-1.13.0" });
+    assert.deepEqual(seen, ["typesafe/jev-latest", undefined, "jev-1.13.0"]);
+    const hashes = new Set<string>();
+    const cache: JudgeCache = { get: () => undefined, set: (hash) => void hashes.add(hash) };
+    await judgePairs(snippets, stubClient(answerAll, "req", "a"), { repository: "r", cache });
+    await judgePairs(snippets, stubClient(answerAll, "req", "b"), { repository: "r", cache });
+    assert.equal(hashes.size, 2);
+  });
+
   it("rejects an answer set that lacks a pair's questions", () => {
     const s = snippet(7, "x");
     const questions: Questions = pairQuestions(s);

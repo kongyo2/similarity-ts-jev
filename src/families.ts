@@ -1,7 +1,14 @@
 import path from "node:path";
 import type { AnalyzerLocation } from "@kongyo2/similarity-ts";
-import { overlaps } from "./fallow.ts";
+import { FRAGMENT_KIND, overlaps } from "./fallow.ts";
 import type { Family, JudgedPair } from "./types.ts";
+
+function sameMember(a: AnalyzerLocation, b: AnalyzerLocation): boolean {
+  if (a.kind !== FRAGMENT_KIND && b.kind !== FRAGMENT_KIND) {
+    return path.resolve(a.filePath) === path.resolve(b.filePath) && a.startLine === b.startLine && a.endLine === b.endLine;
+  }
+  return overlaps(a, b);
+}
 
 export function groupFamilies(pairs: JudgedPair[]): Family[] {
   const parent = new Map<string, string>();
@@ -20,9 +27,9 @@ export function groupFamilies(pairs: JudgedPair[]): Family[] {
   };
   const add = (location: AnalyzerLocation): string => {
     const file = path.resolve(location.filePath);
-    const known = (byFile.get(file) ?? []).find((key) => overlaps(locations.get(key)!, location));
+    const known = (byFile.get(file) ?? []).find((key) => sameMember(locations.get(key)!, location));
     if (known !== undefined) return known;
-    const key = `${file}:${location.startLine}`;
+    const key = `${file}:${location.startLine}-${location.endLine}`;
     parent.set(key, key);
     locations.set(key, location);
     byFile.set(file, [...(byFile.get(file) ?? []), key]);
