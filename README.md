@@ -3,9 +3,9 @@
 [`@kongyo2/similarity-ts`](https://www.npmjs.com/package/@kongyo2/similarity-ts) and
 [`fallow`](https://www.npmjs.com/package/fallow) find code that looks alike.
 This CLI runs both, hands every reported pair to TypeSafe's
-[Jev](https://docs.typesafe.ai/) through the stock
+[Jev](https://docs.typesafe.ai/) through
 [`@typesafe-ai/sdk`](https://www.npmjs.com/package/@typesafe-ai/sdk), and
-prints only the pairs a careful reviewer would actually have merged.
+prints the pairs a careful reviewer would have merged.
 
 ```bash
 export TYPESAFE_API_KEY=apikey_...   # https://console.typesafe.ai/keys
@@ -30,31 +30,28 @@ npx @kongyo2/similarity-ts-jev .
       ...
 ```
 
-(date-fns `pkgs/core/src`, tests and locales excluded: 1,151 structural
-near-duplicates in, 8 families out, in 16 seconds. `isFriday`/`isMonday`,
+The sample is date-fns `pkgs/core/src` with tests and locales excluded:
+1,151 near-duplicates in, 8 families out, 16 seconds. `isFriday`/`isMonday`,
 `compareAsc`/`compareDesc`, and the 900-odd per-function `Options`
-interfaces that share a shape are left alone; the private helper copied
-between `format` and `lightFormat` comes first.)
+interfaces that share a shape are not in the output; the private helper
+copied between `format` and `lightFormat` comes first.
 
-The output is the list and nothing else: one entry per family of
-declarations worth merging, its score (0–3) and where the declarations are.
-No headings, counts, timings, or commentary, so a person or an agent reading
-it can act on it without wading through context. When nothing is worth
-refactoring, nothing is printed.
+Each entry is one family of declarations worth merging: its score (0–3) and
+the declarations. The output has no headings, counts, or timings, and it is
+empty when nothing is worth refactoring.
 
 ## What it does
 
 1. **Detect.** `analyzeProject` from `@kongyo2/similarity-ts` (functions,
-   types, classes; `overlap` on request) and `fallow dupes --near` in every
-   one of its modes (strict, mild, weak, semantic) always run together on the
-   same paths, and their findings go into one list; a group several modes
-   report is kept once with the union of its instances. A clone
-   group becomes one pair (its two most distant instances) that carries every
-   other place the fragment appears (`instances`); fragment-level findings of
-   either tool are `mode: overlap` with `kind: fragment`. A pair both tools
-   report is kept once. Nothing in the output says which tool found a pair,
-   and there is no way to run only one of them: if either detector fails, the
-   run fails instead of reporting half a project.
+   types, classes; `overlap` on request) and `fallow dupes --near` in each
+   of its modes (strict, mild, weak, semantic) run on the same paths on every
+   invocation, and their findings form one list. A group several modes
+   report is kept once with the union of its instances. A clone group becomes
+   one pair (its two most distant instances) that carries every other place
+   the fragment appears (`instances`); fragment-level findings of either tool
+   are `mode: overlap` with `kind: fragment`. A pair both tools report is
+   kept once. The output does not say which tool found a pair. When either
+   detector fails, the run fails.
 2. **Judge.** For every pair Jev answers three questions over the two
    declarations (file path, the comment block above, the source text):
    - `refactor` (score, 0–3): *how strongly would a careful reviewer of this
@@ -74,8 +71,8 @@ refactoring, nothing is printed.
    eight identical result types reported as 28 pairs come out as one family,
    and each family is printed once.
 
-Thresholds live in code, never in the question text, so the questions stay
-comparable across runs while the threshold gets recalibrated.
+The threshold is applied in code and does not appear in the question text,
+so recalibrating it leaves the questions, and recorded answers, unchanged.
 
 ### Calibration (2026-09-22, jev-1.13.0)
 
@@ -91,9 +88,9 @@ adapter, then re-drawn three times:
 
 The same pair re-judged three times moved by 0.07 on average (0.27 at most,
 on a fixture pair). The default threshold sits in the gap between the clear
-merges (≥ 2.10) and the clear keeps (≤ 1.69); the 1.7–2.1 band is genuinely
-"might mention it" territory. `--min-score 1.7` shows it, `--min-score 2.5`
-keeps only copy-paste.
+merges (≥ 2.10) and the clear keeps (≤ 1.69). Scores between 1.7 and 2.1 are
+pairs a reviewer might mention without asking for a change; `--min-score 1.7`
+includes them, `--min-score 2.5` keeps copy-paste only.
 
 Cost: about 1,300 input tokens per pair (the code is inside each of the
 three questions), $0.042 per million tokens on Jev, so the date-fns run
@@ -103,7 +100,7 @@ four fallow runs).
 ## Options
 
 Detection options mirror `similarity-ts` (same names and defaults, except
-`--modes`, which leaves `overlap` out unless asked):
+`--modes`, whose default omits `overlap`):
 
 | Option | Default | |
 | --- | --- | --- |
@@ -142,7 +139,7 @@ refactoring, best first: `score`, `confidence`, `sameLogic`,
 `symbolName`, `kind`), and `instances` when a fragment appears in more than
 two places) and `families` (`score`, `members`). `rejected` is added with
 `--all`, `unjudged` (each with its `error`) only when Jev could not judge
-some pairs. Nothing else.
+some pairs. There are no other fields.
 
 ### Environment
 
@@ -184,12 +181,12 @@ npm run record-fixtures                                       # re-record test/f
 npm run proxy -- [port]                                       # local TypeSafe-compatible endpoint for running the packaged CLI end to end
 ```
 
-Everything that talks to Jev during development goes through the fallback
-chain in [jev-playground](https://github.com/kongyo2/jev-playground)'s
-`sdk-adapter` (Lolipop AI Gateway → TypeSafe API → Vercel AI Gateway), never
-through a provider directly. The scripts load it from `SDK_ADAPTER_DIR`, or
-from `../jev-playground/sdk-adapter` next to this checkout, together with
-its `.env`. `scripts/adapter-proxy.ts` serves that chain as a local
+The development scripts reach Jev through the fallback chain in
+[jev-playground](https://github.com/kongyo2/jev-playground)'s `sdk-adapter`
+(Lolipop AI Gateway → TypeSafe API → Vercel AI Gateway), not through a
+provider directly. They load it from `SDK_ADAPTER_DIR`, or from
+`../jev-playground/sdk-adapter` next to this checkout, together with its
+`.env`. `scripts/adapter-proxy.ts` serves that chain as a local
 TypeSafe-compatible endpoint so the packaged CLI, which only knows
 `@typesafe-ai/sdk`, can be exercised end to end:
 `TYPESAFE_BASE_URL=http://127.0.0.1:8787 TYPESAFE_API_KEY=proxy npx similarity-ts-jev .`.
@@ -200,10 +197,9 @@ Releases: `npm version <x.y.z>`, push the tag, then run the *Publish to npm*
 workflow (`workflow_dispatch`; needs the `NPM_TOKEN` secret). `prepack`
 rebuilds, type-checks, scans for comments, and runs the tests first.
 
-Question design follows the TypeSafe docs and mizchi/jev-playground
-[`docs/practice.md`](https://github.com/mizchi/jev-playground/blob/main/docs/practice.md):
-an ordered conclusion is a `score`, atomic predicates ride along as `noul`s
-rather than replacing it, the judged code lives in each question's
-`instructions` (not in the shared state), many pairs share one request,
-thresholds are calibrated on labeled pairs and placed in the middle of the
-gap, and every answer can be recorded and replayed.
+The questions are shaped by a few constraints: an ordered conclusion is a
+`score`, atomic predicates ride along as `noul`s rather than replacing it,
+the judged code lives in each question's `instructions` (not in the shared
+state), many pairs share one request, thresholds are calibrated on labeled
+pairs and placed in the middle of the gap, and every answer can be recorded
+and replayed.
