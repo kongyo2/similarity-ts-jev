@@ -11,8 +11,8 @@ export TYPESAFE_API_KEY=apikey_...   # https://console.typesafe.ai/keys
 npx @kongyo2/similarity-ts-jev .
 ```
 
-Run on date-fns `pkgs/core/src` (tests and locales excluded), 1,294 similar
-pairs go in and 56 families come out, in 25 seconds for about $0.07:
+On date-fns `pkgs/core/src` with tests and locales excluded, 1,294 similar
+pairs go in and 56 families come out — 25 seconds, about $0.07:
 
 ```
 2.86  src/format/index.ts:444-452 cleanEscapedString <-> src/lightFormat/index.ts:134-138 cleanEscapedString
@@ -36,7 +36,7 @@ when nothing is worth refactoring.
    `fallow dupes --near` in each of its four modes run on the same paths.
    Their findings are merged into one list of pairs.
 2. **Judge.** For every pair, Jev answers three questions over the two
-   declarations (file path, the comment above, the source text):
+   declarations (file path, leading comment, source text):
    - `refactor` (0–3): how strongly a careful reviewer of this repository
      would ask for the two to be merged,
    - `same_logic`: same operations in the same order, names and literals aside,
