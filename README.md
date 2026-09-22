@@ -176,38 +176,3 @@ for (const pair of report.results) console.log(pair.judgment.score, pair.left.sy
 `TypeSafeClient`'s `systemOne`. Lower-level pieces are exported too:
 `pairQuestions`, `batchPairs`, `judgePairs`, `decide`, `groupFamilies`,
 `FileJudgeCache`.
-
-## Development
-
-```sh
-npm test               # 39 offline tests: real detection on test/fixtures/project, Jev replayed from test/fixtures/jev-cache.json
-npm run typecheck
-npm run lint:comments  # the sources carry no comments; CI fails on any
-npm run build          # tsc -> dist/
-npm run verify -- <paths...> [--cache file] [--labels file]   # real Jev on a corpus: score table, histogram, gap analysis
-npm run record-fixtures                                       # re-record test/fixtures/jev-cache.json after changing questions, batching, or the fixture
-npm run proxy -- [port]                                       # local TypeSafe-compatible endpoint for running the packaged CLI end to end
-```
-
-The development scripts reach Jev through the fallback chain in
-[jev-playground](https://github.com/kongyo2/jev-playground)'s `sdk-adapter`
-(Lolipop AI Gateway → TypeSafe API → Vercel AI Gateway), not through a
-provider directly. They load it from `SDK_ADAPTER_DIR`, or from
-`../jev-playground/sdk-adapter` next to this checkout, together with its
-`.env`. `scripts/adapter-proxy.ts` serves that chain as a local
-TypeSafe-compatible endpoint so the packaged CLI, which only knows
-`@typesafe-ai/sdk`, can be exercised end to end:
-`TYPESAFE_BASE_URL=http://127.0.0.1:8787 TYPESAFE_API_KEY=proxy npx similarity-ts-jev .`.
-The published package depends only on `@kongyo2/similarity-ts`, `fallow`,
-`@typesafe-ai/sdk`, and `commander`.
-
-Releases: `npm version <x.y.z>`, push the tag, then run the *Publish to npm*
-workflow (`workflow_dispatch`; needs the `NPM_TOKEN` secret). `prepack`
-rebuilds, type-checks, scans for comments, and runs the tests first.
-
-The questions are shaped by a few constraints: an ordered conclusion is a
-`score`, atomic predicates ride along as `noul`s rather than replacing it,
-the judged code lives in each question's `instructions` (not in the shared
-state), many pairs share one request, thresholds are calibrated on labeled
-pairs and placed in the middle of the gap, and every answer can be recorded
-and replayed.
