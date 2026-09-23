@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { auc } from "../../src/calibrate.ts";
 import { flag, readLines, resultsRoot } from "./lib.ts";
-import type { RequestRecord } from "./lib.ts";
+import type { Label, RequestRecord } from "./lib.ts";
 import type { Read } from "./questions-v2.ts";
 
 interface Result {
@@ -20,12 +21,6 @@ interface Result {
   inputTokens: number;
   ms: number;
   error?: string;
-}
-
-interface Label {
-  merge: boolean;
-  shape?: string;
-  note?: string;
 }
 
 const argv = process.argv.slice(2);
@@ -155,8 +150,10 @@ function agreement(a: Map<string, Result>, b: Map<string, Result>): Agreement {
     sb.push(s2);
     if (level(s1) === level(s2)) levels += 1;
     for (const c of CUTOFFS) if (s1 >= c !== s2 >= c) flips[String(c)]! += 1;
-    if (x.answers.same_logic !== undefined && y.answers.same_logic !== undefined) logic.push(Math.abs(x.answers.same_logic - y.answers.same_logic));
-    if (x.answers.same_concept !== undefined && y.answers.same_concept !== undefined) concept.push(Math.abs(x.answers.same_concept - y.answers.same_concept));
+    if (x.answers.same_logic !== undefined && y.answers.same_logic !== undefined)
+      logic.push(Math.abs(x.answers.same_logic - y.answers.same_logic));
+    if (x.answers.same_concept !== undefined && y.answers.same_concept !== undefined)
+      concept.push(Math.abs(x.answers.same_concept - y.answers.same_concept));
     if (x.answers.shape !== undefined && y.answers.shape !== undefined) {
       shapeBoth += 1;
       if (x.answers.shape.choice === y.answers.shape.choice) shapes += 1;
@@ -178,12 +175,41 @@ function agreement(a: Map<string, Result>, b: Map<string, Result>): Agreement {
 }
 
 function agreementRow(name: string, g: Agreement): (string | number)[] {
-  return [name, g.n, g.mad, g.bias, g.within025, g.levelAgree, g.flips["1.9"] ?? 0, g.logicMad, g.conceptMad, g.shapeAgree, g.spearman];
+  return [
+    name,
+    g.n,
+    g.mad,
+    g.bias,
+    g.within025,
+    g.levelAgree,
+    g.flips["1.9"] ?? 0,
+    g.logicMad,
+    g.conceptMad,
+    g.shapeAgree,
+    g.spearman,
+  ];
 }
 
-const AGREEMENT_HEADERS = ["arms", "pairs", "MAD score", "bias", "within 0.25", "level agree", "flips @1.9", "MAD logic", "MAD concept", "shape agree", "spearman"];
+const AGREEMENT_HEADERS = [
+  "arms",
+  "pairs",
+  "MAD score",
+  "bias",
+  "within 0.25",
+  "level agree",
+  "flips @1.9",
+  "MAD logic",
+  "MAD concept",
+  "shape agree",
+  "spearman",
+];
 
-function tokensPerPair(results: Result[]): { tokensPerPair: number; msPerRequest: number; pairsPerRequest: number; requests: number } {
+function tokensPerPair(results: Result[]): {
+  tokensPerPair: number;
+  msPerRequest: number;
+  pairsPerRequest: number;
+  requests: number;
+} {
   const requests = new Map<string, Result>();
   for (const r of results) {
     const id = `${r.repeat}/${r.batch ?? r.key}`;
@@ -191,7 +217,12 @@ function tokensPerPair(results: Result[]): { tokensPerPair: number; msPerRequest
   }
   const list = [...requests.values()];
   const pairs = list.reduce((a, r) => a + (r.batchSize ?? 1), 0);
-  return { tokensPerPair: list.reduce((a, r) => a + r.inputTokens, 0) / pairs, msPerRequest: mean(list.map((r) => r.ms)), pairsPerRequest: pairs / list.length, requests: list.length };
+  return {
+    tokensPerPair: list.reduce((a, r) => a + r.inputTokens, 0) / pairs,
+    msPerRequest: mean(list.map((r) => r.ms)),
+    pairsPerRequest: pairs / list.length,
+    requests: list.length,
+  };
 }
 
 function stability(results: Result[], label: string): Record<string, unknown> {
@@ -254,6 +285,22 @@ function stability(results: Result[], label: string): Record<string, unknown> {
   return out;
 }
 
+function stabilityRow(name: string, s: Record<string, number>): (string | number)[] {
+  return [
+    name,
+    s.pairs!,
+    s.passes!,
+    s.spreadMean!,
+    s.spreadMedian!,
+    s.spreadP90!,
+    s.spreadMax!,
+    s.logicSpreadMean!,
+    s.conceptSpreadMean!,
+    s.shapeChangedRate!,
+    (s.flipRate as unknown as Record<string, number>)["1.9"] ?? 0,
+  ];
+}
+
 function positionEffect(results: Result[]): Record<string, unknown> {
   const scored = withRefactor(results);
   const groups = byKey(scored);
@@ -266,7 +313,12 @@ function positionEffect(results: Result[]): Record<string, unknown> {
     const bucket = frac < 0.34 ? "first third" : frac < 0.67 ? "middle" : "last third";
     buckets.set(bucket, [...(buckets.get(bucket) ?? []), r.answers.refactor!.score - means.get(r.key)!]);
   }
-  return Object.fromEntries([...buckets.entries()].map(([b, ds]) => [b, { n: ds.length, meanDeviation: mean(ds), madDeviation: mean(ds.map(Math.abs)) }]));
+  return Object.fromEntries(
+    [...buckets.entries()].map(([b, ds]) => [
+      b,
+      { n: ds.length, meanDeviation: mean(ds), madDeviation: mean(ds.map(Math.abs)) },
+    ]),
+  );
 }
 
 function distribution(results: Result[]): Record<string, unknown> {
@@ -274,7 +326,10 @@ function distribution(results: Result[]): Record<string, unknown> {
   const scores = first.map((r) => r.answers.refactor!.score);
   const bins: Record<string, number> = {};
   for (let b = 0; b < 12; b += 1) bins[`${(b / 4).toFixed(2)}-${((b + 1) / 4).toFixed(2)}`] = 0;
-  for (const s of scores) bins[`${(Math.min(11, Math.floor(s * 4)) / 4).toFixed(2)}-${((Math.min(11, Math.floor(s * 4)) + 1) / 4).toFixed(2)}`]! += 1;
+  for (const s of scores)
+    bins[
+      `${(Math.min(11, Math.floor(s * 4)) / 4).toFixed(2)}-${((Math.min(11, Math.floor(s * 4)) + 1) / 4).toFixed(2)}`
+    ]! += 1;
   const conf = first.map((r) => r.answers.refactor!.confidence);
   const shapeCounts: Record<string, number> = {};
   const shapeByLevel: Record<string, Record<string, number>> = {};
@@ -295,13 +350,25 @@ function distribution(results: Result[]): Record<string, unknown> {
     (confByLevel[l] ??= []).push(r.answers.refactor!.confidence);
     (corpusScores[r.corpus] ??= []).push(r.answers.refactor!.score);
   }
-  for (const [corpus, list] of Object.entries(corpusScores)) byCorpus[corpus] = { n: list.length, over19: list.filter((s) => s >= 1.9).length, meanScore: mean(list) };
+  for (const [corpus, list] of Object.entries(corpusScores))
+    byCorpus[corpus] = { n: list.length, over19: list.filter((s) => s >= 1.9).length, meanScore: mean(list) };
   return {
     pairs: first.length,
     scoreBins: bins,
     over: Object.fromEntries(CUTOFFS.map((c) => [String(c), scores.filter((s) => s >= c).length])),
-    confidence: { mean: mean(conf), p10: quantile(conf, 0.1), p50: quantile(conf, 0.5), p90: quantile(conf, 0.9), under05: conf.filter((c) => c < 0.5).length / conf.length },
-    confidenceByLevel: Object.fromEntries(Object.entries(confByLevel).map(([l, xs]) => [l, { n: xs.length, mean: mean(xs), under05: xs.filter((c) => c < 0.5).length / xs.length }])),
+    confidence: {
+      mean: mean(conf),
+      p10: quantile(conf, 0.1),
+      p50: quantile(conf, 0.5),
+      p90: quantile(conf, 0.9),
+      under05: conf.filter((c) => c < 0.5).length / conf.length,
+    },
+    confidenceByLevel: Object.fromEntries(
+      Object.entries(confByLevel).map(([l, xs]) => [
+        l,
+        { n: xs.length, mean: mean(xs), under05: xs.filter((c) => c < 0.5).length / xs.length },
+      ]),
+    ),
     shapeCounts,
     shapeByLevel,
     logicByLevel: Object.fromEntries(Object.entries(logicByLevel).map(([l, xs]) => [l, mean(xs)])),
@@ -321,13 +388,6 @@ function widestGap(values: number[]): { gap: number; low: number; high: number }
   return best;
 }
 
-function auc(positives: number[], negatives: number[]): number {
-  if (positives.length === 0 || negatives.length === 0) return Number.NaN;
-  let wins = 0;
-  for (const p of positives) for (const q of negatives) wins += p > q ? 1 : p === q ? 0.5 : 0;
-  return wins / (positives.length * negatives.length);
-}
-
 interface Labeled {
   key: string;
   merge: boolean;
@@ -340,8 +400,14 @@ interface Labeled {
 }
 
 function fitCutoff(cases: Labeled[], value: (c: Labeled) => number): { cutoff: number; separable: boolean } {
-  const merges = cases.filter((c) => c.merge).map(value).sort((a, b) => a - b);
-  const keeps = cases.filter((c) => !c.merge).map(value).sort((a, b) => b - a);
+  const merges = cases
+    .filter((c) => c.merge)
+    .map(value)
+    .sort((a, b) => a - b);
+  const keeps = cases
+    .filter((c) => !c.merge)
+    .map(value)
+    .sort((a, b) => b - a);
   const loMerge = merges[0] ?? Number.NaN;
   const hiKeep = keeps[0] ?? Number.NaN;
   if (loMerge > hiKeep) return { cutoff: (loMerge + hiKeep) / 2, separable: true };
@@ -359,7 +425,11 @@ function fitCutoff(cases: Labeled[], value: (c: Labeled) => number): { cutoff: n
   return { cutoff: best.cutoff, separable: false };
 }
 
-function precisionRecall(cases: Labeled[], value: (c: Labeled) => number, cutoff: number): { tp: number; fp: number; fn: number; tn: number; precision: number; recall: number; accuracy: number } {
+function precisionRecall(
+  cases: Labeled[],
+  value: (c: Labeled) => number,
+  cutoff: number,
+): { tp: number; fp: number; fn: number; tn: number; precision: number; recall: number; accuracy: number } {
   let tp = 0;
   let fp = 0;
   let fn = 0;
@@ -371,10 +441,22 @@ function precisionRecall(cases: Labeled[], value: (c: Labeled) => number, cutoff
     else if (flagged) fp += 1;
     else tn += 1;
   }
-  return { tp, fp, fn, tn, precision: tp + fp > 0 ? tp / (tp + fp) : Number.NaN, recall: tp + fn > 0 ? tp / (tp + fn) : Number.NaN, accuracy: (tp + tn) / cases.length };
+  return {
+    tp,
+    fp,
+    fn,
+    tn,
+    precision: tp + fp > 0 ? tp / (tp + fp) : Number.NaN,
+    recall: tp + fn > 0 ? tp / (tp + fn) : Number.NaN,
+    accuracy: (tp + tn) / cases.length,
+  };
 }
 
-function crossValidate(cases: Labeled[], value: (c: Labeled) => number, folds = 5): { heldOutAccuracy: number; heldOutFp: number; heldOutFn: number; cutoffs: number[] } {
+function crossValidate(
+  cases: Labeled[],
+  value: (c: Labeled) => number,
+  folds = 5,
+): { heldOutAccuracy: number; heldOutFp: number; heldOutFn: number; cutoffs: number[] } {
   const shuffledCases = [...cases].sort((a, b) => (a.key < b.key ? -1 : 1));
   let evaluated = 0;
   let right = 0;
@@ -435,7 +517,8 @@ function labelReport(labels: Record<string, Label>, arm: Map<string, Result>, na
     };
   }
   const atCutoffs = Object.fromEntries(CUTOFFS.map((c) => [String(c), precisionRecall(cases, (x) => x.score, c)]));
-  const conservative = (t: number) => precisionRecall(cases, (c) => (Math.max(c.logic, c.concept) >= t ? c.score : 0), 1.9);
+  const conservative = (t: number) =>
+    precisionRecall(cases, (c) => (Math.max(c.logic, c.concept) >= t ? c.score : 0), 1.9);
   const shapeCases = cases.filter((c) => c.shape !== undefined && c.shapeChoice !== undefined);
   const shapeRight = shapeCases.filter((c) => c.shape === c.shapeChoice).length;
   const confusion: Record<string, Record<string, number>> = {};
@@ -443,12 +526,26 @@ function labelReport(labels: Record<string, Label>, arm: Map<string, Result>, na
     confusion[c.shape!] ??= {};
     confusion[c.shape!]![c.shapeChoice!] = (confusion[c.shape!]![c.shapeChoice!] ?? 0) + 1;
   }
-  const wrong = cases.filter((c) => c.score >= 1.9 !== c.merge).map((c) => ({ key: c.key, merge: c.merge, score: c.score, confidence: c.confidence, logic: c.logic, concept: c.concept }));
+  const wrong = cases
+    .filter((c) => c.score >= 1.9 !== c.merge)
+    .map((c) => ({
+      key: c.key,
+      merge: c.merge,
+      score: c.score,
+      confidence: c.confidence,
+      logic: c.logic,
+      concept: c.concept,
+    }));
   const unsureBands = [0.3, 0.4, 0.5, 0.6].map((t) => {
     const over = cases.filter((c) => c.score >= 1.9);
     const unsure = over.filter((c) => c.confidence < t);
     const sure = over.filter((c) => c.confidence >= t);
-    return { unsureBelow: t, unsure: unsure.length, unsurePrecision: unsure.length > 0 ? unsure.filter((c) => c.merge).length / unsure.length : Number.NaN, surePrecision: sure.length > 0 ? sure.filter((c) => c.merge).length / sure.length : Number.NaN };
+    return {
+      unsureBelow: t,
+      unsure: unsure.length,
+      unsurePrecision: unsure.length > 0 ? unsure.filter((c) => c.merge).length / unsure.length : Number.NaN,
+      surePrecision: sure.length > 0 ? sure.filter((c) => c.merge).length / sure.length : Number.NaN,
+    };
   });
   return {
     arm: name,
@@ -458,7 +555,11 @@ function labelReport(labels: Record<string, Label>, arm: Map<string, Result>, na
     perSignal,
     atCutoffs,
     conservative: { "logic|concept>=0.5": conservative(0.5), "logic|concept>=0.7": conservative(0.7) },
-    shape: { cases: shapeCases.length, accuracy: shapeCases.length > 0 ? shapeRight / shapeCases.length : Number.NaN, confusion },
+    shape: {
+      cases: shapeCases.length,
+      accuracy: shapeCases.length > 0 ? shapeRight / shapeCases.length : Number.NaN,
+      confusion,
+    },
     unsureBands,
     wrongAt19: wrong,
   };
@@ -483,16 +584,34 @@ function requestsReport(): Record<string, unknown> {
       requests: list.length,
       ok: ok.length,
       failed: list.length - ok.length,
-      statuses: Object.fromEntries([...new Set(list.map((r) => r.status))].map((s) => [String(s), list.filter((r) => r.status === s).length])),
+      statuses: Object.fromEntries(
+        [...new Set(list.map((r) => r.status))].map((s) => [String(s), list.filter((r) => r.status === s).length]),
+      ),
       inputTokens: ok.reduce((a, r) => a + r.inputTokens, 0),
       msMean: mean(ok.map((r) => r.ms)),
-      msP50: quantile(ok.map((r) => r.ms), 0.5),
-      msP90: quantile(ok.map((r) => r.ms), 0.9),
+      msP50: quantile(
+        ok.map((r) => r.ms),
+        0.5,
+      ),
+      msP90: quantile(
+        ok.map((r) => r.ms),
+        0.9,
+      ),
       actualOverEstimate: { mean: mean(ratio), p10: quantile(ratio, 0.1), p90: quantile(ratio, 0.9) },
-      bytesPerToken: { mean: mean(bytesPerToken), p10: quantile(bytesPerToken, 0.1), p90: quantile(bytesPerToken, 0.9) },
+      bytesPerToken: {
+        mean: mean(bytesPerToken),
+        p10: quantile(bytesPerToken, 0.1),
+        p90: quantile(bytesPerToken, 0.9),
+      },
     };
   }
-  return { totalRequests: total, totalOk, totalInputTokens: totalTokens, usdAt0042PerMTok: (totalTokens / 1e6) * 0.042, byArm: rows };
+  return {
+    totalRequests: total,
+    totalOk,
+    totalInputTokens: totalTokens,
+    usdAt0042PerMTok: (totalTokens / 1e6) * 0.042,
+    byArm: rows,
+  };
 }
 
 function main(): void {
@@ -500,11 +619,23 @@ function main(): void {
   say();
   const requests = requestsReport();
   summary.requests = requests;
-  say(`Requests logged: ${requests.totalRequests} (${requests.totalOk} ok), ${requests.totalInputTokens} input tokens, ~$${(requests.usdAt0042PerMTok as number).toFixed(2)} at $0.042/M.`);
+  say(
+    `Requests logged: ${requests.totalRequests} (${requests.totalOk} ok), ${requests.totalInputTokens} input tokens, ~$${(requests.usdAt0042PerMTok as number).toFixed(2)} at $0.042/M.`,
+  );
   say();
 
-  const soloArms = fs.existsSync(path.join(root, "solo")) ? fs.readdirSync(path.join(root, "solo")).filter((f) => f.endsWith(".jsonl")).map((f) => f.replace(/\.jsonl$/, "")) : [];
-  const batchedArms = fs.existsSync(path.join(root, "batched")) ? fs.readdirSync(path.join(root, "batched")).filter((f) => f.endsWith(".jsonl")).map((f) => f.replace(/\.jsonl$/, "")) : [];
+  const soloArms = fs.existsSync(path.join(root, "solo"))
+    ? fs
+        .readdirSync(path.join(root, "solo"))
+        .filter((f) => f.endsWith(".jsonl"))
+        .map((f) => f.replace(/\.jsonl$/, ""))
+    : [];
+  const batchedArms = fs.existsSync(path.join(root, "batched"))
+    ? fs
+        .readdirSync(path.join(root, "batched"))
+        .filter((f) => f.endsWith(".jsonl"))
+        .map((f) => f.replace(/\.jsonl$/, ""))
+    : [];
   const solo = new Map(soloArms.map((arm) => [arm, loadArm("solo", arm)]));
   const batched = new Map(batchedArms.map((arm) => [arm, loadArm("batched", arm)]));
 
@@ -520,9 +651,21 @@ function main(): void {
   };
   if (reference !== undefined) {
     const r1 = firstPass(reference);
-    add("solo r1 vs solo r2 (noise)", r1, solo.get("all-r2") !== undefined ? firstPass(solo.get("all-r2")!) : undefined);
-    add("solo r1 vs solo r3 (noise)", r1, solo.get("all-r3") !== undefined ? firstPass(solo.get("all-r3")!) : undefined);
-    add("solo r2 vs solo r3 (noise)", solo.get("all-r2") !== undefined ? firstPass(solo.get("all-r2")!) : undefined, solo.get("all-r3") !== undefined ? firstPass(solo.get("all-r3")!) : undefined);
+    add(
+      "solo r1 vs solo r2 (noise)",
+      r1,
+      solo.get("all-r2") !== undefined ? firstPass(solo.get("all-r2")!) : undefined,
+    );
+    add(
+      "solo r1 vs solo r3 (noise)",
+      r1,
+      solo.get("all-r3") !== undefined ? firstPass(solo.get("all-r3")!) : undefined,
+    );
+    add(
+      "solo r2 vs solo r3 (noise)",
+      solo.get("all-r2") !== undefined ? firstPass(solo.get("all-r2")!) : undefined,
+      solo.get("all-r3") !== undefined ? firstPass(solo.get("all-r3")!) : undefined,
+    );
     for (const kind of ["refactor-only", "logic-only", "concept-only", "shape-only"]) {
       add(`solo all vs solo ${kind}`, r1, solo.get(kind) !== undefined ? firstPass(solo.get(kind)!) : undefined);
     }
@@ -551,21 +694,40 @@ function main(): void {
     if (new Set(list.map((r) => r.repeat)).size < 2) continue;
     const s = stability(list, `batched ${arm}`) as Record<string, number>;
     stabilities[`batched ${arm}`] = s;
-    stabilityRows.push([`batched ${arm}`, s.pairs!, s.passes!, s.spreadMean!, s.spreadMedian!, s.spreadP90!, s.spreadMax!, s.logicSpreadMean!, s.conceptSpreadMean!, s.shapeChangedRate!, (s.flipRate as unknown as Record<string, number>)["1.9"] ?? 0]);
+    stabilityRows.push(stabilityRow(`batched ${arm}`, s));
   }
-  const soloPasses = ["all-r1", "all-r2", "all-r3"].filter((a) => solo.has(a)).flatMap((a) => solo.get(a)!.map((r, i) => ({ ...r, repeat: Number(a.slice(-1)) + i * 0 })));
+  const soloPasses = ["all-r1", "all-r2", "all-r3"]
+    .filter((a) => solo.has(a))
+    .flatMap((a) => solo.get(a)!.map((r, i) => ({ ...r, repeat: Number(a.slice(-1)) + i * 0 })));
   if (["all-r1", "all-r2"].every((a) => solo.has(a))) {
     const s = stability(soloPasses, "solo all (passes r1..r3)") as Record<string, number>;
     stabilities["solo all"] = s;
-    stabilityRows.push(["solo all", s.pairs!, s.passes!, s.spreadMean!, s.spreadMedian!, s.spreadP90!, s.spreadMax!, s.logicSpreadMean!, s.conceptSpreadMean!, s.shapeChangedRate!, (s.flipRate as unknown as Record<string, number>)["1.9"] ?? 0]);
+    stabilityRows.push(stabilityRow("solo all", s));
   }
   summary.stability = stabilities;
   say("## Stability across passes");
   say();
-  table(["arm", "pairs", "passes", "spread mean", "median", "p90", "max", "logic spread", "concept spread", "shape changed", "flip rate @1.9"], stabilityRows);
+  table(
+    [
+      "arm",
+      "pairs",
+      "passes",
+      "spread mean",
+      "median",
+      "p90",
+      "max",
+      "logic spread",
+      "concept spread",
+      "shape changed",
+      "flip rate @1.9",
+    ],
+    stabilityRows,
+  );
   for (const [name, s] of Object.entries(stabilities)) {
     const detail = s as Record<string, unknown>;
-    say(`- ${name}: ${detail.incompletePairs} pairs missing a pass; flips by distance to cutoff ${JSON.stringify(detail.flipRateByDistance)}`);
+    say(
+      `- ${name}: ${detail.incompletePairs} pairs missing a pass; flips by distance to cutoff ${JSON.stringify(detail.flipRateByDistance)}`,
+    );
   }
   say();
 
@@ -609,15 +771,31 @@ function main(): void {
     const reports: Record<string, unknown> = {};
     const candidates: [string, Map<string, Result> | undefined][] = [
       ["solo all-r1", reference !== undefined ? firstPass(reference) : undefined],
-      ["batched long-b40k-fixed p1", batched.has("long-b40k-fixed") ? pass(batched.get("long-b40k-fixed")!, 1) : undefined],
+      [
+        "batched long-b40k-fixed p1",
+        batched.has("long-b40k-fixed") ? pass(batched.get("long-b40k-fixed")!, 1) : undefined,
+      ],
       ["batched long-b40k-full", batched.has("long-b40k-full") ? pass(batched.get("long-b40k-full")!, 1) : undefined],
-      ["batched compact-b40k-full", batched.has("compact-b40k-full") ? pass(batched.get("compact-b40k-full")!, 1) : undefined],
+      [
+        "batched compact-b40k-full",
+        batched.has("compact-b40k-full") ? pass(batched.get("compact-b40k-full")!, 1) : undefined,
+      ],
     ];
     if (["all-r1", "all-r2", "all-r3"].every((a) => solo.has(a))) {
       const meanMap = new Map<string, Result>();
       for (const [key, list] of byKey(withRefactor(soloPasses))) {
         const first = list[0]!;
-        meanMap.set(key, { ...first, answers: { ...first.answers, refactor: { ...first.answers.refactor!, score: mean(list.map((r) => r.answers.refactor!.score)), confidence: mean(list.map((r) => r.answers.refactor!.confidence)) } } });
+        meanMap.set(key, {
+          ...first,
+          answers: {
+            ...first.answers,
+            refactor: {
+              ...first.answers.refactor!,
+              score: mean(list.map((r) => r.answers.refactor!.score)),
+              confidence: mean(list.map((r) => r.answers.refactor!.confidence)),
+            },
+          },
+        });
       }
       candidates.push(["solo mean of 3 passes", meanMap]);
     }
@@ -640,7 +818,19 @@ function main(): void {
     summary.sweep = sweep;
     say("## Concurrency sweep (1,000 pairs, 10 per request)");
     say();
-    table(["concurrency", "requests", "failed", "429", "wall ms", "mean ms", "requests/s", "tokens/s"], sweep.map((s) => [s.concurrency!, s.requests!, s.failed!, s.rateLimited!, s.wallMs!, s.meanMs!, s.requestsPerSecond!, s.tokensPerSecond!]));
+    table(
+      ["concurrency", "requests", "failed", "429", "wall ms", "mean ms", "requests/s", "tokens/s"],
+      sweep.map((s) => [
+        s.concurrency!,
+        s.requests!,
+        s.failed!,
+        s.rateLimited!,
+        s.wallMs!,
+        s.meanMs!,
+        s.requestsPerSecond!,
+        s.tokensPerSecond!,
+      ]),
+    );
   }
   const ceilings = readLines<Record<string, unknown>>(path.join(root, "ceilings", "ceilings.jsonl"));
   if (ceilings.length > 0) {

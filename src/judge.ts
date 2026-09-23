@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
-import { APIConnectionError, APIError, BadRequestError, InternalServerError, RateLimitError, UnprocessableEntityError } from "@typesafe-ai/sdk";
+import {
+  APIConnectionError,
+  APIError,
+  BadRequestError,
+  InternalServerError,
+  RateLimitError,
+  UnprocessableEntityError,
+} from "@typesafe-ai/sdk";
 import type { Questions, SystemOneResult, TypeSafeClient } from "@typesafe-ai/sdk";
 import { SHAPES, batchPairs, buildState, pairQuestions, questionIds } from "./questions.ts";
 import type { BatchOptions, StateOptions } from "./questions.ts";
@@ -120,14 +127,31 @@ interface Sample {
   judgment: Judgment;
 }
 
-export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, options: JudgeOptions = {}): Promise<JudgeOutcome> {
+export async function judgePairs(
+  pairs: PairSnippet[],
+  client: JudgeClient,
+  options: JudgeOptions = {},
+): Promise<JudgeOutcome> {
   const started = Date.now();
   const passes = Math.max(1, Math.floor(options.repeat ?? 1));
   const retries = Math.max(0, options.retries ?? DEFAULT_RETRIES);
   const state = buildState(options.repository ?? "the repository", options);
   const samples = new Map<number, Sample[]>();
   const failures = new Map<number, string>();
-  const stats: JudgeStats = { judged: 0, unjudged: 0, requests: 0, inputTokens: 0, outputTokens: 0, cacheHits: 0, retries: 0, rateLimited: 0, splits: 0, passes, usd: 0, elapsedMs: 0 };
+  const stats: JudgeStats = {
+    judged: 0,
+    unjudged: 0,
+    requests: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheHits: 0,
+    retries: 0,
+    rateLimited: 0,
+    splits: 0,
+    passes,
+    usd: 0,
+    elapsedMs: 0,
+  };
   const limiter = new AdaptiveLimiter(options.concurrency ?? DEFAULT_CONCURRENCY);
   const batches = batchPairs(pairs, options);
   const report = () => {
@@ -142,7 +166,12 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
   const runBatch = async (batch: PairSnippet[], pass: number): Promise<void> => {
     const questions: Questions = Object.assign({}, ...batch.map(pairQuestions));
     const model = options.model ?? client.defaultModel;
-    const request: JudgeRequest = { state, questions, ...(model !== undefined ? { model } : {}), ...(pass > 1 ? { pass } : {}) };
+    const request: JudgeRequest = {
+      state,
+      questions,
+      ...(model !== undefined ? { model } : {}),
+      ...(pass > 1 ? { pass } : {}),
+    };
     const hash = requestHash(request);
     const split = async () => {
       stats.splits += 1;
@@ -185,7 +214,9 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
           if (isTransient(error) && attempt < retries) {
             attempt += 1;
             stats.retries += 1;
-            await new Promise<void>((resolve) => setTimeout(resolve, Math.min(8000, 500 * 2 ** attempt) * (0.5 + Math.random())));
+            await new Promise<void>((resolve) =>
+              setTimeout(resolve, Math.min(8000, 500 * 2 ** attempt) * (0.5 + Math.random())),
+            );
             continue;
           }
           for (const pair of batch) failures.set(pair.index, message);
@@ -220,7 +251,12 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
       continue;
     }
     failures.delete(pair.index);
-    judgments.set(pair.index, passes > 1 ? mergePasses(list.sort((x, y) => x.pass - y.pass).map((sample) => sample.judgment)) : list[0]!.judgment);
+    judgments.set(
+      pair.index,
+      passes > 1
+        ? mergePasses(list.sort((x, y) => x.pass - y.pass).map((sample) => sample.judgment))
+        : list[0]!.judgment,
+    );
   }
   stats.judged = judgments.size;
   stats.unjudged = failures.size;
@@ -231,7 +267,11 @@ export async function judgePairs(pairs: PairSnippet[], client: JudgeClient, opti
 
 async function call(client: JudgeClient, request: JudgeRequest): Promise<JudgeResponse> {
   const { data, requestId } = await client
-    .systemOne({ state: request.state as never, questions: request.questions, ...(request.model !== undefined ? { model: request.model } : {}) })
+    .systemOne({
+      state: request.state as never,
+      questions: request.questions,
+      ...(request.model !== undefined ? { model: request.model } : {}),
+    })
     .withResponse();
   return {
     model: data.model,
@@ -241,7 +281,16 @@ async function call(client: JudgeClient, request: JudgeRequest): Promise<JudgeRe
   };
 }
 
-type RawAnswer = { type: string; score?: number; confidence?: number; probabilities?: Record<string, number>; noul?: number; choice?: string } | undefined;
+type RawAnswer =
+  | {
+      type: string;
+      score?: number;
+      confidence?: number;
+      probabilities?: Record<string, number>;
+      noul?: number;
+      choice?: string;
+    }
+  | undefined;
 
 export function toJudgment(pair: PairSnippet, response: JudgeResponse): Judgment {
   const ids = questionIds(pair.index);
@@ -250,10 +299,14 @@ export function toJudgment(pair: PairSnippet, response: JudgeResponse): Judgment
   const sameLogic = answers[ids.sameLogic];
   const sameConcept = answers[ids.sameConcept];
   const shape = answers[ids.shape];
-  if (refactor?.type !== "score" || typeof refactor.score !== "number") throw new Error(`no score answer for pair ${pair.index}`);
-  if (sameLogic?.type !== "noul" || typeof sameLogic.noul !== "number") throw new Error(`no same_logic answer for pair ${pair.index}`);
-  if (sameConcept?.type !== "noul" || typeof sameConcept.noul !== "number") throw new Error(`no same_concept answer for pair ${pair.index}`);
-  if (shape?.type !== "choice" || typeof shape.choice !== "string" || !SHAPES.includes(shape.choice as Shape)) throw new Error(`no shape answer for pair ${pair.index}`);
+  if (refactor?.type !== "score" || typeof refactor.score !== "number")
+    throw new Error(`no score answer for pair ${pair.index}`);
+  if (sameLogic?.type !== "noul" || typeof sameLogic.noul !== "number")
+    throw new Error(`no same_logic answer for pair ${pair.index}`);
+  if (sameConcept?.type !== "noul" || typeof sameConcept.noul !== "number")
+    throw new Error(`no same_concept answer for pair ${pair.index}`);
+  if (shape?.type !== "choice" || typeof shape.choice !== "string" || !SHAPES.includes(shape.choice as Shape))
+    throw new Error(`no shape answer for pair ${pair.index}`);
   return {
     score: refactor.score,
     confidence: refactor.confidence ?? 0,
@@ -272,36 +325,57 @@ export function mergePasses(list: Judgment[]): Judgment {
   const first = list[0];
   if (first === undefined) throw new Error("no passes to merge");
   if (list.length === 1) return { ...first, passes: { count: 1, scores: [first.score], spread: 0 } };
-  const mean = (values: number[]) => Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10_000) / 10_000;
+  const mean = (values: number[]) =>
+    Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10_000) / 10_000;
   const scores = list.map((judgment) => judgment.score);
   const keys = [...new Set(list.flatMap((judgment) => Object.keys(judgment.probabilities)))];
   const votes = new Map<Shape, number>();
   for (const judgment of list) votes.set(judgment.shape, (votes.get(judgment.shape) ?? 0) + 1);
-  const shape = [...votes.entries()].sort((x, y) => y[1] - x[1] || (x[0] === first.shape ? -1 : y[0] === first.shape ? 1 : 0))[0]![0];
+  const shape = [...votes.entries()].sort(
+    (x, y) => y[1] - x[1] || (x[0] === first.shape ? -1 : y[0] === first.shape ? 1 : 0),
+  )[0]![0];
   return {
     score: mean(scores),
     confidence: mean(list.map((judgment) => judgment.confidence)),
-    probabilities: Object.fromEntries(keys.map((key) => [key, mean(list.map((judgment) => judgment.probabilities[key] ?? 0))])),
+    probabilities: Object.fromEntries(
+      keys.map((key) => [key, mean(list.map((judgment) => judgment.probabilities[key] ?? 0))]),
+    ),
     sameLogic: mean(list.map((judgment) => judgment.sameLogic)),
     sameConcept: mean(list.map((judgment) => judgment.sameConcept)),
     shape,
     shapeConfidence: mean(list.map((judgment) => judgment.shapeConfidence)),
-    shapeProbabilities: Object.fromEntries(SHAPES.map((option) => [option, mean(list.map((judgment) => judgment.shapeProbabilities[option] ?? 0))])),
+    shapeProbabilities: Object.fromEntries(
+      SHAPES.map((option) => [option, mean(list.map((judgment) => judgment.shapeProbabilities[option] ?? 0))]),
+    ),
     model: first.model,
     ...(first.requestId !== undefined ? { requestId: first.requestId } : {}),
-    passes: { count: list.length, scores, spread: Math.round((Math.max(...scores) - Math.min(...scores)) * 1000) / 1000 },
+    passes: {
+      count: list.length,
+      scores,
+      spread: Math.round((Math.max(...scores) - Math.min(...scores)) * 1000) / 1000,
+    },
   };
 }
 
 function isRequestRejected(error: unknown): error is APIError {
-  return error instanceof BadRequestError || error instanceof UnprocessableEntityError || (error instanceof APIError && error.status === 413);
+  return (
+    error instanceof BadRequestError ||
+    error instanceof UnprocessableEntityError ||
+    (error instanceof APIError && error.status === 413)
+  );
 }
 
 function isTransient(error: unknown): boolean {
-  return error instanceof RateLimitError || error instanceof InternalServerError || error instanceof APIConnectionError || (error instanceof APIError && error.status === 408);
+  return (
+    error instanceof RateLimitError ||
+    error instanceof InternalServerError ||
+    error instanceof APIConnectionError ||
+    (error instanceof APIError && error.status === 408)
+  );
 }
 
 function describeError(error: unknown): string {
-  if (error instanceof APIError) return `${error.name}: ${error.message}${error.requestId ? ` (request ${error.requestId})` : ""}`;
+  if (error instanceof APIError)
+    return `${error.name}: ${error.message}${error.requestId ? ` (request ${error.requestId})` : ""}`;
   return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 }

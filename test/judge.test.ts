@@ -5,7 +5,16 @@ import type { Questions } from "@typesafe-ai/sdk";
 import { decide } from "../src/decide.ts";
 import { AdaptiveLimiter, judgePairs, mergePasses, requestHash, toJudgment } from "../src/judge.ts";
 import type { JudgeCache, JudgeRejection, JudgeRequest, JudgeResponse } from "../src/judge.ts";
-import { REFACTOR_LEVELS, SHAPES, batchPairs, buildState, estimateTokens, pairQuestions, pairTokens, questionIds } from "../src/questions.ts";
+import {
+  REFACTOR_LEVELS,
+  SHAPES,
+  batchPairs,
+  buildState,
+  estimateTokens,
+  pairQuestions,
+  pairTokens,
+  questionIds,
+} from "../src/questions.ts";
 import type { PairSnippet } from "../src/types.ts";
 import { answerAll, judgment, location, pair, stubClient } from "./helpers.ts";
 
@@ -28,7 +37,13 @@ describe("questions", () => {
     assert.equal(refactor.type, "score");
     assert.equal((refactor as { criteria: readonly unknown[] }).criteria.length, REFACTOR_LEVELS.length);
     const instructions = refactor.instructions as Record<string, unknown>;
-    assert.deepEqual(instructions.a, { path: "a3.ts", lines: "1-5", kind: "function", name: "a3", code: "return x + 1;" });
+    assert.deepEqual(instructions.a, {
+      path: "a3.ts",
+      lines: "1-5",
+      kind: "function",
+      name: "a3",
+      code: "return x + 1;",
+    });
     assert.deepEqual(instructions.also_at, ["c.ts:1-5"], "a clone family lists its other places");
     assert.equal(questions[ids.sameLogic]!.type, "noul");
     assert.ok(JSON.stringify(questions[ids.sameLogic]!.instructions).includes("return x + 1;"));
@@ -53,7 +68,11 @@ describe("questions", () => {
     assert.equal(batchPairs(small, { budgetTokens: 100_000, pairsPerRequest: 2 }).length, 3);
     const big = snippet(9, "y".repeat(30_000));
     const batches = batchPairs([small[0]!, big, small[1]!], { budgetTokens: 5000 });
-    assert.deepEqual(batches.map((b) => b.map((s) => s.index)), [[0], [9], [1]], "an oversized pair travels alone");
+    assert.deepEqual(
+      batches.map((b) => b.map((s) => s.index)),
+      [[0], [9], [1]],
+      "an oversized pair travels alone",
+    );
     assert.ok(pairTokens(snippet(0, "x".repeat(2000))) > 4 * 600, "four questions each carry both declarations");
   });
 });
@@ -90,7 +109,8 @@ describe("judgePairs", () => {
     const client = stubClient((request) => {
       const ids = Object.keys(request.questions);
       if (ids.length > 12) throw new BadRequestError(400, { error: { message: "Invalid request" } }, new Headers());
-      if (JSON.stringify(request.questions).includes("TOO_BIG")) throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
+      if (JSON.stringify(request.questions).includes("TOO_BIG"))
+        throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
       return answerAll(request);
     });
     const outcome = await judgePairs(snippets, client, { concurrency: 1 });
@@ -112,12 +132,17 @@ describe("judgePairs", () => {
     const snippets = [snippet(0, "MERGE_ME"), snippet(1, "b"), snippet(2, "TOO_BIG"), snippet(3, "d")];
     const rejecting = stubClient((request) => {
       const text = JSON.stringify(request.questions);
-      if (Object.keys(request.questions).length > 12 || text.includes("TOO_BIG")) throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
+      if (Object.keys(request.questions).length > 12 || text.includes("TOO_BIG"))
+        throw new BadRequestError(400, { error_type: "max_tokens_exceeded" }, new Headers());
       return answerAll(request);
     });
     const first = await judgePairs(snippets, rejecting, { cache, repository: "r", concurrency: 1 });
     assert.deepEqual([...first.judgments.keys()].sort(), [0, 1, 3]);
-    assert.equal([...store.values()].filter((entry) => "rejected" in entry.response).length, 3, "the parent, the oversized half, and the single oversized pair are recorded as rejections");
+    assert.equal(
+      [...store.values()].filter((entry) => "rejected" in entry.response).length,
+      3,
+      "the parent, the oversized half, and the single oversized pair are recorded as rejections",
+    );
     const offline = stubClient(() => {
       throw new Error("offline");
     });
@@ -198,10 +223,18 @@ describe("judgePairs", () => {
     const snippets = [snippet(0, "MERGE_ME")];
     await judgePairs(snippets, stubClient(answerAll), { cache, repository: "r", repeat: 2 });
     assert.equal(store.size, 2);
-    assert.deepEqual([...store.values()].map((entry) => entry.request.pass), [undefined, 2], "pass 1 shares the hash of a single run");
-    const replayed = await judgePairs(snippets, stubClient(() => {
-      throw new Error("should replay");
-    }), { cache, repository: "r", repeat: 2 });
+    assert.deepEqual(
+      [...store.values()].map((entry) => entry.request.pass),
+      [undefined, 2],
+      "pass 1 shares the hash of a single run",
+    );
+    const replayed = await judgePairs(
+      snippets,
+      stubClient(() => {
+        throw new Error("should replay");
+      }),
+      { cache, repository: "r", repeat: 2 },
+    );
     assert.equal(replayed.stats.cacheHits, 2);
     assert.equal(replayed.judgments.get(0)!.passes?.count, 2);
   });
@@ -250,13 +283,20 @@ describe("judgePairs", () => {
     const snippets = [snippet(0, "x")];
     await judgePairs(snippets, stubClient(record, "req", "typesafe/jev-latest"), { repository: "r" });
     await judgePairs(snippets, stubClient(record), { repository: "r" });
-    await judgePairs(snippets, stubClient(record, "req", "typesafe/jev-latest"), { repository: "r", model: "jev-1.13.0" });
+    await judgePairs(snippets, stubClient(record, "req", "typesafe/jev-latest"), {
+      repository: "r",
+      model: "jev-1.13.0",
+    });
     assert.deepEqual(seen, ["typesafe/jev-latest", undefined, "jev-1.13.0"]);
     const hashes = new Set<string>();
     const cache: JudgeCache = { get: () => undefined, set: (hash) => void hashes.add(hash) };
     await judgePairs(snippets, stubClient(answerAll, "req", "a"), { repository: "r", cache });
     await judgePairs(snippets, stubClient(answerAll, "req", "b"), { repository: "r", cache });
-    await judgePairs(snippets, stubClient(answerAll, "req", "b"), { repository: "r", cache, conventions: "locales stay apart" });
+    await judgePairs(snippets, stubClient(answerAll, "req", "b"), {
+      repository: "r",
+      cache,
+      conventions: "locales stay apart",
+    });
     assert.equal(hashes.size, 3);
   });
 
@@ -268,7 +308,10 @@ describe("judgePairs", () => {
     assert.equal(toJudgment(s, response).score, 0.5);
     const partial = { ...response, answers: { [ids.refactor]: response.answers[ids.refactor]! } } as JudgeResponse;
     assert.throws(() => toJudgment(s, partial), /no same_logic answer/);
-    const noShape = { ...response, answers: { ...response.answers, [ids.shape]: { type: "choice", choice: "other" } } } as unknown as JudgeResponse;
+    const noShape = {
+      ...response,
+      answers: { ...response.answers, [ids.shape]: { type: "choice", choice: "other" } },
+    } as unknown as JudgeResponse;
     assert.throws(() => toJudgment(s, noShape), /no shape answer/);
   });
 });
@@ -284,7 +327,14 @@ describe("mergePasses", () => {
     assert.deepEqual(merged.probabilities, { "2": 0.75, "3": 0.25 });
     assert.equal(merged.shape, "derive");
     assert.deepEqual(merged.passes, { count: 2, scores: [2.0, 2.4], spread: 0.4 });
-    assert.equal(mergePasses([judgment(1.0, { shape: "derive" }), judgment(1.0, { shape: "extract_shared" }), judgment(1.0, { shape: "extract_shared" })]).shape, "extract_shared");
+    assert.equal(
+      mergePasses([
+        judgment(1.0, { shape: "derive" }),
+        judgment(1.0, { shape: "extract_shared" }),
+        judgment(1.0, { shape: "extract_shared" }),
+      ]).shape,
+      "extract_shared",
+    );
   });
 });
 

@@ -25,6 +25,18 @@ jobs:
       - name: No comments
         run: npm run lint:comments -- --format github
 
+      - name: Lint
+        run: npm run lint -- --format github
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Unused code
+        run: npm run knip -- --reporter github-actions
+
+      - name: Unused code in production
+        run: npm run knip:production -- --reporter github-actions
+
       - name: Type check
         run: npm run typecheck
 

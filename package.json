@@ -1,6 +1,6 @@
 {
   "name": "@kongyo2/similarity-ts-jev",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "similarity-ts + fallow duplicate detection for TypeScript, judged by TypeSafe's Jev (via @typesafe-ai/sdk): the pairs worth refactoring, the shape of the refactoring, and a calibration report.",
   "type": "module",
   "license": "MIT",
@@ -49,12 +49,17 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/*.test.ts\"",
     "verify": "node scripts/verify.ts",
-    "prepack": "npm run clean && npm run build && npm run typecheck && npm run lint:comments && npm test",
+    "prepack": "npm run clean && npm run build && npm run typecheck && npm run lint && npm run format:check && npm run knip && npm run knip:production && npm run lint:comments && npm test",
     "record-fixtures": "node scripts/record-fixtures.ts",
     "proxy": "node scripts/proxy.ts",
     "experiment": "node scripts/experiments/run.ts",
     "analyze": "node scripts/experiments/analyze.ts",
-    "lint:comments": "ts-comment-scanner --fail-on-comment --ignore node_modules/ --ignore dist/ ."
+    "lint": "oxlint",
+    "lint:comments": "ts-comment-scanner --fail-on-comment --ignore node_modules/ --ignore dist/ --ignore .corpora/ .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "knip",
+    "knip:production": "knip --production"
   },
   "dependencies": {
     "@kongyo2/similarity-ts": "^0.7.0",
@@ -66,6 +71,9 @@
   "devDependencies": {
     "@kongyo2/ts-comment-scanner": "^1.7.0",
     "@types/node": "^24.0.0",
+    "knip": "^6.38.0",
+    "oxlint": "^1.85.0",
+    "prettier": "^3.9.9",
     "typescript": "^5.9.0"
   },
   "homepage": "https://github.com/kongyo2/similarity-ts-jev#readme",

@@ -1,4 +1,4 @@
-import type { Judgment, Thresholds, Verdict } from "./types.ts";
+import type { DetectedPair, JudgedPair, Judgment, Thresholds, Verdict } from "./types.ts";
 
 export interface DecideOptions {
   minScore?: number;
@@ -25,7 +25,9 @@ export function decide(judgment: Judgment, options: DecideOptions = {}): Verdict
   const borderline = Math.abs(judgment.score - minScore) < margin;
   const over = judgment.passes === undefined ? 0 : judgment.passes.scores.filter((score) => score >= minScore).length;
   const unstable = judgment.passes !== undefined && over > 0 && over < judgment.passes.count;
-  const notes = [unsure ? "unsure" : "", borderline ? "borderline" : "", unstable ? "unstable" : ""].filter((note) => note !== "");
+  const notes = [unsure ? "unsure" : "", borderline ? "borderline" : "", unstable ? "unstable" : ""].filter(
+    (note) => note !== "",
+  );
   return {
     refactor,
     unsure,
@@ -33,4 +35,18 @@ export function decide(judgment: Judgment, options: DecideOptions = {}): Verdict
     unstable,
     reason: `score${refactor ? ">=" : "<"}${minScore.toFixed(2)}${notes.length > 0 ? ` (${notes.join(", ")})` : ""}`,
   };
+}
+
+export function decidePairs(
+  judged: Iterable<{ pair: DetectedPair; judgment: Judgment }>,
+  options: DecideOptions = {},
+): { results: JudgedPair[]; rejected: JudgedPair[] } {
+  const results: JudgedPair[] = [];
+  const rejected: JudgedPair[] = [];
+  for (const { pair, judgment } of judged) {
+    const verdict = decide(judgment, options);
+    (verdict.refactor ? results : rejected).push({ ...pair, judgment, verdict });
+  }
+  const byScore = (x: JudgedPair, y: JudgedPair) => y.judgment.score - x.judgment.score || y.similarity - x.similarity;
+  return { results: results.sort(byScore), rejected: rejected.sort(byScore) };
 }

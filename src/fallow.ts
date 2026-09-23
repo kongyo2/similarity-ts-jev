@@ -3,9 +3,10 @@ import { statSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { promisify } from "node:util";
+import type { AnalyzerLocation } from "@kongyo2/similarity-ts";
 import type { CloneGroupFinding, CloneInstance, DupesOutput, ErrorOutput } from "fallow/types";
 import ignore from "ignore";
-import type { AnalyzerLocation, DetectedPair } from "./types.ts";
+import type { DetectedPair } from "./types.ts";
 
 export type FallowMode = "strict" | "mild" | "weak" | "semantic";
 
@@ -41,14 +42,19 @@ export class FallowError extends Error {
 
 const execFileAsync = promisify(execFile);
 
-export async function runFallowBinary(args: string[], cwd: string): Promise<{ stdout: string; code: number }> {
+async function runFallowBinary(args: string[], cwd: string): Promise<{ stdout: string; code: number }> {
   const launcher = createRequire(import.meta.url).resolve("fallow/bin/fallow");
   try {
-    const { stdout } = await execFileAsync(process.execPath, [launcher, ...args], { cwd, maxBuffer: 1024 * 1024 * 512, windowsHide: true });
+    const { stdout } = await execFileAsync(process.execPath, [launcher, ...args], {
+      cwd,
+      maxBuffer: 1024 * 1024 * 512,
+      windowsHide: true,
+    });
     return { stdout, code: 0 };
   } catch (error) {
     const failure = error as { stdout?: string; code?: number | string; message?: string };
-    if (typeof failure.stdout === "string" && typeof failure.code === "number") return { stdout: failure.stdout, code: failure.code };
+    if (typeof failure.stdout === "string" && typeof failure.code === "number")
+      return { stdout: failure.stdout, code: failure.code };
     throw error;
   }
 }
@@ -59,7 +65,9 @@ export async function runFallow(options: FallowOptions = {}): Promise<FallowResu
   const exec = options.exec ?? runFallowBinary;
   const roots = fallowRoots(cwd, options.paths);
   const runs = await Promise.all(
-    roots.flatMap((root) => FALLOW_MODES.map(async (mode) => ({ root, output: await runMode(exec, root, mode, options) }))),
+    roots.flatMap((root) =>
+      FALLOW_MODES.map(async (mode) => ({ root, output: await runMode(exec, root, mode, options) })),
+    ),
   );
 
   const keep = instanceFilter(cwd, options.paths, options.exclude);
@@ -67,7 +75,9 @@ export async function runFallow(options: FallowOptions = {}): Promise<FallowResu
   let instances = 0;
   for (const { root, output } of runs) {
     for (const group of output.clone_groups ?? []) {
-      const kept = group.instances.map((instance) => ({ ...instance, file: path.resolve(root, instance.file) })).filter(keep);
+      const kept = group.instances
+        .map((instance) => ({ ...instance, file: path.resolve(root, instance.file) }))
+        .filter(keep);
       for (const bucket of scopedBuckets(kept, cwd, options)) {
         const pair = toPair(group, bucket, cwd);
         const known = groups.find(pair);
@@ -156,11 +166,17 @@ function scopedBuckets(instances: CloneInstance[], cwd: string, options: FallowO
     return [...byFile.values()].filter((bucket) => bucket.length >= 2);
   }
   if (instances.length < 2) return [];
-  if (options.crossFileOnly && new Set(instances.map((instance) => path.resolve(cwd, instance.file))).size < 2) return [];
+  if (options.crossFileOnly && new Set(instances.map((instance) => path.resolve(cwd, instance.file))).size < 2)
+    return [];
   return [instances];
 }
 
-async function runMode(exec: NonNullable<FallowOptions["exec"]>, cwd: string, mode: FallowMode, options: FallowOptions): Promise<DupesOutput> {
+async function runMode(
+  exec: NonNullable<FallowOptions["exec"]>,
+  cwd: string,
+  mode: FallowMode,
+  options: FallowOptions,
+): Promise<DupesOutput> {
   const args = ["dupes", "--root", cwd, "--mode", mode, "--format", "json", "--quiet", "--no-fragments"];
   if (options.near ?? true) args.push("--near");
   if (options.minTokens !== undefined) args.push("--min-tokens", String(options.minTokens));
@@ -179,12 +195,42 @@ async function runMode(exec: NonNullable<FallowOptions["exec"]>, cwd: string, mo
 }
 
 function absorb(known: DetectedPair, other: DetectedPair): void {
-  const members = unionLocations(known.instances ?? [known.left, known.right], other.instances ?? [other.left, other.right]);
+  const members = unionLocations(
+    known.instances ?? [known.left, known.right],
+    other.instances ?? [other.left, other.right],
+  );
   if (members.length > 2) known.instances = members;
   known.similarity = Math.max(known.similarity, other.similarity);
 }
 
-export function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation[]): AnalyzerLocation[] {
+export function mergePairs(declarationPairs: DetectedPair[], fragmentPairs: DetectedPair[]): DetectedPair[] {
+  const merged: DetectedPair[] = declarationPairs.map((pair) => ({ ...pair }));
+  const byFiles = new Map<string, DetectedPair[]>();
+  for (const pair of merged) {
+    const key = fileKey(pair);
+    byFiles.set(key, [...(byFiles.get(key) ?? []), pair]);
+  }
+  for (const pair of fragmentPairs) {
+    const candidates = byFiles.get(fileKey(pair)) ?? [];
+    const match = candidates.find((candidate) => samePair(candidate, pair));
+    if (match === undefined) {
+      merged.push(pair);
+      byFiles.set(fileKey(pair), [...candidates, pair]);
+      continue;
+    }
+    absorb(match, pair);
+  }
+  return merged;
+}
+
+function fileKey(pair: DetectedPair): string {
+  return [pair.left.filePath, pair.right.filePath]
+    .map((p) => path.resolve(p))
+    .sort()
+    .join("\n");
+}
+
+function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation[]): AnalyzerLocation[] {
   const members = [...base];
   for (const location of extra) {
     if (!members.some((member) => overlaps(member, location))) members.push(location);
@@ -192,7 +238,7 @@ export function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation
   return members;
 }
 
-export function samePair(x: DetectedPair, y: DetectedPair): boolean {
+function samePair(x: DetectedPair, y: DetectedPair): boolean {
   const straight = overlaps(x.left, y.left) && overlaps(x.right, y.right);
   const crossed = overlaps(x.left, y.right) && overlaps(x.right, y.left);
   return straight || crossed;
@@ -236,12 +282,17 @@ function mostDistant(locations: AnalyzerLocation[]): [AnalyzerLocation, Analyzer
   if (other !== undefined) return [first, other];
   let farthest = locations[1]!;
   for (const location of locations.slice(2)) {
-    if (Math.abs(location.startLine - first.startLine) > Math.abs(farthest.startLine - first.startLine)) farthest = location;
+    if (Math.abs(location.startLine - first.startLine) > Math.abs(farthest.startLine - first.startLine))
+      farthest = location;
   }
   return [first, farthest];
 }
 
-function instanceFilter(cwd: string, paths: string[] | undefined, exclude: string[] | undefined): (instance: CloneInstance) => boolean {
+function instanceFilter(
+  cwd: string,
+  paths: string[] | undefined,
+  exclude: string[] | undefined,
+): (instance: CloneInstance) => boolean {
   const requested = (paths ?? []).map((p) => path.resolve(cwd, p));
   const excluded = ignore().add(exclude ?? []);
   return (instance) => {

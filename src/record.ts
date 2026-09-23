@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { decide, thresholds } from "./decide.ts";
+import { decidePairs, thresholds } from "./decide.ts";
 import type { DecideOptions } from "./decide.ts";
 import { groupFamilies } from "./families.ts";
-import type { DetectedPair, JevReport, JudgedPair, Judgment, Thresholds, UnjudgedPair } from "./types.ts";
+import type { DetectedPair, JevReport, Judgment, Thresholds, UnjudgedPair } from "./types.ts";
 
 export const RECORD_SCHEMA = "similarity-ts-jev/run/1";
 
@@ -54,20 +54,13 @@ export async function saveRecord(record: RunRecord, filePath: string): Promise<v
 
 export async function loadRecord(filePath: string): Promise<RunRecord> {
   const parsed = JSON.parse(await fs.readFile(filePath, "utf8")) as Partial<RunRecord>;
-  if (parsed.schema !== RECORD_SCHEMA || !Array.isArray(parsed.pairs)) throw new Error(`${filePath} is not a similarity-ts-jev run record`);
+  if (parsed.schema !== RECORD_SCHEMA || !Array.isArray(parsed.pairs))
+    throw new Error(`${filePath} is not a similarity-ts-jev run record`);
   return parsed as RunRecord;
 }
 
 export function replayRecord(record: RunRecord, options: DecideOptions = {}): JevReport {
-  const results: JudgedPair[] = [];
-  const rejected: JudgedPair[] = [];
-  for (const { pair, judgment } of record.pairs) {
-    const verdict = decide(judgment, options);
-    (verdict.refactor ? results : rejected).push({ ...pair, judgment, verdict });
-  }
-  const byScore = (x: JudgedPair, y: JudgedPair) => y.judgment.score - x.judgment.score || y.similarity - x.similarity;
-  results.sort(byScore);
-  rejected.sort(byScore);
+  const { results, rejected } = decidePairs(record.pairs, options);
   return {
     analyzedFiles: record.analyzedFiles,
     skippedFiles: record.skippedFiles,

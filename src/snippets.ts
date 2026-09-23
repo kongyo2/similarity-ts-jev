@@ -80,7 +80,11 @@ function leadingComment(lines: string[], start: number): string | undefined {
     break;
   }
   if (first === start - 1) return undefined;
-  return dedent(lines.slice(first, start - 1)).join("\n").trim() || undefined;
+  return (
+    dedent(lines.slice(first, start - 1))
+      .join("\n")
+      .trim() || undefined
+  );
 }
 
 function dedent(lines: string[]): string[] {

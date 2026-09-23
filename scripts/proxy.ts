@@ -15,7 +15,9 @@ const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/v1/systemone") {
       const { data, requestId } = await client.systemOne(JSON.parse(body)).withResponse();
-      console.log(`systemone ${requestId ?? ""} (${Object.keys(data.answers).length} answers, ${data.usage.input_tokens} tokens, ${data.model})`);
+      console.log(
+        `systemone ${requestId ?? ""} (${Object.keys(data.answers).length} answers, ${data.usage.input_tokens} tokens, ${data.model})`,
+      );
       send(200, data, { "x-typesafe-request-id": requestId ?? "" });
       return;
     }
@@ -35,5 +37,7 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(`proxy listening on http://127.0.0.1:${port} (TypeSafe-compatible; forwards to ${client.baseURL} with the key from the environment)`);
+  console.log(
+    `proxy listening on http://127.0.0.1:${port} (TypeSafe-compatible; forwards to ${client.baseURL} with the key from the environment)`,
+  );
 });

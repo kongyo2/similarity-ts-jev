@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "promise", "node"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn",
+    "style": "off",
+    "pedantic": "off"
+  },
+  "rules": {
+    "no-console": "off",
+    "no-await-in-loop": "off"
+  },
+  "ignorePatterns": ["node_modules", "dist", "build", "coverage", "*.min.js", "test/fixtures"]
+}

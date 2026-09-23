@@ -1,5 +1,5 @@
 import path from "node:path";
-import { DEFAULT_MIN_SCORE, decide, thresholds } from "./decide.ts";
+import { decidePairs, thresholds } from "./decide.ts";
 import type { DecideOptions } from "./decide.ts";
 import { detect } from "./detect.ts";
 import type { DetectOptions } from "./detect.ts";
@@ -7,9 +7,10 @@ import { groupFamilies } from "./families.ts";
 import { judgePairs } from "./judge.ts";
 import type { JudgeClient, JudgeOptions } from "./judge.ts";
 import { pairTokens } from "./questions.ts";
+import type { RecordedPair } from "./record.ts";
 import { SnippetReader } from "./snippets.ts";
 import type { SnippetOptions } from "./snippets.ts";
-import type { DetectedPair, DetectionReport, JevReport, JudgedPair, PairSnippet, UnjudgedPair } from "./types.ts";
+import type { DetectedPair, DetectionReport, JevReport, PairSnippet, UnjudgedPair } from "./types.ts";
 
 export interface JudgeReportOptions extends JudgeOptions, DecideOptions, SnippetOptions {
   maxPairs?: number;
@@ -37,17 +38,32 @@ export async function readSnippets(
       const alsoAt = pair.instances
         ?.filter((location) => location !== pair.left && location !== pair.right)
         .map((location) => `${reader.relative(location.filePath)}:${location.startLine}-${location.endLine}`);
-      const snippet: PairSnippet = { index, pair, a, b, ...(alsoAt !== undefined && alsoAt.length > 0 ? { alsoAt } : {}), tokens: 0 };
+      const snippet: PairSnippet = {
+        index,
+        pair,
+        a,
+        b,
+        ...(alsoAt !== undefined && alsoAt.length > 0 ? { alsoAt } : {}),
+        tokens: 0,
+      };
       snippet.tokens = pairTokens(snippet);
       snippets.push(snippet);
     } catch (error) {
-      unreadable.push({ ...pair, reason: "unreadable", error: `could not read the source: ${error instanceof Error ? error.message : String(error)}` });
+      unreadable.push({
+        ...pair,
+        reason: "unreadable",
+        error: `could not read the source: ${error instanceof Error ? error.message : String(error)}`,
+      });
     }
   }
   return { snippets, unreadable };
 }
 
-export async function judgeReport(detection: DetectionReport, client: JudgeClient, options: JudgeReportOptions = {}): Promise<JevReport> {
+export async function judgeReport(
+  detection: DetectionReport,
+  client: JudgeClient,
+  options: JudgeReportOptions = {},
+): Promise<JevReport> {
   const started = Date.now();
   const cwd = options.cwd ?? process.cwd();
   const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), options);
@@ -59,20 +75,16 @@ export async function judgeReport(detection: DetectionReport, client: JudgeClien
     repository: options.repository ?? path.basename(path.resolve(cwd)),
   });
 
-  const results: JudgedPair[] = [];
-  const rejected: JudgedPair[] = [];
+  const judged: RecordedPair[] = [];
   for (const snippet of snippets) {
     const judgment = judgments.get(snippet.index);
     if (judgment === undefined) {
       unjudged.push({ ...snippet.pair, reason: "api", error: failures.get(snippet.index) ?? "no answer" });
       continue;
     }
-    const verdict = decide(judgment, options);
-    (verdict.refactor ? results : rejected).push({ ...snippet.pair, judgment, verdict });
+    judged.push({ pair: snippet.pair, judgment });
   }
-  const byScore = (x: JudgedPair, y: JudgedPair) => y.judgment.score - x.judgment.score || y.similarity - x.similarity;
-  results.sort(byScore);
-  rejected.sort(byScore);
+  const { results, rejected } = decidePairs(judged, options);
 
   return {
     analyzedFiles: detection.analyzedFiles,
@@ -106,8 +118,26 @@ export type { FallowMode, FallowOptions } from "./fallow.ts";
 export { DEFAULT_MARGIN, DEFAULT_MIN_SCORE, DEFAULT_UNSURE_BELOW, decide, thresholds } from "./decide.ts";
 export type { DecideOptions } from "./decide.ts";
 export { SHAPE_LABELS, groupFamilies } from "./families.ts";
-export { AdaptiveLimiter, DEFAULT_CONCURRENCY, DEFAULT_RETRIES, USD_PER_MILLION_INPUT_TOKENS, isRejection, judgePairs, mergePasses, requestHash, toJudgment } from "./judge.ts";
-export type { JudgeCache, JudgeClient, JudgeOptions, JudgeOutcome, JudgeRejection, JudgeRequest, JudgeResponse } from "./judge.ts";
+export {
+  AdaptiveLimiter,
+  DEFAULT_CONCURRENCY,
+  DEFAULT_RETRIES,
+  USD_PER_MILLION_INPUT_TOKENS,
+  isRejection,
+  judgePairs,
+  mergePasses,
+  requestHash,
+  toJudgment,
+} from "./judge.ts";
+export type {
+  JudgeCache,
+  JudgeClient,
+  JudgeOptions,
+  JudgeOutcome,
+  JudgeRejection,
+  JudgeRequest,
+  JudgeResponse,
+} from "./judge.ts";
 export { CACHE_VERSION, FileJudgeCache } from "./cache.ts";
 export type { CacheEntry, CacheFile } from "./cache.ts";
 export {
@@ -136,7 +166,18 @@ export { flagOf, formatJsonReport, formatPrettyReport, formatStats, toJsonReport
 export type { JsonFamily, JsonOptions, JsonPair, JsonReport, PrettyOptions } from "./format.ts";
 export { RECORD_SCHEMA, buildRecord, loadRecord, replayRecord, saveRecord } from "./record.ts";
 export type { RecordedPair, RunRecord } from "./record.ts";
-export { WIDE_GAP, auc, calibrate, fitCutoff, formatCalibration, holdOut, labelOf, labelReport, pairKey, widestGap } from "./calibrate.ts";
+export {
+  WIDE_GAP,
+  auc,
+  calibrate,
+  fitCutoff,
+  formatCalibration,
+  holdOut,
+  labelOf,
+  labelReport,
+  pairKey,
+  widestGap,
+} from "./calibrate.ts";
 export type { Calibration, Confusion, Gap, HistogramBin, LabelReport, Labels, SignalReport } from "./calibrate.ts";
 export type {
   DetectedPair,

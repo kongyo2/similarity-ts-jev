@@ -7,7 +7,9 @@ export const SHAPE_LABELS: Record<Shape, string> = { remove_copy: "copy", derive
 
 function sameMember(a: AnalyzerLocation, b: AnalyzerLocation): boolean {
   if (a.kind !== FRAGMENT_KIND && b.kind !== FRAGMENT_KIND) {
-    return path.resolve(a.filePath) === path.resolve(b.filePath) && a.startLine === b.startLine && a.endLine === b.endLine;
+    return (
+      path.resolve(a.filePath) === path.resolve(b.filePath) && a.startLine === b.startLine && a.endLine === b.endLine
+    );
   }
   return overlaps(a, b);
 }

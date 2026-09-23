@@ -10,7 +10,11 @@ import { judgment, location, pair } from "./helpers.ts";
 
 function judged(index: number, score: number): JudgedPair {
   const j = judgment(score, { confidence: 0.3 });
-  return { ...pair(location(`/r/a${index}.ts`, 1, 5, `a${index}`), location(`/r/b${index}.ts`, 1, 5, `b${index}`)), judgment: j, verdict: decide(j) };
+  return {
+    ...pair(location(`/r/a${index}.ts`, 1, 5, `a${index}`), location(`/r/b${index}.ts`, 1, 5, `b${index}`)),
+    judgment: j,
+    verdict: decide(j),
+  };
 }
 
 const pairs = [judged(0, 2.6), judged(1, 2.0), judged(2, 1.2)];
@@ -24,7 +28,22 @@ const report: JevReport = {
   rejectedCount: 1,
   unjudged: [{ ...pair(location("/r/u.ts", 1, 2), location("/r/v.ts", 1, 2)), reason: "api", error: "boom" }],
   thresholds: thresholds(),
-  stats: { fileCount: 3, pairCount: 4, elapsedMs: 5, judged: 3, unjudged: 1, requests: 2, inputTokens: 1000, outputTokens: 10, cacheHits: 0, retries: 0, rateLimited: 0, splits: 0, passes: 1, usd: 0.00004 },
+  stats: {
+    fileCount: 3,
+    pairCount: 4,
+    elapsedMs: 5,
+    judged: 3,
+    unjudged: 1,
+    requests: 2,
+    inputTokens: 1000,
+    outputTokens: 10,
+    cacheHits: 0,
+    retries: 0,
+    rateLimited: 0,
+    splits: 0,
+    passes: 1,
+    usd: 0.00004,
+  },
 };
 
 describe("run records", () => {
@@ -36,7 +55,10 @@ describe("run records", () => {
     assert.deepEqual(record.thresholds, thresholds());
     assert.ok(!("verdict" in record.pairs[0]!), "verdicts are re-decided on replay");
     const replayed = replayRecord(record, { minScore: 2.5, unsureBelow: 0.2 });
-    assert.deepEqual(replayed.results.map((p) => p.left.symbolName), ["a0"]);
+    assert.deepEqual(
+      replayed.results.map((p) => p.left.symbolName),
+      ["a0"],
+    );
     assert.equal(replayed.rejectedCount, 2);
     assert.equal(replayed.results[0]!.verdict.unsure, false);
     assert.equal(replayed.thresholds.minScore, 2.5);
