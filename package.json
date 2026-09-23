@@ -1,6 +1,6 @@
 {
   "name": "@kongyo2/similarity-ts-jev",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "similarity-ts + fallow duplicate detection for TypeScript, judged by TypeSafe's Jev (via @typesafe-ai/sdk): the pairs worth refactoring, the shape of the refactoring, and a calibration report.",
   "type": "module",
   "license": "MIT",
