@@ -209,7 +209,7 @@ TYPESAFE_BASE_URL=https://ai-gateway.lolipop.jp TYPESAFE_DEFAULT_MODEL=typesafe/
 ```
 
 The code of each reported pair is sent to that endpoint and nowhere else.
-Node 22.12 or newer.
+Node 22 or newer.
 
 ## Library
 
