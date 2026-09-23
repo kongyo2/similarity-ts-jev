@@ -1,4 +1,10 @@
-import type { AnalyzeReport, AnalyzerLocation, AnalyzerMode, AnalyzerWarning, SimilarityPair } from "@kongyo2/similarity-ts";
+import type {
+  AnalyzeReport,
+  AnalyzerLocation,
+  AnalyzerMode,
+  AnalyzerWarning,
+  SimilarityPair,
+} from "@kongyo2/similarity-ts";
 
 export type PairMode = AnalyzerMode;
 

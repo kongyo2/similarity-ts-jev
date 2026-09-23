@@ -54,7 +54,8 @@ export async function saveRecord(record: RunRecord, filePath: string): Promise<v
 
 export async function loadRecord(filePath: string): Promise<RunRecord> {
   const parsed = JSON.parse(await fs.readFile(filePath, "utf8")) as Partial<RunRecord>;
-  if (parsed.schema !== RECORD_SCHEMA || !Array.isArray(parsed.pairs)) throw new Error(`${filePath} is not a similarity-ts-jev run record`);
+  if (parsed.schema !== RECORD_SCHEMA || !Array.isArray(parsed.pairs))
+    throw new Error(`${filePath} is not a similarity-ts-jev run record`);
   return parsed as RunRecord;
 }
 

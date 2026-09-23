@@ -30,10 +30,16 @@ for (const corpus of corpora) {
       missing += 1;
       continue;
     }
-    out[pairKey(snippet.pair, cwd)] = { merge: label.merge, ...(label.shape !== undefined ? { shape: label.shape } : {}), ...(label.note !== undefined ? { note: label.note } : {}) };
+    out[pairKey(snippet.pair, cwd)] = {
+      merge: label.merge,
+      ...(label.shape !== undefined ? { shape: label.shape } : {}),
+      ...(label.note !== undefined ? { note: label.note } : {}),
+    };
   }
   const file = path.join(outDir, `${corpus.name}.json`);
   fs.writeFileSync(file, `${JSON.stringify(out, null, 2)}\n`);
   const merges = Object.values(out).filter((label) => label.merge).length;
-  console.log(`${file}: ${Object.keys(out).length} labels (${merges} merge, ${Object.keys(out).length - merges} keep)${missing > 0 ? `, ${missing} not in the snapshot` : ""}`);
+  console.log(
+    `${file}: ${Object.keys(out).length} labels (${merges} merge, ${Object.keys(out).length - merges} keep)${missing > 0 ? `, ${missing} not in the snapshot` : ""}`,
+  );
 }

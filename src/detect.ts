@@ -21,7 +21,9 @@ export async function detect(options: DetectOptions): Promise<DetectionReport> {
       paths: options.similarityTs.paths,
       ...(options.similarityTs.exclude !== undefined ? { exclude: options.similarityTs.exclude } : {}),
       ...(options.similarityTs.sameFileOnly !== undefined ? { sameFileOnly: options.similarityTs.sameFileOnly } : {}),
-      ...(options.similarityTs.crossFileOnly !== undefined ? { crossFileOnly: options.similarityTs.crossFileOnly } : {}),
+      ...(options.similarityTs.crossFileOnly !== undefined
+        ? { crossFileOnly: options.similarityTs.crossFileOnly }
+        : {}),
       ...options.fallow,
     }),
   ]);
@@ -36,7 +38,8 @@ export async function detect(options: DetectOptions): Promise<DetectionReport> {
 }
 
 function fromSimilarityTs(pair: SimilarityPair): DetectedPair {
-  const location = (side: AnalyzerLocation): AnalyzerLocation => (pair.mode === "overlap" ? { ...side, kind: FRAGMENT_KIND } : side);
+  const location = (side: AnalyzerLocation): AnalyzerLocation =>
+    pair.mode === "overlap" ? { ...side, kind: FRAGMENT_KIND } : side;
   return { mode: pair.mode, similarity: pair.similarity, left: location(pair.left), right: location(pair.right) };
 }
 
@@ -55,7 +58,10 @@ export function mergePairs(declarationPairs: DetectedPair[], fragmentPairs: Dete
       byFiles.set(fileKey(pair), [...candidates, pair]);
       continue;
     }
-    const members = unionLocations(match.instances ?? [match.left, match.right], pair.instances ?? [pair.left, pair.right]);
+    const members = unionLocations(
+      match.instances ?? [match.left, match.right],
+      pair.instances ?? [pair.left, pair.right],
+    );
     if (members.length > 2) match.instances = members;
     match.similarity = Math.max(match.similarity, pair.similarity);
   }
@@ -63,5 +69,8 @@ export function mergePairs(declarationPairs: DetectedPair[], fragmentPairs: Dete
 }
 
 function fileKey(pair: DetectedPair): string {
-  return [pair.left.filePath, pair.right.filePath].map((p) => path.resolve(p)).sort().join("\n");
+  return [pair.left.filePath, pair.right.filePath]
+    .map((p) => path.resolve(p))
+    .sort()
+    .join("\n");
 }

@@ -44,11 +44,16 @@ const execFileAsync = promisify(execFile);
 export async function runFallowBinary(args: string[], cwd: string): Promise<{ stdout: string; code: number }> {
   const launcher = createRequire(import.meta.url).resolve("fallow/bin/fallow");
   try {
-    const { stdout } = await execFileAsync(process.execPath, [launcher, ...args], { cwd, maxBuffer: 1024 * 1024 * 512, windowsHide: true });
+    const { stdout } = await execFileAsync(process.execPath, [launcher, ...args], {
+      cwd,
+      maxBuffer: 1024 * 1024 * 512,
+      windowsHide: true,
+    });
     return { stdout, code: 0 };
   } catch (error) {
     const failure = error as { stdout?: string; code?: number | string; message?: string };
-    if (typeof failure.stdout === "string" && typeof failure.code === "number") return { stdout: failure.stdout, code: failure.code };
+    if (typeof failure.stdout === "string" && typeof failure.code === "number")
+      return { stdout: failure.stdout, code: failure.code };
     throw error;
   }
 }
@@ -59,7 +64,9 @@ export async function runFallow(options: FallowOptions = {}): Promise<FallowResu
   const exec = options.exec ?? runFallowBinary;
   const roots = fallowRoots(cwd, options.paths);
   const runs = await Promise.all(
-    roots.flatMap((root) => FALLOW_MODES.map(async (mode) => ({ root, output: await runMode(exec, root, mode, options) }))),
+    roots.flatMap((root) =>
+      FALLOW_MODES.map(async (mode) => ({ root, output: await runMode(exec, root, mode, options) })),
+    ),
   );
 
   const keep = instanceFilter(cwd, options.paths, options.exclude);
@@ -67,7 +74,9 @@ export async function runFallow(options: FallowOptions = {}): Promise<FallowResu
   let instances = 0;
   for (const { root, output } of runs) {
     for (const group of output.clone_groups ?? []) {
-      const kept = group.instances.map((instance) => ({ ...instance, file: path.resolve(root, instance.file) })).filter(keep);
+      const kept = group.instances
+        .map((instance) => ({ ...instance, file: path.resolve(root, instance.file) }))
+        .filter(keep);
       for (const bucket of scopedBuckets(kept, cwd, options)) {
         const pair = toPair(group, bucket, cwd);
         const known = groups.find(pair);
@@ -156,11 +165,17 @@ function scopedBuckets(instances: CloneInstance[], cwd: string, options: FallowO
     return [...byFile.values()].filter((bucket) => bucket.length >= 2);
   }
   if (instances.length < 2) return [];
-  if (options.crossFileOnly && new Set(instances.map((instance) => path.resolve(cwd, instance.file))).size < 2) return [];
+  if (options.crossFileOnly && new Set(instances.map((instance) => path.resolve(cwd, instance.file))).size < 2)
+    return [];
   return [instances];
 }
 
-async function runMode(exec: NonNullable<FallowOptions["exec"]>, cwd: string, mode: FallowMode, options: FallowOptions): Promise<DupesOutput> {
+async function runMode(
+  exec: NonNullable<FallowOptions["exec"]>,
+  cwd: string,
+  mode: FallowMode,
+  options: FallowOptions,
+): Promise<DupesOutput> {
   const args = ["dupes", "--root", cwd, "--mode", mode, "--format", "json", "--quiet", "--no-fragments"];
   if (options.near ?? true) args.push("--near");
   if (options.minTokens !== undefined) args.push("--min-tokens", String(options.minTokens));
@@ -179,7 +194,10 @@ async function runMode(exec: NonNullable<FallowOptions["exec"]>, cwd: string, mo
 }
 
 function absorb(known: DetectedPair, other: DetectedPair): void {
-  const members = unionLocations(known.instances ?? [known.left, known.right], other.instances ?? [other.left, other.right]);
+  const members = unionLocations(
+    known.instances ?? [known.left, known.right],
+    other.instances ?? [other.left, other.right],
+  );
   if (members.length > 2) known.instances = members;
   known.similarity = Math.max(known.similarity, other.similarity);
 }
@@ -236,12 +254,17 @@ function mostDistant(locations: AnalyzerLocation[]): [AnalyzerLocation, Analyzer
   if (other !== undefined) return [first, other];
   let farthest = locations[1]!;
   for (const location of locations.slice(2)) {
-    if (Math.abs(location.startLine - first.startLine) > Math.abs(farthest.startLine - first.startLine)) farthest = location;
+    if (Math.abs(location.startLine - first.startLine) > Math.abs(farthest.startLine - first.startLine))
+      farthest = location;
   }
   return [first, farthest];
 }
 
-function instanceFilter(cwd: string, paths: string[] | undefined, exclude: string[] | undefined): (instance: CloneInstance) => boolean {
+function instanceFilter(
+  cwd: string,
+  paths: string[] | undefined,
+  exclude: string[] | undefined,
+): (instance: CloneInstance) => boolean {
   const requested = (paths ?? []).map((p) => path.resolve(cwd, p));
   const excluded = ignore().add(exclude ?? []);
   return (instance) => {

@@ -15,7 +15,13 @@ import { formatJsonReport, formatPrettyReport, formatStats } from "./format.ts";
 import { judgeReport, orderPairs, readSnippets } from "./index.ts";
 import { DEFAULT_CONCURRENCY, DEFAULT_RETRIES, USD_PER_MILLION_INPUT_TOKENS } from "./judge.ts";
 import type { JudgeClient } from "./judge.ts";
-import { DEFAULT_BUDGET_TOKENS, DEFAULT_PAIRS_PER_REQUEST, batchPairs, estimateTokens, buildState } from "./questions.ts";
+import {
+  DEFAULT_BUDGET_TOKENS,
+  DEFAULT_PAIRS_PER_REQUEST,
+  batchPairs,
+  estimateTokens,
+  buildState,
+} from "./questions.ts";
 import { buildRecord, loadRecord, replayRecord, saveRecord } from "./record.ts";
 import type { JevReport } from "./types.ts";
 
@@ -111,7 +117,9 @@ function buildProgram(io: CliIO): Command {
   const program = new Command();
   program
     .name("similarity-ts-jev")
-    .description("Similar-code detection (similarity-ts and fallow, always both), filtered by Jev down to the pairs worth refactoring")
+    .description(
+      "Similar-code detection (similarity-ts and fallow, always both), filtered by Jev down to the pairs worth refactoring",
+    )
     .version(packageJson.version)
     .argument("[paths...]", "Files and directories to analyze (not needed with --replay)")
     .option("--modes <list>", "Comma-separated modes: functions,types,classes,overlap", DEFAULT_MODES.join(","))
@@ -128,7 +136,9 @@ function buildProgram(io: CliIO): Command {
       (value: string, previous: string[]) => [...previous, value],
       [] as string[],
     )
-    .addOption(new Option("--types-only <kind>", "Type mode filter").choices(["all", "interface", "type"]).default("all"))
+    .addOption(
+      new Option("--types-only <kind>", "Type mode filter").choices(["all", "interface", "type"]).default("all"),
+    )
     .option("--no-allow-cross-kind", "Disable interface <-> type alias matching")
     .option("--type-literals", "Include anonymous type literals in type mode", false)
     .option("--overlap-min-window <number>", "Overlap mode minimum token window", "8")
@@ -137,31 +147,84 @@ function buildProgram(io: CliIO): Command {
     .option("--no-fallow-near", "Disable fallow's function-scoped near-miss clone detection")
     .option("--fallow-min-tokens <number>", "fallow: minimum token count for a clone (default: 50)")
     .option("--fallow-min-lines <number>", "fallow: minimum line count for a clone (default: 5)")
-    .option("--min-score <number>", "Lowest Jev refactor score (0-3) reported as worth refactoring", String(DEFAULT_MIN_SCORE))
-    .option("--unsure-below <number>", "Mark a reported pair as unsure (?) when Jev's confidence is under this (0-1)", String(DEFAULT_UNSURE_BELOW))
-    .option("--margin <number>", "Mark a pair as borderline (~) when its score is within this of --min-score", String(DEFAULT_MARGIN))
+    .option(
+      "--min-score <number>",
+      "Lowest Jev refactor score (0-3) reported as worth refactoring",
+      String(DEFAULT_MIN_SCORE),
+    )
+    .option(
+      "--unsure-below <number>",
+      "Mark a reported pair as unsure (?) when Jev's confidence is under this (0-1)",
+      String(DEFAULT_UNSURE_BELOW),
+    )
+    .option(
+      "--margin <number>",
+      "Mark a pair as borderline (~) when its score is within this of --min-score",
+      String(DEFAULT_MARGIN),
+    )
     .option("--all", "Also list the pairs Jev would leave as they are", false)
     .option("--max-pairs <number>", "Judge at most this many pairs (highest similarity first)")
-    .option("--repeat <number>", "Ask every pair this many times and decide on the mean score; pairs that cross --min-score between passes are marked unstable (!)", "1")
-    .option("--conventions <text>", "Repository conventions a reviewer would know (what is deliberately kept separate); sent with every request")
-    .option("--concurrency <number>", "Jev requests in flight at once; halved after a rate limit", String(DEFAULT_CONCURRENCY))
-    .option("--pairs-per-request <number>", "At most this many pairs in one Jev request", String(DEFAULT_PAIRS_PER_REQUEST))
-    .option("--budget-tokens <number>", "Estimated input tokens packed into one Jev request", String(DEFAULT_BUDGET_TOKENS))
-    .option("--retries <number>", "Extra attempts per request after a rate limit, a server error, or a connection failure (on top of the SDK's own)", String(DEFAULT_RETRIES))
+    .option(
+      "--repeat <number>",
+      "Ask every pair this many times and decide on the mean score; pairs that cross --min-score between passes are marked unstable (!)",
+      "1",
+    )
+    .option(
+      "--conventions <text>",
+      "Repository conventions a reviewer would know (what is deliberately kept separate); sent with every request",
+    )
+    .option(
+      "--concurrency <number>",
+      "Jev requests in flight at once; halved after a rate limit",
+      String(DEFAULT_CONCURRENCY),
+    )
+    .option(
+      "--pairs-per-request <number>",
+      "At most this many pairs in one Jev request",
+      String(DEFAULT_PAIRS_PER_REQUEST),
+    )
+    .option(
+      "--budget-tokens <number>",
+      "Estimated input tokens packed into one Jev request",
+      String(DEFAULT_BUDGET_TOKENS),
+    )
+    .option(
+      "--retries <number>",
+      "Extra attempts per request after a rate limit, a server error, or a connection failure (on top of the SDK's own)",
+      String(DEFAULT_RETRIES),
+    )
     .option("--model <name>", "Jev model name (default: TYPESAFE_DEFAULT_MODEL or jev-latest)")
     .option("--base-url <url>", "TypeSafe-compatible API root (default: TYPESAFE_BASE_URL or https://api.typesafe.ai)")
     .option("--cache <file>", "Record Jev's answers in this JSON file and replay them on later runs")
     .option("--timeout <ms>", "Timeout per Jev request attempt", "60000")
     .option("--dry-run", "Detect and print the pair, request, and token counts without asking Jev", false)
     .option("--record <file>", "Write every judgment and the thresholds to this file, for --replay")
-    .option("--replay <file>", "Re-decide a recorded run under its recorded thresholds, or the ones given here; no detection, no requests")
-    .option("--calibrate", "Print the score distribution, gap, headroom, and (with --labels) precision, recall, AUC, and a hold-out fit instead of the results", false)
-    .option("--labels <file>", "JSON of pair keys to true (merge) or false (keep), as scripts/verify.ts writes them; used by --calibrate")
-    .option("--stats", "Print request, token, cost, and timing counts (stderr for pretty, in the document for json)", false)
+    .option(
+      "--replay <file>",
+      "Re-decide a recorded run under its recorded thresholds, or the ones given here; no detection, no requests",
+    )
+    .option(
+      "--calibrate",
+      "Print the score distribution, gap, headroom, and (with --labels) precision, recall, AUC, and a hold-out fit instead of the results",
+      false,
+    )
+    .option(
+      "--labels <file>",
+      "JSON of pair keys to true (merge) or false (keep), as scripts/verify.ts writes them; used by --calibrate",
+    )
+    .option(
+      "--stats",
+      "Print request, token, cost, and timing counts (stderr for pretty, in the document for json)",
+      false,
+    )
     .addOption(new Option("--format <format>", "Output format").choices(["pretty", "json"]).default("pretty"))
     .option("--output <path>", "Write the report to a file")
     .option("--fail-on-warnings", "Exit with a non-zero code when the analysis emits any warning", false)
-    .option("--fail-on-duplicates", "Exit with a non-zero code when Jev reports any pair worth refactoring (CI gate)", false)
+    .option(
+      "--fail-on-duplicates",
+      "Exit with a non-zero code when Jev reports any pair worth refactoring (CI gate)",
+      false,
+    )
     .showHelpAfterError(true);
   program.exitOverride();
   program.configureOutput({
@@ -185,6 +248,7 @@ function createClient(options: { model?: string; baseURL?: string; timeout: numb
         "TYPESAFE_API_KEY is not set. Jev needs a TypeSafe API key (https://console.typesafe.ai/keys). " +
           "For a TypeSafe-compatible gateway set TYPESAFE_BASE_URL and TYPESAFE_DEFAULT_MODEL as well, " +
           "e.g. TYPESAFE_BASE_URL=https://ai-gateway.lolipop.jp TYPESAFE_DEFAULT_MODEL=typesafe/jev-latest.",
+        { cause: error },
       );
     }
     throw error;
@@ -239,18 +303,32 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
       if (raw.calibrate) {
         const labels = raw.labels !== undefined ? await readLabels(path.resolve(cwd, raw.labels)) : undefined;
         const calibration = calibrate(report, reportCwd, labels);
-        const document = raw.stats ? { calibration, thresholds: report.thresholds, stats: report.stats } : { calibration };
+        const document = raw.stats
+          ? { calibration, thresholds: report.thresholds, stats: report.stats }
+          : { calibration };
         await emit(raw.format === "json" ? JSON.stringify(document, null, 2) : formatCalibration(calibration));
       } else {
-        await emit(raw.format === "json" ? formatJsonReport(report, { includeRejected: raw.all, stats: raw.stats }) : formatPrettyReport(report, reportCwd, { includeRejected: raw.all }));
+        await emit(
+          raw.format === "json"
+            ? formatJsonReport(report, { includeRejected: raw.all, stats: raw.stats })
+            : formatPrettyReport(report, reportCwd, { includeRejected: raw.all }),
+        );
       }
       if (raw.stats && raw.format !== "json") {
-        io.error(formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length }));
+        io.error(
+          formatStats(report.stats, report.thresholds, {
+            results: report.results.length,
+            rejected: report.rejectedCount,
+            unjudged: report.unjudged.length,
+          }),
+        );
       }
-      for (const warning of report.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
+      for (const warning of report.warnings)
+        io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
       for (const reason of ["unreadable", "api"] as const) {
         const failed = report.unjudged.filter((pair) => pair.reason === reason);
-        if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
+        if (failed.length > 0)
+          io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
       }
       return exitCode(report, gates);
     };
@@ -276,7 +354,8 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     const repeat = integer(raw.repeat, "repeat");
     const timeout = integer(raw.timeout, "timeout");
     const maxPairs = raw.maxPairs === undefined ? undefined : integer(raw.maxPairs, "max-pairs", 0);
-    if (raw.sameFileOnly && raw.crossFileOnly) throw new Error("Cannot use both --same-file-only and --cross-file-only");
+    if (raw.sameFileOnly && raw.crossFileOnly)
+      throw new Error("Cannot use both --same-file-only and --cross-file-only");
 
     const detection = await detect({
       similarityTs: {
@@ -306,21 +385,36 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
     });
 
     if (raw.dryRun) {
-      const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), { cwd, ...(maxPairs !== undefined ? { maxPairs } : {}) });
+      const { snippets, unreadable } = await readSnippets(orderPairs(detection.pairs), {
+        cwd,
+        ...(maxPairs !== undefined ? { maxPairs } : {}),
+      });
       const batches = batchPairs(snippets, { pairsPerRequest, budgetTokens });
-      const stateTokens = estimateTokens(buildState(path.basename(path.resolve(cwd)), raw.conventions !== undefined ? { conventions: raw.conventions } : {}));
+      const stateTokens = estimateTokens(
+        buildState(
+          path.basename(path.resolve(cwd)),
+          raw.conventions !== undefined ? { conventions: raw.conventions } : {},
+        ),
+      );
       const tokens = (snippets.reduce((sum, s) => sum + s.tokens, 0) + batches.length * stateTokens) * repeat;
       const requests = batches.length * repeat;
-      io.log(`${snippets.length} pairs, ${requests} requests, ${tokens} tokens, ~$${((tokens / 1_000_000) * USD_PER_MILLION_INPUT_TOKENS).toFixed(4)}${repeat > 1 ? ` (${repeat} passes)` : ""}`);
-      for (const warning of detection.warnings) io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
+      io.log(
+        `${snippets.length} pairs, ${requests} requests, ${tokens} tokens, ~$${((tokens / 1_000_000) * USD_PER_MILLION_INPUT_TOKENS).toFixed(4)}${repeat > 1 ? ` (${repeat} passes)` : ""}`,
+      );
+      for (const warning of detection.warnings)
+        io.error(warning.filePath ? `${warning.filePath}: ${warning.message}` : warning.message);
       const failed = unreadable.filter((pair) => pair.reason === "unreadable");
-      if (failed.length > 0) io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
+      if (failed.length > 0)
+        io.error(`${failed.length} pair${failed.length === 1 ? "" : "s"} not judged: ${failed[0]!.error}`);
       if (detection.warnings.length > 0 && (detection.stats.fileCount === 0 || raw.failOnWarnings)) return 1;
       return failed.length > 0 ? 1 : 0;
     }
 
     const cache = raw.cache !== undefined ? await FileJudgeCache.load(path.resolve(cwd, raw.cache)) : undefined;
-    if (cache !== undefined && cache.dropped > 0) io.error(`${raw.cache}: ${cache.dropped} entries from an older version were dropped; the answers will be asked again`);
+    if (cache !== undefined && cache.dropped > 0)
+      io.error(
+        `${raw.cache}: ${cache.dropped} entries from an older version were dropped; the answers will be asked again`,
+      );
     const client =
       run.client ??
       lazyClient(
@@ -360,8 +454,7 @@ export function isCliEntrypoint(argvPath: string | undefined, moduleUrl: string)
   let resolved = argvPath;
   try {
     resolved = realpathSync(argvPath);
-  } catch {
-  }
+  } catch {}
   return path.resolve(fileURLToPath(moduleUrl)) === path.resolve(resolved);
 }
 

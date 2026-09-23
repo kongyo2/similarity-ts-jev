@@ -25,6 +25,12 @@ jobs:
       - name: No comments
         run: npm run lint:comments -- --format github
 
+      - name: Lint
+        run: npm run lint -- --format github
+
+      - name: Format
+        run: npm run format:check
+
       - name: Type check
         run: npm run typecheck
 

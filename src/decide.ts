@@ -25,7 +25,9 @@ export function decide(judgment: Judgment, options: DecideOptions = {}): Verdict
   const borderline = Math.abs(judgment.score - minScore) < margin;
   const over = judgment.passes === undefined ? 0 : judgment.passes.scores.filter((score) => score >= minScore).length;
   const unstable = judgment.passes !== undefined && over > 0 && over < judgment.passes.count;
-  const notes = [unsure ? "unsure" : "", borderline ? "borderline" : "", unstable ? "unstable" : ""].filter((note) => note !== "");
+  const notes = [unsure ? "unsure" : "", borderline ? "borderline" : "", unstable ? "unstable" : ""].filter(
+    (note) => note !== "",
+  );
   return {
     refactor,
     unsure,

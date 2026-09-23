@@ -15,12 +15,12 @@ Four repositories at their heads on the dates below, with tests excluded, run
 through both detectors with the default settings (`functions,types,classes`
 for similarity-ts, `fallow dupes --near` in every mode):
 
-| Repository | Commit | Paths | Also excluded | Pairs | functions / types / classes / overlap |
-| --- | --- | --- | --- | ---: | --- |
-| date-fns | `717ce0a` (2026-09-22) | `pkgs/core/src` | `**/locale/**`, `*.d.ts` | 2,207 | 181 / 993 / 10 / 1,023 |
-| es-toolkit | `ee72fc7` (2026-09-19) | `src` | `*.spec.ts`, `*.d.ts` | 596 | 308 / 103 / 1 / 184 |
-| remeda | `e8292dd` (2026-09-16) | `packages/remeda/src` | `*.test-d.ts`, `*.d.ts` | 165 | 49 / 20 / 0 / 96 |
-| zod | `10dda3a` (2026-09-21) | `packages/zod/src` | `**/tests/**`, `*.d.ts` | 5,285 | 4,619 / 222 / 3 / 441 |
+| Repository | Commit                 | Paths                 | Also excluded            | Pairs | functions / types / classes / overlap |
+| ---------- | ---------------------- | --------------------- | ------------------------ | ----: | ------------------------------------- |
+| date-fns   | `717ce0a` (2026-09-22) | `pkgs/core/src`       | `**/locale/**`, `*.d.ts` | 2,207 | 181 / 993 / 10 / 1,023                |
+| es-toolkit | `ee72fc7` (2026-09-19) | `src`                 | `*.spec.ts`, `*.d.ts`    |   596 | 308 / 103 / 1 / 184                   |
+| remeda     | `e8292dd` (2026-09-16) | `packages/remeda/src` | `*.test-d.ts`, `*.d.ts`  |   165 | 49 / 20 / 0 / 96                      |
+| zod        | `10dda3a` (2026-09-21) | `packages/zod/src`    | `**/tests/**`, `*.d.ts`  | 5,285 | 4,619 / 222 / 3 / 441                 |
 
 8,253 pairs in total. The harness snapshots the pairs once
 (`run.ts snapshot`) so that every arm judges exactly the same text.
@@ -29,24 +29,24 @@ for similarity-ts, `fallow dupes --near` in every mode):
 
 Measured with `run.ts ceilings` and `run.ts sweep`:
 
-| Fact | Value |
-| --- | --- |
-| Largest accepted request | 64,899 input tokens (114 questions); 115 questions were rejected |
-| Largest accepted state | 32,971 tokens (99,191 characters); 100,750 characters were rejected |
-| Rejection | a generic `400 Invalid request`, not a `max_tokens_exceeded` message, so the CLI splits a batch on any 400 |
-| Rate limiting | no 429 at 4 to 100 requests in flight, nor at 256 in flight with 2.2 million tokens outstanding |
-| Token estimate | 3.4 characters per token for text of 64 characters or more, 2.2 for the structural rest; the billed count was within −5% to +6% of the estimate (10th to 90th percentile) |
+| Fact                     | Value                                                                                                                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Largest accepted request | 64,899 input tokens (114 questions); 115 questions were rejected                                                                                                          |
+| Largest accepted state   | 32,971 tokens (99,191 characters); 100,750 characters were rejected                                                                                                       |
+| Rejection                | a generic `400 Invalid request`, not a `max_tokens_exceeded` message, so the CLI splits a batch on any 400                                                                |
+| Rate limiting            | no 429 at 4 to 100 requests in flight, nor at 256 in flight with 2.2 million tokens outstanding                                                                           |
+| Token estimate           | 3.4 characters per token for text of 64 characters or more, 2.2 for the structural rest; the billed count was within −5% to +6% of the estimate (10th to 90th percentile) |
 
 Throughput on 1,000 pairs, 10 per request, 102 requests:
 
 | In flight | Wall time | Mean latency | Requests/s | Tokens/s |
-| ---: | ---: | ---: | ---: | ---: |
-| 4 | 29.5 s | 1,124 ms | 3.5 | 75,000 |
-| 8 | 15.4 s | 1,174 ms | 6.6 | 144,000 |
-| 16 | 8.2 s | 1,176 ms | 12.4 | 269,000 |
-| 32 | 5.1 s | 1,340 ms | 20.0 | 434,000 |
-| 64 | 3.3 s | 1,505 ms | 30.6 | 665,000 |
-| 100 | 3.0 s | 1,949 ms | 33.7 | 732,000 |
+| --------: | --------: | -----------: | ---------: | -------: |
+|         4 |    29.5 s |     1,124 ms |        3.5 |   75,000 |
+|         8 |    15.4 s |     1,174 ms |        6.6 |  144,000 |
+|        16 |     8.2 s |     1,176 ms |       12.4 |  269,000 |
+|        32 |     5.1 s |     1,340 ms |       20.0 |  434,000 |
+|        64 |     3.3 s |     1,505 ms |       30.6 |  665,000 |
+|       100 |     3.0 s |     1,949 ms |       33.7 |  732,000 |
 
 Latency stays near one second up to 16 in flight and rises after; 32 is the
 default because it is on the flat part of the curve with room to halve after
@@ -70,19 +70,19 @@ pairs. "Within 0.25" is the share of pairs whose scores differ by less than
 0.25; "level agree" compares the rounded 0–3 level; "flips" is the share that
 changes sides of the 1.9 cutoff.
 
-| Arm | Pairs | Mean abs. diff. | Bias | Within 0.25 | Level agree | Flips at 1.9 | Shape agree | Spearman |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| solo pass 2 (noise floor) | 8,253 | 0.055 | 0.000 | 0.999 | 0.961 | 0.022 | 0.964 | 0.979 |
-| solo, `refactor` question alone | 8,253 | 0.054 | +0.002 | 0.999 | 0.961 | 0.023 | — | 0.979 |
-| long, batched to 10k tokens | 1,000 | 0.053 | −0.001 | 0.998 | 0.974 | 0.021 | 0.961 | 0.980 |
-| long, batched to 20k tokens | 1,000 | 0.055 | +0.001 | 0.997 | 0.965 | 0.021 | 0.958 | 0.978 |
-| long, batched to 40k tokens | 8,253 | 0.055 | 0.000 | 0.999 | 0.963 | 0.023 | 0.963 | 0.979 |
-| long, batched to 60k tokens | 1,000 | 0.055 | −0.002 | 0.998 | 0.972 | 0.024 | 0.965 | 0.980 |
-| long, 40k, batches reshuffled | 1,000 | 0.055 | 0.000 | 1.000 | 0.966 | 0.030 | 0.967 | 0.980 |
-| long, 40k, comments removed | 1,000 | 0.078 | +0.032 | 0.953 | 0.952 | 0.030 | 0.946 | 0.961 |
-| long, 40k, file paths hidden | 1,000 | 0.569 | +0.476 | 0.534 | 0.532 | 0.408 | 0.912 | 0.714 |
-| compact, 40k | 8,253 | 0.242 | −0.040 | 0.607 | 0.792 | 0.053 | 0.878 | 0.736 |
-| state, 40k | 1,000 | 0.263 | +0.049 | 0.538 | 0.748 | 0.078 | 0.873 | 0.726 |
+| Arm                             | Pairs | Mean abs. diff. |   Bias | Within 0.25 | Level agree | Flips at 1.9 | Shape agree | Spearman |
+| ------------------------------- | ----: | --------------: | -----: | ----------: | ----------: | -----------: | ----------: | -------: |
+| solo pass 2 (noise floor)       | 8,253 |           0.055 |  0.000 |       0.999 |       0.961 |        0.022 |       0.964 |    0.979 |
+| solo, `refactor` question alone | 8,253 |           0.054 | +0.002 |       0.999 |       0.961 |        0.023 |           — |    0.979 |
+| long, batched to 10k tokens     | 1,000 |           0.053 | −0.001 |       0.998 |       0.974 |        0.021 |       0.961 |    0.980 |
+| long, batched to 20k tokens     | 1,000 |           0.055 | +0.001 |       0.997 |       0.965 |        0.021 |       0.958 |    0.978 |
+| long, batched to 40k tokens     | 8,253 |           0.055 |  0.000 |       0.999 |       0.963 |        0.023 |       0.963 |    0.979 |
+| long, batched to 60k tokens     | 1,000 |           0.055 | −0.002 |       0.998 |       0.972 |        0.024 |       0.965 |    0.980 |
+| long, 40k, batches reshuffled   | 1,000 |           0.055 |  0.000 |       1.000 |       0.966 |        0.030 |       0.967 |    0.980 |
+| long, 40k, comments removed     | 1,000 |           0.078 | +0.032 |       0.953 |       0.952 |        0.030 |       0.946 |    0.961 |
+| long, 40k, file paths hidden    | 1,000 |           0.569 | +0.476 |       0.534 |       0.532 |        0.408 |       0.912 |    0.714 |
+| compact, 40k                    | 8,253 |           0.242 | −0.040 |       0.607 |       0.792 |        0.053 |       0.878 |    0.736 |
+| state, 40k                      | 1,000 |           0.263 | +0.049 |       0.538 |       0.748 |        0.078 |       0.873 |    0.726 |
 
 What this decided:
 
@@ -109,25 +109,25 @@ What this decided:
 Cost per pair by form (input tokens, including the state repeated in every
 request):
 
-| Arm | Pairs per request | Tokens per pair | Latency per request |
-| --- | ---: | ---: | ---: |
-| solo, four questions | 1 | 2,585 | 774 ms |
-| solo, `refactor` alone | 1 | 972 | 658 ms |
-| long, 40k budget | 16.6 | 2,230 | 1,517 ms |
-| long, 60k budget | 24.4 | 2,195 | 2,090 ms |
-| compact, 40k budget | 22.1 | 1,800 | 1,727 ms |
-| state, 40k budget | 20.4 | 684 | 1,176 ms |
+| Arm                    | Pairs per request | Tokens per pair | Latency per request |
+| ---------------------- | ----------------: | --------------: | ------------------: |
+| solo, four questions   |                 1 |           2,585 |              774 ms |
+| solo, `refactor` alone |                 1 |             972 |              658 ms |
+| long, 40k budget       |              16.6 |           2,230 |            1,517 ms |
+| long, 60k budget       |              24.4 |           2,195 |            2,090 ms |
+| compact, 40k budget    |              22.1 |           1,800 |            1,727 ms |
+| state, 40k budget      |              20.4 |             684 |            1,176 ms |
 
 ## Stability across passes
 
 The same pairs asked again in fresh requests:
 
-| Arm | Pairs | Passes | Spread mean | Median | p90 | Max | Shape changed | Flip rate at 1.9 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| solo | 8,253 | 3 | 0.082 | 0.07 | 0.14 | 0.36 | 0.054 | 0.033 |
-| long, 40k, fixed batches | 1,000 | 5 | 0.110 | 0.10 | 0.18 | 0.43 | 0.087 | 0.045 |
-| long, 40k, reshuffled | 1,000 | 5 | 0.110 | 0.10 | 0.18 | 0.40 | 0.081 | 0.050 |
-| long, 10k to 60k | 1,000 | 2 | 0.053–0.055 | 0.04 | 0.11–0.12 | 0.24–0.33 | 0.037–0.047 | 0.017–0.023 |
+| Arm                      | Pairs | Passes | Spread mean | Median |       p90 |       Max | Shape changed | Flip rate at 1.9 |
+| ------------------------ | ----: | -----: | ----------: | -----: | --------: | --------: | ------------: | ---------------: |
+| solo                     | 8,253 |      3 |       0.082 |   0.07 |      0.14 |      0.36 |         0.054 |            0.033 |
+| long, 40k, fixed batches | 1,000 |      5 |       0.110 |   0.10 |      0.18 |      0.43 |         0.087 |            0.045 |
+| long, 40k, reshuffled    | 1,000 |      5 |       0.110 |   0.10 |      0.18 |      0.40 |         0.081 |            0.050 |
+| long, 10k to 60k         | 1,000 |      2 | 0.053–0.055 |   0.04 | 0.11–0.12 | 0.24–0.33 |   0.037–0.047 |      0.017–0.023 |
 
 Flips happen only near the cutoff. In the three solo passes, 270 of the 2,285
 pairs within 0.25 of 1.9 changed sides (11.8%); none of the 1,010 pairs
@@ -139,20 +139,20 @@ marks with `!` exactly the pairs whose passes disagree across the cutoff.
 
 Solo scores over the 8,253 pairs:
 
-| Bin | Pairs |
-| --- | ---: |
-| 0.00–0.25 | 105 |
-| 0.25–0.50 | 403 |
-| 0.50–0.75 | 824 |
-| 0.75–1.00 | 880 |
+| Bin       | Pairs |
+| --------- | ----: |
+| 0.00–0.25 |   105 |
+| 0.25–0.50 |   403 |
+| 0.50–0.75 |   824 |
+| 0.75–1.00 |   880 |
 | 1.00–1.25 | 2,229 |
-| 1.25–1.50 | 756 |
+| 1.25–1.50 |   756 |
 | 1.50–1.75 | 1,556 |
 | 1.75–2.00 | 1,215 |
-| 2.00–2.25 | 188 |
-| 2.25–2.50 | 57 |
-| 2.50–2.75 | 33 |
-| 2.75–3.00 | 7 |
+| 2.00–2.25 |   188 |
+| 2.25–2.50 |    57 |
+| 2.50–2.75 |    33 |
+| 2.75–3.00 |     7 |
 
 505 pairs (6.1%) are at or over 1.9, 285 over 2.0, 173 over 2.1, 40 over
 2.5. By repository: date-fns 85 of 2,207 (3.9%), es-toolkit 71 of 596
@@ -182,12 +182,12 @@ merges, 102 keeps. The labels and their notes are in
 Solo scores against the labels:
 
 | Cutoff | Precision | Recall | Accuracy |
-| ---: | ---: | ---: | ---: |
-| 1.5 | 0.45 | 1.00 | 0.73 |
-| 1.9 | 0.58 | 0.87 | 0.83 |
-| 2.0 | 0.59 | 0.87 | 0.83 |
-| 2.1 | 0.64 | 0.83 | 0.86 |
-| 2.5 | 0.73 | 0.53 | 0.85 |
+| -----: | --------: | -----: | -------: |
+|    1.5 |      0.45 |   1.00 |     0.73 |
+|    1.9 |      0.58 |   0.87 |     0.83 |
+|    2.0 |      0.59 |   0.87 |     0.83 |
+|    2.1 |      0.64 |   0.83 |     0.86 |
+|    2.5 |      0.73 |   0.53 |     0.85 |
 
 - AUC of the score 0.93; of `same_logic` 0.74; of `same_concept` 0.74.
 - The classes do not separate: the lowest merge scores 1.74 and the highest
@@ -220,10 +220,10 @@ covering all four repositories in one paragraph) was sent as
 `repository_conventions` in the state, on the labeled pairs, three passes
 each, decided on the mean:
 
-| | Precision | Recall | Accuracy | Shape agreement |
-| --- | ---: | ---: | ---: | ---: |
-| Without the note | 0.60 | 0.90 | 0.84 | 0.67 |
-| With the note | 0.88 | 0.73 | 0.92 | 0.90 |
+|                  | Precision | Recall | Accuracy | Shape agreement |
+| ---------------- | --------: | -----: | -------: | --------------: |
+| Without the note |      0.60 |   0.90 |     0.84 |            0.67 |
+| With the note    |      0.88 |   0.73 |     0.92 |            0.90 |
 
 The note lowers scores by 0.50 on average over the labeled set. The eight
 misses it causes are pairs near a sentence that is broader than intended:
@@ -231,12 +231,12 @@ misses it causes are pairs near a sentence that is broader than intended:
 should share. The same note run through the finished CLI on each whole
 repository:
 
-| Repository | Reported without note | Reported with note | Precision / recall at 1.9 without | With |
-| --- | ---: | ---: | --- | --- |
-| date-fns | 81 | 63 | 1.00 / 0.92 | 1.00 / 0.85 |
-| es-toolkit | 72 | 31 | 0.53 / 0.89 | 0.73 / 0.89 |
-| remeda | 16 | 1 | 0.50 / 0.60 | — / 0.00 |
-| zod | 317 | 55 | 0.23 / 1.00 | 1.00 / 1.00 |
+| Repository | Reported without note | Reported with note | Precision / recall at 1.9 without | With        |
+| ---------- | --------------------: | -----------------: | --------------------------------- | ----------- |
+| date-fns   |                    81 |                 63 | 1.00 / 0.92                       | 1.00 / 0.85 |
+| es-toolkit |                    72 |                 31 | 0.53 / 0.89                       | 0.73 / 0.89 |
+| remeda     |                    16 |                  1 | 0.50 / 0.60                       | — / 0.00    |
+| zod        |                   317 |                 55 | 0.23 / 1.00                       | 1.00 / 1.00 |
 
 On zod the note removes every false positive among the labels; on remeda it
 removes every true positive as well, because the note's remeda sentence
@@ -249,12 +249,12 @@ what it did.
 `similarity-ts-jev` 0.2.0 with its defaults (32 in flight, 64 pairs or
 50,000 tokens per request, two retries), one pass:
 
-| Repository | Files | Pairs | Reported | Families | Requests | Input tokens | Cost at $0.042/M | Wall | Retries / splits | `--dry-run` estimate |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| date-fns | 1,104 | 2,207 | 81 | 62 | 108 | 5,155,281 | $0.22 | 8.0 s | 0 / 0 | +1.4% |
-| es-toolkit | 848 | 596 | 72 | 59 | 43 | 1,905,093 | $0.08 | 4.6 s | 0 / 1 | +0.4% |
-| remeda | 225 | 165 | 16 | 16 | 12 | 495,743 | $0.02 | 3.2 s | 0 / 0 | +4.9% |
-| zod | 134 | 5,285 | 317 | 117 | 237 | 10,738,783 | $0.45 | 19.8 s | 7 / 0 | +3.3% |
+| Repository | Files | Pairs | Reported | Families | Requests | Input tokens | Cost at $0.042/M |   Wall | Retries / splits | `--dry-run` estimate |
+| ---------- | ----: | ----: | -------: | -------: | -------: | -----------: | ---------------: | -----: | ---------------- | -------------------- |
+| date-fns   | 1,104 | 2,207 |       81 |       62 |      108 |    5,155,281 |            $0.22 |  8.0 s | 0 / 0            | +1.4%                |
+| es-toolkit |   848 |   596 |       72 |       59 |       43 |    1,905,093 |            $0.08 |  4.6 s | 0 / 1            | +0.4%                |
+| remeda     |   225 |   165 |       16 |       16 |       12 |      495,743 |            $0.02 |  3.2 s | 0 / 0            | +4.9%                |
+| zod        |   134 | 5,285 |      317 |      117 |      237 |   10,738,783 |            $0.45 | 19.8 s | 7 / 0            | +3.3%                |
 
 The one split on es-toolkit was a batch the gateway rejected and the CLI
 asked again in two halves; the seven retries on zod were transient server
@@ -263,11 +263,11 @@ errors, each answered on the next attempt. No pair was left unjudged.
 With `--repeat 3` (the first pass answered from the cache):
 
 | Repository | Reported by the mean | Marked `!` | Spread mean / p90 | Families |
-| --- | ---: | ---: | --- | ---: |
-| date-fns | 82 | 13 | 0.07 / 0.14 | 61 |
-| es-toolkit | 72 | 15 | 0.08 / 0.15 | 61 |
-| remeda | 16 | 2 | 0.06 / 0.12 | 16 |
-| zod | 284 | 240 | 0.08 / 0.15 | 116 |
+| ---------- | -------------------: | ---------: | ----------------- | -------: |
+| date-fns   |                   82 |         13 | 0.07 / 0.14       |       61 |
+| es-toolkit |                   72 |         15 | 0.08 / 0.15       |       61 |
+| remeda     |                   16 |          2 | 0.06 / 0.12       |       16 |
+| zod        |                  284 |        240 | 0.08 / 0.15       |      116 |
 
 zod's scores cluster around the cutoff (1,955 of its 5,285 pairs are within
 0.25 of 1.9), so a single pass reports 33 pairs that the three-pass mean does
@@ -276,12 +276,12 @@ three repositories the mean changes the list by at most one pair.
 
 Labeled accuracy of these runs, single pass, at 1.9:
 
-| Repository | Labels (merge / keep) | Precision | Recall | Accuracy | AUC | Hold-out accuracy |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| date-fns | 32 (13 / 19) | 1.00 | 0.92 | 0.97 | 1.00 | 0.97 |
-| es-toolkit | 38 (9 / 29) | 0.53 | 0.89 | 0.79 | 0.93 | 0.89 |
-| remeda | 30 (5 / 25) | 0.50 | 0.60 | 0.83 | 0.90 | 0.80 |
-| zod | 32 (3 / 29) | 0.23 | 1.00 | 0.69 | 0.91 | 0.84 |
+| Repository | Labels (merge / keep) | Precision | Recall | Accuracy |  AUC | Hold-out accuracy |
+| ---------- | --------------------- | --------: | -----: | -------: | ---: | ----------------: |
+| date-fns   | 32 (13 / 19)          |      1.00 |   0.92 |     0.97 | 1.00 |              0.97 |
+| es-toolkit | 38 (9 / 29)           |      0.53 |   0.89 |     0.79 | 0.93 |              0.89 |
+| remeda     | 30 (5 / 25)           |      0.50 |   0.60 |     0.83 | 0.90 |              0.80 |
+| zod        | 32 (3 / 29)           |      0.23 |   1.00 |     0.69 | 0.91 |              0.84 |
 
 ## What did not transfer
 

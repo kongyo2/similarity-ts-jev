@@ -42,11 +42,11 @@ out. The output is empty when nothing is worth refactoring.
 
 ## Reading a line
 
-| Column | Meaning |
-| --- | --- |
-| `2.94` | Jev's `refactor` score: how strongly a careful reviewer of this repository would ask for the two to be merged. Pairs at or over `--min-score` (default `1.9`) are reported. |
-| flag | ` ` nothing to add. `?` Jev's confidence in the score is under `--unsure-below` (default `0.5`). `~` the score is within `--margin` (default `0.25`) of the cutoff. `!` under `--repeat`, the passes disagree on which side of the cutoff the pair falls. |
-| `copy` / `derive` / `extract` | The single change a reviewer would ask for: delete one copy and import the other; express one in terms of the other; pull a shared helper out of both. |
+| Column                        | Meaning                                                                                                                                                                                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2.94`                        | Jev's `refactor` score: how strongly a careful reviewer of this repository would ask for the two to be merged. Pairs at or over `--min-score` (default `1.9`) are reported.                                                                               |
+| flag                          | ` ` nothing to add. `?` Jev's confidence in the score is under `--unsure-below` (default `0.5`). `~` the score is within `--margin` (default `0.25`) of the cutoff. `!` under `--repeat`, the passes disagree on which side of the cutoff the pair falls. |
+| `copy` / `derive` / `extract` | The single change a reviewer would ask for: delete one copy and import the other; express one in terms of the other; pull a shared helper out of both.                                                                                                    |
 
 The flags change the wording, never the list. On 132 hand-labeled pairs a low
 confidence marked a weaker band (precision 0.40 under 0.5 against 0.72 above)
@@ -71,6 +71,7 @@ a `?`.
    8,253 pairs, a pair judged alone and the same pair judged in a batch of 60
    differ by 0.055 on average, which is also the difference between two
    solo passes.
+
 3. **Decide.** Pairs at or over `--min-score` are grouped into families of
    connected declarations, each printed once, best first.
 
@@ -79,12 +80,12 @@ a `?`.
 Single pass with the defaults, four repositories at their September 2026
 heads, tests excluded:
 
-| Repository | Files | Pairs in | Families out | Requests | Input tokens | Cost | Wall time |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| date-fns `pkgs/core/src` (locales excluded too) | 1,104 | 2,207 | 62 | 108 | 5.2M | $0.22 | 8.0 s |
-| es-toolkit `src` | 848 | 596 | 59 | 43 | 1.9M | $0.08 | 4.6 s |
-| remeda `packages/remeda/src` | 225 | 165 | 16 | 12 | 0.5M | $0.02 | 3.2 s |
-| zod `packages/zod/src` | 134 | 5,285 | 117 | 237 | 10.7M | $0.45 | 19.8 s |
+| Repository                                      | Files | Pairs in | Families out | Requests | Input tokens |  Cost | Wall time |
+| ----------------------------------------------- | ----: | -------: | -----------: | -------: | -----------: | ----: | --------: |
+| date-fns `pkgs/core/src` (locales excluded too) | 1,104 |    2,207 |           62 |      108 |         5.2M | $0.22 |     8.0 s |
+| es-toolkit `src`                                |   848 |      596 |           59 |       43 |         1.9M | $0.08 |     4.6 s |
+| remeda `packages/remeda/src`                    |   225 |      165 |           16 |       12 |         0.5M | $0.02 |     3.2 s |
+| zod `packages/zod/src`                          |   134 |    5,285 |          117 |      237 |        10.7M | $0.45 |    19.8 s |
 
 Roughly 2,000 to 3,000 input tokens per pair, so a thousand pairs cost about
 ten cents and five seconds. `--dry-run` prints the counts first; its token
@@ -144,44 +145,44 @@ with `!`.
 
 Detection options mirror `similarity-ts`:
 
-| Option | Default | |
-| --- | --- | --- |
-| `--modes <list>` | `functions,types,classes` | add `overlap` for token windows |
-| `-t, --threshold`, `--min-lines`, `--min-tokens`, `--no-size-penalty`, `--extensions`, `--types-only`, `--no-allow-cross-kind`, `--type-literals`, `--overlap-*` | as in similarity-ts | passed through |
-| `--same-file-only`, `--cross-file-only`, `--exclude <pattern>` | as in similarity-ts | applied to both detectors |
-| `--no-fallow-near` | near-miss on | disable fallow's near-miss detection |
-| `--fallow-min-tokens`, `--fallow-min-lines` | `50`, `5` | clone size floor |
+| Option                                                                                                                                                           | Default                   |                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------ |
+| `--modes <list>`                                                                                                                                                 | `functions,types,classes` | add `overlap` for token windows      |
+| `-t, --threshold`, `--min-lines`, `--min-tokens`, `--no-size-penalty`, `--extensions`, `--types-only`, `--no-allow-cross-kind`, `--type-literals`, `--overlap-*` | as in similarity-ts       | passed through                       |
+| `--same-file-only`, `--cross-file-only`, `--exclude <pattern>`                                                                                                   | as in similarity-ts       | applied to both detectors            |
+| `--no-fallow-near`                                                                                                                                               | near-miss on              | disable fallow's near-miss detection |
+| `--fallow-min-tokens`, `--fallow-min-lines`                                                                                                                      | `50`, `5`                 | clone size floor                     |
 
 Judgment:
 
-| Option | Default | |
-| --- | --- | --- |
-| `--min-score <0-3>` | `1.9` | lowest score reported |
-| `--unsure-below <0-1>` | `0.5` | confidence under which a reported pair gets `?` |
-| `--margin <0-3>` | `0.25` | distance to the cutoff within which a pair gets `~` |
-| `--repeat <n>` | `1` | passes per pair; the mean decides, `!` marks disagreement |
-| `--conventions <text>` | — | what this repository keeps separate on purpose |
-| `--all` | off | also list the pairs Jev would keep as they are |
-| `--max-pairs <n>` | all | judge only the n most similar pairs |
-| `--concurrency <n>` | `32` | requests in flight; halved after a rate limit, recovered one per success |
-| `--pairs-per-request <n>` | `64` | pairs packed into one request |
-| `--budget-tokens <n>` | `50000` | estimated input tokens per request (the gateway ceiling is 65,536) |
-| `--retries <n>` | `2` | extra attempts after a rate limit, server error, or connection failure |
-| `--model <name>` | `TYPESAFE_DEFAULT_MODEL` or `jev-latest` | Jev model |
-| `--base-url <url>` | `TYPESAFE_BASE_URL` or `https://api.typesafe.ai` | TypeSafe-compatible API root |
-| `--timeout <ms>` | `60000` | per request attempt |
+| Option                    | Default                                          |                                                                          |
+| ------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------ |
+| `--min-score <0-3>`       | `1.9`                                            | lowest score reported                                                    |
+| `--unsure-below <0-1>`    | `0.5`                                            | confidence under which a reported pair gets `?`                          |
+| `--margin <0-3>`          | `0.25`                                           | distance to the cutoff within which a pair gets `~`                      |
+| `--repeat <n>`            | `1`                                              | passes per pair; the mean decides, `!` marks disagreement                |
+| `--conventions <text>`    | —                                                | what this repository keeps separate on purpose                           |
+| `--all`                   | off                                              | also list the pairs Jev would keep as they are                           |
+| `--max-pairs <n>`         | all                                              | judge only the n most similar pairs                                      |
+| `--concurrency <n>`       | `32`                                             | requests in flight; halved after a rate limit, recovered one per success |
+| `--pairs-per-request <n>` | `64`                                             | pairs packed into one request                                            |
+| `--budget-tokens <n>`     | `50000`                                          | estimated input tokens per request (the gateway ceiling is 65,536)       |
+| `--retries <n>`           | `2`                                              | extra attempts after a rate limit, server error, or connection failure   |
+| `--model <name>`          | `TYPESAFE_DEFAULT_MODEL` or `jev-latest`         | Jev model                                                                |
+| `--base-url <url>`        | `TYPESAFE_BASE_URL` or `https://api.typesafe.ai` | TypeSafe-compatible API root                                             |
+| `--timeout <ms>`          | `60000`                                          | per request attempt                                                      |
 
 Output and bookkeeping:
 
-| Option | Default | |
-| --- | --- | --- |
-| `--format pretty\|json`, `--output <path>` | `pretty` | as in similarity-ts |
-| `--stats` | off | pairs, requests, tokens, cost, retries, and time (stderr for pretty, in the document for json) |
-| `--cache <file>` | — | record every answer, replay it on later runs |
-| `--record <file>`, `--replay <file>` | — | keep every judgment and the thresholds; re-decide without requests |
-| `--calibrate`, `--labels <file>` | off | distribution, headroom, and accuracy instead of results |
-| `--dry-run` | off | pair, request, token, and cost counts without asking Jev |
-| `--fail-on-warnings`, `--fail-on-duplicates` | off | CI gates |
+| Option                                       | Default  |                                                                                                |
+| -------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `--format pretty\|json`, `--output <path>`   | `pretty` | as in similarity-ts                                                                            |
+| `--stats`                                    | off      | pairs, requests, tokens, cost, retries, and time (stderr for pretty, in the document for json) |
+| `--cache <file>`                             | —        | record every answer, replay it on later runs                                                   |
+| `--record <file>`, `--replay <file>`         | —        | keep every judgment and the thresholds; re-decide without requests                             |
+| `--calibrate`, `--labels <file>`             | off      | distribution, headroom, and accuracy instead of results                                        |
+| `--dry-run`                                  | off      | pair, request, token, and cost counts without asking Jev                                       |
+| `--fail-on-warnings`, `--fail-on-duplicates` | off      | CI gates                                                                                       |
 
 Exit codes: `0` done, `1` usage or analysis error (or a `--fail-on-*` gate
 fired), `2` some pairs could not be judged.
@@ -223,7 +224,13 @@ const report = await analyzeWithJev(new TypeSafeClient(), {
   conventions: "Locale files are kept separate on purpose.",
 });
 for (const pair of report.results) {
-  console.log(pair.judgment.score, pair.judgment.shape, pair.verdict.unsure, pair.left.symbolName, pair.right.symbolName);
+  console.log(
+    pair.judgment.score,
+    pair.judgment.shape,
+    pair.verdict.unsure,
+    pair.left.symbolName,
+    pair.right.symbolName,
+  );
 }
 console.log(formatCalibration(calibrate(report, process.cwd())));
 ```

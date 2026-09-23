@@ -27,7 +27,9 @@ const { values: flags, positionals } = parseArgs({
   },
 });
 if (positionals.length === 0) {
-  console.error("usage: verify.ts <paths...> [--labels labels.json] [--repeat n] [--conventions text] [--record run.json]");
+  console.error(
+    "usage: verify.ts <paths...> [--labels labels.json] [--repeat n] [--conventions text] [--record run.json]",
+  );
   process.exit(1);
 }
 
@@ -51,7 +53,8 @@ const report = await analyzeWithJev(client, {
   repeat: Number(flags.repeat),
   ...(flags.conventions !== undefined ? { conventions: flags.conventions } : {}),
   ...(flags.sample !== undefined ? { maxPairs: Number(flags.sample) } : {}),
-  onProgress: (p) => process.stderr.write(`\r  judged ${p.judged}/${p.total} (${p.requests} requests, ${p.unjudged} failed)   `),
+  onProgress: (p) =>
+    process.stderr.write(`\r  judged ${p.judged}/${p.total} (${p.requests} requests, ${p.unjudged} failed)   `),
 });
 process.stderr.write("\n");
 await cache.save(path.resolve(cwd, flags.cache));
@@ -62,12 +65,17 @@ console.log("score  conf  logic concept shape          mode      pair");
 for (const pair of all) {
   const j = pair.judgment;
   const extra = pair.instances !== undefined ? ` (${pair.instances.length} places)` : "";
-  console.log(`${j.score.toFixed(2)}   ${j.confidence.toFixed(2)}  ${j.sameLogic.toFixed(2)}  ${j.sameConcept.toFixed(2)}    ${j.shape.padEnd(14)} ${pair.mode.padEnd(9)} ${pairKey(pair, cwd)}${extra}`);
+  console.log(
+    `${j.score.toFixed(2)}   ${j.confidence.toFixed(2)}  ${j.sameLogic.toFixed(2)}  ${j.sameConcept.toFixed(2)}    ${j.shape.padEnd(14)} ${pair.mode.padEnd(9)} ${pairKey(pair, cwd)}${extra}`,
+  );
 }
 
-const labels: Labels | undefined = flags.labels !== undefined ? await readLabels(path.resolve(cwd, flags.labels)) : undefined;
+const labels: Labels | undefined =
+  flags.labels !== undefined ? await readLabels(path.resolve(cwd, flags.labels)) : undefined;
 console.log(`\n${formatCalibration(calibrate(report, cwd, labels))}`);
-console.log(`\n${formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length })}`);
+console.log(
+  `\n${formatStats(report.stats, report.thresholds, { results: report.results.length, rejected: report.rejectedCount, unjudged: report.unjudged.length })}`,
+);
 for (const u of report.unjudged.slice(0, 5)) console.log(`  unjudged: ${u.error}`);
 if (flags.json !== undefined) await fs.writeFile(path.resolve(cwd, flags.json), JSON.stringify(report, null, 2));
 if (flags.record !== undefined) await saveRecord(buildRecord(report, cwd), path.resolve(cwd, flags.record));

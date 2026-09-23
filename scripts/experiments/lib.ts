@@ -14,9 +14,24 @@ export interface CorpusSpec {
 }
 
 export const CORPORA: Record<string, CorpusSpec> = {
-  "date-fns": { name: "date-fns", dir: "date-fns", paths: ["pkgs/core/src"], exclude: ["**/*.test.ts", "**/locale/**", "**/*.d.ts"] },
-  "es-toolkit": { name: "es-toolkit", dir: "es-toolkit", paths: ["src"], exclude: ["**/*.spec.ts", "**/*.test.ts", "**/*.d.ts"] },
-  remeda: { name: "remeda", dir: "remeda", paths: ["packages/remeda/src"], exclude: ["**/*.test.ts", "**/*.test-d.ts", "**/*.d.ts"] },
+  "date-fns": {
+    name: "date-fns",
+    dir: "date-fns",
+    paths: ["pkgs/core/src"],
+    exclude: ["**/*.test.ts", "**/locale/**", "**/*.d.ts"],
+  },
+  "es-toolkit": {
+    name: "es-toolkit",
+    dir: "es-toolkit",
+    paths: ["src"],
+    exclude: ["**/*.spec.ts", "**/*.test.ts", "**/*.d.ts"],
+  },
+  remeda: {
+    name: "remeda",
+    dir: "remeda",
+    paths: ["packages/remeda/src"],
+    exclude: ["**/*.test.ts", "**/*.test-d.ts", "**/*.d.ts"],
+  },
   zod: { name: "zod", dir: "zod", paths: ["packages/zod/src"], exclude: ["**/*.test.ts", "**/tests/**", "**/*.d.ts"] },
 };
 
@@ -40,7 +55,9 @@ export async function loadCorpus(spec: CorpusSpec, refresh = false): Promise<Cor
   const file = path.join(snapshotDir, `${spec.name}.json`);
   if (!refresh && fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8")) as Corpus;
   const cwd = path.join(corporaRoot(), spec.dir);
-  const detection = await detect({ similarityTs: { paths: spec.paths, cwd, modes: ["functions", "types", "classes"], exclude: spec.exclude } });
+  const detection = await detect({
+    similarityTs: { paths: spec.paths, cwd, modes: ["functions", "types", "classes"], exclude: spec.exclude },
+  });
   const { snippets } = await readSnippets(orderPairs(detection.pairs), { cwd });
   const corpus: Corpus = { name: spec.name, snippets };
   fs.mkdirSync(snapshotDir, { recursive: true });
@@ -66,7 +83,9 @@ export interface Item {
 }
 
 export function items(corpora: Corpus[]): Item[] {
-  return corpora.flatMap((corpus) => corpus.snippets.map((snippet) => ({ corpus: corpus.name, key: `${corpus.name}#${snippet.index}`, snippet })));
+  return corpora.flatMap((corpus) =>
+    corpus.snippets.map((snippet) => ({ corpus: corpus.name, key: `${corpus.name}#${snippet.index}`, snippet })),
+  );
 }
 
 export function mulberry32(seed: number): () => number {
@@ -115,7 +134,11 @@ function cost(value: unknown): number {
     return length / (value.length >= TEXT_LIKE_LENGTH ? CHARS_PER_TOKEN_TEXT : CHARS_PER_TOKEN_STRUCT);
   }
   if (value === null || typeof value !== "object") return String(value).length / CHARS_PER_TOKEN_STRUCT;
-  if (Array.isArray(value)) return (2 + Math.max(0, value.length - 1)) / CHARS_PER_TOKEN_STRUCT + value.reduce((sum: number, item) => sum + cost(item), 0);
+  if (Array.isArray(value))
+    return (
+      (2 + Math.max(0, value.length - 1)) / CHARS_PER_TOKEN_STRUCT +
+      value.reduce((sum: number, item) => sum + cost(item), 0)
+    );
   const entries = Object.entries(value).filter(([, v]) => v !== undefined);
   let total = (2 + Math.max(0, entries.length - 1)) / CHARS_PER_TOKEN_STRUCT;
   for (const [key, v] of entries) total += (JSON.stringify(key).length + 1) / CHARS_PER_TOKEN_STRUCT + cost(v);
@@ -179,7 +202,17 @@ export class Asker {
   readonly #arm: string;
   readonly #model: string | undefined;
   readonly #log: string;
-  readonly stats = { requests: 0, ok: 0, failed: 0, inputTokens: 0, outputTokens: 0, ms: 0, retries: 0, rateLimited: 0, splits: 0 };
+  readonly stats = {
+    requests: 0,
+    ok: 0,
+    failed: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    ms: 0,
+    retries: 0,
+    rateLimited: 0,
+    splits: 0,
+  };
 
   constructor(options: AskerOptions) {
     this.#exp = options.exp;
@@ -212,17 +245,44 @@ export class Asker {
     const bytes = JSON.stringify(body).length;
     const estimate = estimateTokens({ ...body, model: this.model });
     const started = Date.now();
-    const base = { at: new Date(started).toISOString(), exp: this.#exp, arm: this.#arm, tag, questions: Object.keys(questions).length, bytes, estimate };
+    const base = {
+      at: new Date(started).toISOString(),
+      exp: this.#exp,
+      arm: this.#arm,
+      tag,
+      questions: Object.keys(questions).length,
+      bytes,
+      estimate,
+    };
     try {
-      const { data, requestId } = await this.#client.systemOne({ state: state as never, questions, ...(this.#model !== undefined ? { model: this.#model } : {}) }).withResponse();
+      const { data, requestId } = await this.#client
+        .systemOne({ state: state as never, questions, ...(this.#model !== undefined ? { model: this.#model } : {}) })
+        .withResponse();
       const ms = Date.now() - started;
       this.stats.requests += 1;
       this.stats.ok += 1;
       this.stats.inputTokens += data.usage.input_tokens;
       this.stats.outputTokens += data.usage.output_tokens;
       this.stats.ms += ms;
-      appendLine(this.#log, { ...base, inputTokens: data.usage.input_tokens, outputTokens: data.usage.output_tokens, ms, ok: true, status: 200, requestId, model: data.model } satisfies RequestRecord);
-      return { answers: data.answers, model: data.model, inputTokens: data.usage.input_tokens, outputTokens: data.usage.output_tokens, ms, requestId, splits: 0 };
+      appendLine(this.#log, {
+        ...base,
+        inputTokens: data.usage.input_tokens,
+        outputTokens: data.usage.output_tokens,
+        ms,
+        ok: true,
+        status: 200,
+        requestId,
+        model: data.model,
+      } satisfies RequestRecord);
+      return {
+        answers: data.answers,
+        model: data.model,
+        inputTokens: data.usage.input_tokens,
+        outputTokens: data.usage.output_tokens,
+        ms,
+        requestId,
+        splits: 0,
+      };
     } catch (error) {
       const ms = Date.now() - started;
       this.stats.requests += 1;
@@ -231,14 +291,27 @@ export class Asker {
       const status = error instanceof APIError ? error.status : 0;
       if (error instanceof RateLimitError) this.stats.rateLimited += 1;
       const message = describe(error);
-      appendLine(this.#log, { ...base, inputTokens: 0, outputTokens: 0, ms, ok: false, status, error: message, ...(error instanceof APIError && error.requestId !== undefined ? { requestId: error.requestId } : {}) } satisfies RequestRecord);
+      appendLine(this.#log, {
+        ...base,
+        inputTokens: 0,
+        outputTokens: 0,
+        ms,
+        ok: false,
+        status,
+        error: message,
+        ...(error instanceof APIError && error.requestId !== undefined ? { requestId: error.requestId } : {}),
+      } satisfies RequestRecord);
       const tooBig = error instanceof BadRequestError;
       const ids = Object.keys(questions);
       if (tooBig && options.split !== false && ids.length > 1) {
         this.stats.splits += 1;
         const middle = Math.ceil(ids.length / 2);
-        const halves = [ids.slice(0, middle), ids.slice(middle)].map((part) => Object.fromEntries(part.map((id) => [id, questions[id]!])));
-        const results = await Promise.all(halves.map((half, i) => this.ask(pruneState(state, Object.keys(half)), half, `${tag}/${i}`, options)));
+        const halves = [ids.slice(0, middle), ids.slice(middle)].map((part) =>
+          Object.fromEntries(part.map((id) => [id, questions[id]!])),
+        );
+        const results = await Promise.all(
+          halves.map((half, i) => this.ask(pruneState(state, Object.keys(half)), half, `${tag}/${i}`, options)),
+        );
         return {
           answers: Object.assign({}, ...results.map((r) => r.answers)),
           model: results[0]!.model,
@@ -259,15 +332,24 @@ export function pruneState(state: unknown, questionIds: string[]): unknown {
   const pairs = (state as { pairs?: unknown }).pairs;
   if (typeof pairs !== "object" || pairs === null || Array.isArray(pairs)) return state;
   const wanted = new Set(questionIds.map((id) => id.replace(/_[a-z_]+$/, "")));
-  return { ...(state as Record<string, unknown>), pairs: Object.fromEntries(Object.entries(pairs as Record<string, unknown>).filter(([ref]) => wanted.has(ref))) };
+  return {
+    ...(state as Record<string, unknown>),
+    pairs: Object.fromEntries(Object.entries(pairs as Record<string, unknown>).filter(([ref]) => wanted.has(ref))),
+  };
 }
 
 export function describe(error: unknown): string {
-  if (error instanceof APIError) return `${error.name} ${error.status}: ${JSON.stringify(error.body ?? "").slice(0, 200)}`;
+  if (error instanceof APIError)
+    return `${error.name} ${error.status}: ${JSON.stringify(error.body ?? "").slice(0, 200)}`;
   return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 }
 
-export async function mapConcurrent<T, R>(list: T[], limit: number, run: (item: T, index: number) => Promise<R>, onDone?: (done: number, total: number) => void): Promise<R[]> {
+export async function mapConcurrent<T, R>(
+  list: T[],
+  limit: number,
+  run: (item: T, index: number) => Promise<R>,
+  onDone?: (done: number, total: number) => void,
+): Promise<R[]> {
   const out: R[] = new Array(list.length);
   let next = 0;
   let done = 0;

@@ -12,7 +12,8 @@ export const TASK =
   "The declarations are shown with their file paths, the comment block above them, and their source text. " +
   "The pairs in this request are unrelated to one another: judge each pair only on its own two declarations, and do not compare or rank pairs against each other.";
 
-export const REFACTOR_QUESTION = "How strongly would a careful reviewer of this repository ask for `a` and `b` to be merged into one shared implementation?";
+export const REFACTOR_QUESTION =
+  "How strongly would a careful reviewer of this repository ask for `a` and `b` to be merged into one shared implementation?";
 
 export const REFACTOR_LEVELS = [
   "Would not ask for a change: the two are meant to stay separate. Distinct documented operations or public entry points, unrelated concepts that merely share a shape, test fixtures, or generated code",
@@ -21,33 +22,45 @@ export const REFACTOR_LEVELS = [
   "Would insist on merging: a copy of a whole implementation with at most cosmetic differences, so two copies will only drift apart",
 ] as const;
 
-export const REFACTOR_LABELS = ["would not ask for a change", "would let it pass", "would ask for one shared implementation", "would insist on merging"] as const;
+export const REFACTOR_LABELS = [
+  "would not ask for a change",
+  "would let it pass",
+  "would ask for one shared implementation",
+  "would insist on merging",
+] as const;
 
 export const SAME_LOGIC = {
   code: {
-    question: "Setting aside identifier names and data literals (strings, numbers, property names), does `a` perform the same operations in the same order as `b`?",
+    question:
+      "Setting aside identifier names and data literals (strings, numbers, property names), does `a` perform the same operations in the same order as `b`?",
     true: "Yes: one could replace the other after renaming identifiers and turning the differing literals into parameters",
     false: "No: they differ in an operation, a condition, the order of steps, or in what they call",
   },
   type: {
-    question: "Setting aside the names, do `a` and `b` describe the same shape: the same members with the same types, in the same roles?",
+    question:
+      "Setting aside the names, do `a` and `b` describe the same shape: the same members with the same types, in the same roles?",
     true: "Yes: one could replace the other member for member",
     false: "No: they differ in a member, a member's type, or what the members are for",
   },
 } as const;
 
 export const SAME_CONCEPT = {
-  question: "Do `a` and `b` stand for the same concept or responsibility in this codebase, rather than two different things that happen to look alike?",
+  question:
+    "Do `a` and `b` stand for the same concept or responsibility in this codebase, rather than two different things that happen to look alike?",
   true: "Yes: their names, documentation, and callers point at one and the same thing",
-  false: "No: they stand for different things (different operations, units, entities, or stages) that only share their form",
+  false:
+    "No: they stand for different things (different operations, units, entities, or stages) that only share their form",
 } as const;
 
 export const SHAPE_QUESTION = "If a reviewer had `a` and `b` merged, which single change would they ask for?";
 
 export const SHAPE_OPTIONS = {
-  remove_copy: "Keep one declaration and delete the other; whatever used the deleted one uses the survivor instead. Right when the two are the same thing twice, with at most cosmetic differences.",
-  derive: "Keep both names, but write one in terms of the other: one function calls the other with fixed arguments or a small wrapper, or one type is written as an extension, Pick, Omit, or intersection of the other. Right when one is a special case or a subset of the other.",
-  extract_shared: "Introduce a third, shared piece (a helper function or a base type) that carries the common part, parameterized where the two differ, and reduce both `a` and `b` to what is specific to each. Right when both are specializations of something neither of them is.",
+  remove_copy:
+    "Keep one declaration and delete the other; whatever used the deleted one uses the survivor instead. Right when the two are the same thing twice, with at most cosmetic differences.",
+  derive:
+    "Keep both names, but write one in terms of the other: one function calls the other with fixed arguments or a small wrapper, or one type is written as an extension, Pick, Omit, or intersection of the other. Right when one is a special case or a subset of the other.",
+  extract_shared:
+    "Introduce a third, shared piece (a helper function or a base type) that carries the common part, parameterized where the two differ, and reduce both `a` and `b` to what is specific to each. Right when both are specializations of something neither of them is.",
 } as const;
 
 export const SHAPE_LABELS = Object.keys(SHAPE_OPTIONS) as (keyof typeof SHAPE_OPTIONS)[];
@@ -59,7 +72,12 @@ export interface Options {
 }
 
 export function questionIds(index: number): Record<Kind, string> {
-  return { refactor: `p${index}_refactor`, same_logic: `p${index}_same_logic`, same_concept: `p${index}_same_concept`, shape: `p${index}_shape` };
+  return {
+    refactor: `p${index}_refactor`,
+    same_logic: `p${index}_same_logic`,
+    same_concept: `p${index}_same_concept`,
+    shape: `p${index}_shape`,
+  };
 }
 
 export function pairRef(index: number): string {
@@ -88,11 +106,23 @@ export function subjectFields(snippet: PairSnippet, variant: Variant, options: O
   return { a: describe(snippet.a, options, "a"), b: describe(snippet.b, options, "b"), ...family };
 }
 
-export function buildState(repository: string, variant: Variant, batch: PairSnippet[] = [], options: Options = {}): Record<string, unknown> {
-  const state: Record<string, unknown> = { task: TASK, repository, ...(options.conventions !== undefined ? { repository_conventions: options.conventions } : {}) };
+export function buildState(
+  repository: string,
+  variant: Variant,
+  batch: PairSnippet[] = [],
+  options: Options = {},
+): Record<string, unknown> {
+  const state: Record<string, unknown> = {
+    task: TASK,
+    repository,
+    ...(options.conventions !== undefined ? { repository_conventions: options.conventions } : {}),
+  };
   if (variant === "long") return state;
   state.definitions = {
-    refactor: { question: REFACTOR_QUESTION, levels: Object.fromEntries(REFACTOR_LEVELS.map((level, i) => [String(i), level])) },
+    refactor: {
+      question: REFACTOR_QUESTION,
+      levels: Object.fromEntries(REFACTOR_LEVELS.map((level, i) => [String(i), level])),
+    },
     same_logic: { code: SAME_LOGIC.code, type: SAME_LOGIC.type },
     same_concept: SAME_CONCEPT,
     shape: { question: SHAPE_QUESTION, options: SHAPE_OPTIONS },
@@ -111,12 +141,18 @@ export function buildState(repository: string, variant: Variant, batch: PairSnip
         },
       ]),
     );
-    state.note_on_pairs = "Each question names one entry of `pairs` (`pair`); `a` and `b` in the definitions refer to that entry's `a` and `b`.";
+    state.note_on_pairs =
+      "Each question names one entry of `pairs` (`pair`); `a` and `b` in the definitions refer to that entry's `a` and `b`.";
   }
   return state;
 }
 
-export function pairQuestions(snippet: PairSnippet, variant: Variant, kinds: Iterable<Kind> = KINDS, options: Options = {}): Questions {
+export function pairQuestions(
+  snippet: PairSnippet,
+  variant: Variant,
+  kinds: Iterable<Kind> = KINDS,
+  options: Options = {},
+): Questions {
   const ids = questionIds(snippet.index);
   const kind = kindOf(snippet);
   const subject = subjectFields(snippet, variant, options);
@@ -136,7 +172,10 @@ export function pairQuestions(snippet: PairSnippet, variant: Variant, kinds: Ite
     } else if (which === "same_concept") {
       questions[ids.same_concept] =
         variant === "long"
-          ? noul({ question: SAME_CONCEPT.question, ...subject }, { true: SAME_CONCEPT.true, false: SAME_CONCEPT.false })
+          ? noul(
+              { question: SAME_CONCEPT.question, ...subject },
+              { true: SAME_CONCEPT.true, false: SAME_CONCEPT.false },
+            )
           : noul({ judge: "same_concept", ...subject }, { true: "yes", false: "no" });
     } else {
       questions[ids.shape] =
@@ -158,15 +197,21 @@ export interface Read {
 export function readAnswers(index: number, answers: Record<string, unknown>): Read {
   const ids = questionIds(index);
   const out: Read = {};
-  const refactor = answers[ids.refactor] as { type?: string; score?: number; confidence?: number; probabilities?: Record<string, number> } | undefined;
+  const refactor = answers[ids.refactor] as
+    { type?: string; score?: number; confidence?: number; probabilities?: Record<string, number> } | undefined;
   if (refactor?.type === "score" && typeof refactor.score === "number") {
-    out.refactor = { score: refactor.score, confidence: refactor.confidence ?? 0, probabilities: refactor.probabilities ?? {} };
+    out.refactor = {
+      score: refactor.score,
+      confidence: refactor.confidence ?? 0,
+      probabilities: refactor.probabilities ?? {},
+    };
   }
   const logic = answers[ids.same_logic] as { type?: string; noul?: number } | undefined;
   if (logic?.type === "noul" && typeof logic.noul === "number") out.same_logic = logic.noul;
   const concept = answers[ids.same_concept] as { type?: string; noul?: number } | undefined;
   if (concept?.type === "noul" && typeof concept.noul === "number") out.same_concept = concept.noul;
-  const shape = answers[ids.shape] as { type?: string; choice?: string; confidence?: number; probabilities?: Record<string, number> } | undefined;
+  const shape = answers[ids.shape] as
+    { type?: string; choice?: string; confidence?: number; probabilities?: Record<string, number> } | undefined;
   if (shape?.type === "choice" && typeof shape.choice === "string") {
     out.shape = { choice: shape.choice, confidence: shape.confidence ?? 0, probabilities: shape.probabilities ?? {} };
   }

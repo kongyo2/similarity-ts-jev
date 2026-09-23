@@ -18,11 +18,16 @@ const configurations = [
 ];
 for (const configuration of configurations) {
   const report = await analyzeWithJev(client, {
-    detect: { similarityTs: { paths: ["."], cwd: project, modes: ["functions", "types", "classes"] }, fallow: configuration.fallow },
+    detect: {
+      similarityTs: { paths: ["."], cwd: project, modes: ["functions", "types", "classes"] },
+      fallow: configuration.fallow,
+    },
     cache,
     repeat: configuration.repeat,
   });
-  console.log(`\n### ${configuration.name}: ${report.stats.requests} new request(s), ${report.stats.cacheHits} cached\n`);
+  console.log(
+    `\n### ${configuration.name}: ${report.stats.requests} new request(s), ${report.stats.cacheHits} cached\n`,
+  );
   console.log(formatPrettyReport(report, project, { includeRejected: true }));
 }
 const saved = await cache.save(cacheFile);

@@ -13,7 +13,8 @@ export const FIXTURE_CACHE = path.join(ROOT, "test", "fixtures", "jev-cache.json
 function fixtureModel(): string {
   const file = JSON.parse(readFileSync(FIXTURE_CACHE, "utf8")) as CacheFile;
   const models = new Set(Object.values(file.entries).map((entry) => entry.request.model ?? "jev-latest"));
-  if (models.size !== 1) throw new Error(`the fixture cache was recorded under ${models.size} model names: ${[...models].join(", ")}`);
+  if (models.size !== 1)
+    throw new Error(`the fixture cache was recorded under ${models.size} model names: ${[...models].join(", ")}`);
   return [...models][0]!;
 }
 
@@ -21,9 +22,17 @@ export const FIXTURE_MODEL = fixtureModel();
 
 export const silent = { log() {}, error() {} };
 
-type Handler = (request: { state: unknown; questions: Questions; model?: string }) => Promise<SystemOneResult<Questions>> | SystemOneResult<Questions>;
+type Handler = (request: {
+  state: unknown;
+  questions: Questions;
+  model?: string;
+}) => Promise<SystemOneResult<Questions>> | SystemOneResult<Questions>;
 
-export function stubClient(handler: Handler, requestId = "req_test", defaultModel?: string): JudgeClient & { calls: number } {
+export function stubClient(
+  handler: Handler,
+  requestId = "req_test",
+  defaultModel?: string,
+): JudgeClient & { calls: number } {
   const client = {
     calls: 0,
     ...(defaultModel !== undefined ? { defaultModel } : {}),
@@ -46,7 +55,10 @@ export const offline = stubClient(
   FIXTURE_MODEL,
 );
 
-export function answerAll(request: { questions: Questions }, scoreFor?: (instructions: string) => number): SystemOneResult<Questions> {
+export function answerAll(
+  request: { questions: Questions },
+  scoreFor?: (instructions: string) => number,
+): SystemOneResult<Questions> {
   const answers: Record<string, unknown> = {};
   for (const [id, question] of Object.entries(request.questions)) {
     const instructions = JSON.stringify(question.instructions);
@@ -60,11 +72,25 @@ export function answerAll(request: { questions: Questions }, scoreFor?: (instruc
       answers[id] = { type: "noul", noul: merge ? 0.9 : 0.2 };
     } else if (question.type === "choice") {
       answers[id] = merge
-        ? { type: "choice", choice: "remove_copy", confidence: 0.9, probabilities: { remove_copy: 0.9, derive: 0.05, extract_shared: 0.05 } }
-        : { type: "choice", choice: "extract_shared", confidence: 0.5, probabilities: { remove_copy: 0.2, derive: 0.3, extract_shared: 0.5 } };
+        ? {
+            type: "choice",
+            choice: "remove_copy",
+            confidence: 0.9,
+            probabilities: { remove_copy: 0.9, derive: 0.05, extract_shared: 0.05 },
+          }
+        : {
+            type: "choice",
+            choice: "extract_shared",
+            confidence: 0.5,
+            probabilities: { remove_copy: 0.2, derive: 0.3, extract_shared: 0.5 },
+          };
     }
   }
-  return { model: "jev-1.13.0", answers: answers as SystemOneResult<Questions>["answers"], usage: { input_tokens: 100, output_tokens: 10 } };
+  return {
+    model: "jev-1.13.0",
+    answers: answers as SystemOneResult<Questions>["answers"],
+    usage: { input_tokens: 100, output_tokens: 10 },
+  };
 }
 
 export function judgment(score: number, extra: Partial<Judgment> = {}): Judgment {
@@ -82,7 +108,13 @@ export function judgment(score: number, extra: Partial<Judgment> = {}): Judgment
   };
 }
 
-export function location(filePath: string, startLine: number, endLine: number, symbolName = "x", kind = "function"): AnalyzerLocation {
+export function location(
+  filePath: string,
+  startLine: number,
+  endLine: number,
+  symbolName = "x",
+  kind = "function",
+): AnalyzerLocation {
   return { filePath, startLine, endLine, symbolName, kind };
 }
 

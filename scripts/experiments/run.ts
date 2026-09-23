@@ -2,7 +2,23 @@ import fs from "node:fs";
 import path from "node:path";
 import { BadRequestError } from "@typesafe-ai/sdk";
 import type { Questions } from "@typesafe-ai/sdk";
-import { Asker, CORPORA, appendLine, describe, estimateTokens, flag, has, items, loadCorpora, mapConcurrent, numberFlag, progress, resultsRoot, shuffled, subset } from "./lib.ts";
+import {
+  Asker,
+  CORPORA,
+  appendLine,
+  describe,
+  estimateTokens,
+  flag,
+  has,
+  items,
+  loadCorpora,
+  mapConcurrent,
+  numberFlag,
+  progress,
+  resultsRoot,
+  shuffled,
+  subset,
+} from "./lib.ts";
 import type { Item } from "./lib.ts";
 import { KINDS, buildState, pairQuestions, readAnswers } from "./questions-v2.ts";
 import type { Kind, Options, Variant } from "./questions-v2.ts";
@@ -74,10 +90,17 @@ const size = flag(argv, "subset") !== undefined ? numberFlag(argv, "subset", 0) 
 const batchSize = numberFlag(argv, "batch", 40);
 const budget = numberFlag(argv, "budget", 40_000);
 const conventions = flag(argv, "conventions");
-const options: Options = { doc: !has(argv, "no-doc"), paths: !has(argv, "no-paths"), ...(conventions !== undefined ? { conventions } : {}) };
+const options: Options = {
+  doc: !has(argv, "no-doc"),
+  paths: !has(argv, "no-paths"),
+  ...(conventions !== undefined ? { conventions } : {}),
+};
 const model = flag(argv, "model");
 const keysFile = flag(argv, "keys");
-const onlyKeys = keysFile !== undefined ? new Set(Object.keys(JSON.parse(fs.readFileSync(keysFile, "utf8")) as Record<string, unknown>)) : undefined;
+const onlyKeys =
+  keysFile !== undefined
+    ? new Set(Object.keys(JSON.parse(fs.readFileSync(keysFile, "utf8")) as Record<string, unknown>))
+    : undefined;
 
 function selected(list: Item[]): Item[] {
   const chosen = onlyKeys !== undefined ? list.filter((item) => onlyKeys.has(item.key)) : list;
@@ -115,7 +138,11 @@ async function ceilings(): Promise<void> {
   const client = asker("ceilings", arm);
   const state = buildState("probe", "long");
   const sample = shuffled(all, seed).slice(0, 400);
-  const questionsFor = (count: number): Questions => Object.assign({}, ...sample.slice(0, count).map((item) => pairQuestions(item.snippet, "long", ["refactor"], options)));
+  const questionsFor = (count: number): Questions =>
+    Object.assign(
+      {},
+      ...sample.slice(0, count).map((item) => pairQuestions(item.snippet, "long", ["refactor"], options)),
+    );
   const fits = async (count: number): Promise<{ ok: boolean; tokens: number; estimate: number; error?: string }> => {
     const questions = questionsFor(count);
     const estimate = estimateTokens({ state, questions, model: client.model });
@@ -134,7 +161,9 @@ async function ceilings(): Promise<void> {
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     const r = await fits(mid);
-    process.stderr.write(`request ceiling probe: ${mid} questions -> ${r.ok ? `ok, ${r.tokens} tokens` : r.error} (estimate ${r.estimate})\n`);
+    process.stderr.write(
+      `request ceiling probe: ${mid} questions -> ${r.ok ? `ok, ${r.tokens} tokens` : r.error} (estimate ${r.estimate})\n`,
+    );
     if (r.ok) {
       lastOk = { count: mid, tokens: r.tokens, estimate: r.estimate };
       low = mid + 1;
@@ -145,8 +174,16 @@ async function ceilings(): Promise<void> {
   }
   appendLine(outFile, { exp: "ceilings", probe: "request", lastOk, firstBad });
   const one = pairQuestions(sample[0]!.snippet, "long", ["refactor"], options);
-  const filler = (chars: number): Record<string, unknown> => ({ ...state, filler: sample.map((item) => item.snippet.a.code).join("\n").slice(0, chars) });
-  const stateFits = async (chars: number): Promise<{ ok: boolean; tokens: number; estimate: number; error?: string }> => {
+  const filler = (chars: number): Record<string, unknown> => ({
+    ...state,
+    filler: sample
+      .map((item) => item.snippet.a.code)
+      .join("\n")
+      .slice(0, chars),
+  });
+  const stateFits = async (
+    chars: number,
+  ): Promise<{ ok: boolean; tokens: number; estimate: number; error?: string }> => {
     const s = filler(chars);
     const estimate = estimateTokens({ state: s, questions: one, model: client.model });
     try {
@@ -164,7 +201,9 @@ async function ceilings(): Promise<void> {
   while (highChars - lowChars > 2000) {
     const mid = Math.floor((lowChars + highChars) / 2);
     const r = await stateFits(mid);
-    process.stderr.write(`state ceiling probe: ${mid} chars -> ${r.ok ? `ok, ${r.tokens} tokens` : r.error} (estimate ${r.estimate})\n`);
+    process.stderr.write(
+      `state ceiling probe: ${mid} chars -> ${r.ok ? `ok, ${r.tokens} tokens` : r.error} (estimate ${r.estimate})\n`,
+    );
     if (r.ok) {
       lastOkState = { chars: mid, tokens: r.tokens, estimate: r.estimate };
       lowChars = mid;
@@ -174,7 +213,9 @@ async function ceilings(): Promise<void> {
     }
   }
   appendLine(outFile, { exp: "ceilings", probe: "state", lastOk: lastOkState, firstBad: firstBadState });
-  process.stdout.write(JSON.stringify({ request: { lastOk, firstBad }, state: { lastOk: lastOkState, firstBad: firstBadState } }, null, 2));
+  process.stdout.write(
+    JSON.stringify({ request: { lastOk, firstBad }, state: { lastOk: lastOkState, firstBad: firstBadState } }, null, 2),
+  );
   process.stdout.write("\n");
 }
 
@@ -186,17 +227,36 @@ async function solo(): Promise<void> {
   const started = Date.now();
   const jobs = Array.from({ length: repeat }, (_, pass) => chosen.map((item) => ({ item, pass: pass + 1 })));
   const flat = jobs.flat();
-  process.stderr.write(`solo ${arm}: ${chosen.length} pairs x ${repeat} pass(es) = ${flat.length} requests, kinds ${kinds.join(",")}, variant ${variant}\n`);
+  process.stderr.write(
+    `solo ${arm}: ${chosen.length} pairs x ${repeat} pass(es) = ${flat.length} requests, kinds ${kinds.join(",")}, variant ${variant}\n`,
+  );
   await mapConcurrent(
     flat,
     concurrency,
     async ({ item, pass }) => {
       const state = buildState(item.corpus, variant, [item.snippet], options);
       const questions = pairQuestions(item.snippet, variant, kinds, options);
-      const base: Omit<Result, "answers" | "inputTokens" | "ms"> = { exp: "solo", arm, corpus: item.corpus, key: item.key, index: item.snippet.index, variant, kinds, repeat: pass, concurrency };
+      const base: Omit<Result, "answers" | "inputTokens" | "ms"> = {
+        exp: "solo",
+        arm,
+        corpus: item.corpus,
+        key: item.key,
+        index: item.snippet.index,
+        variant,
+        kinds,
+        repeat: pass,
+        concurrency,
+      };
       try {
         const r = await client.ask(state, questions, `${item.key}@${pass}`, { split: false });
-        appendLine(outFile, { ...base, answers: readAnswers(item.snippet.index, r.answers), inputTokens: r.inputTokens, ms: r.ms, requestId: r.requestId, model: r.model } satisfies Result);
+        appendLine(outFile, {
+          ...base,
+          answers: readAnswers(item.snippet.index, r.answers),
+          inputTokens: r.inputTokens,
+          ms: r.ms,
+          requestId: r.requestId,
+          model: r.model,
+        } satisfies Result);
       } catch (error) {
         appendLine(outFile, { ...base, answers: {}, inputTokens: 0, ms: 0, error: describe(error) } satisfies Result);
       }
@@ -228,7 +288,9 @@ function planBatches(chosen: Item[], pass: number, reshuffle: boolean): Batch[] 
       used = 0;
     };
     for (const item of list) {
-      const tokens = estimateTokens(pairQuestions(item.snippet, variant, kinds, options)) + (variant === "state" ? estimateTokens(buildState(corpus, "state", [item.snippet], options)) : 0);
+      const tokens =
+        estimateTokens(pairQuestions(item.snippet, variant, kinds, options)) +
+        (variant === "state" ? estimateTokens(buildState(corpus, "state", [item.snippet], options)) : 0);
       if (current.length > 0 && (current.length >= batchSize || used + tokens > budget)) flush();
       current.push(item);
       used += tokens;
@@ -238,24 +300,63 @@ function planBatches(chosen: Item[], pass: number, reshuffle: boolean): Batch[] 
   return batches;
 }
 
-async function runBatches(client: Asker, batches: Batch[], concurrency: number, pass: number, label: string): Promise<void> {
+async function runBatches(
+  client: Asker,
+  batches: Batch[],
+  concurrency: number,
+  pass: number,
+  label: string,
+): Promise<void> {
   await mapConcurrent(
     batches,
     concurrency,
     async (batch) => {
       const snippets = batch.members.map((item) => item.snippet);
       const state = buildState(batch.corpus, variant, snippets, options);
-      const questions: Questions = Object.assign({}, ...snippets.map((snippet) => pairQuestions(snippet, variant, kinds, options)));
-      const common = { exp: experiment!, arm, variant, kinds, repeat: pass, batch: batch.id, batchSize: batch.members.length, concurrency };
+      const questions: Questions = Object.assign(
+        {},
+        ...snippets.map((snippet) => pairQuestions(snippet, variant, kinds, options)),
+      );
+      const common = {
+        exp: experiment!,
+        arm,
+        variant,
+        kinds,
+        repeat: pass,
+        batch: batch.id,
+        batchSize: batch.members.length,
+        concurrency,
+      };
       try {
         const r = await client.ask(state, questions, batch.id);
         batch.members.forEach((item, position) => {
-          appendLine(outFile, { ...common, corpus: item.corpus, key: item.key, index: item.snippet.index, position, answers: readAnswers(item.snippet.index, r.answers), inputTokens: r.inputTokens, ms: r.ms, requestId: r.requestId, model: r.model } satisfies Result);
+          appendLine(outFile, {
+            ...common,
+            corpus: item.corpus,
+            key: item.key,
+            index: item.snippet.index,
+            position,
+            answers: readAnswers(item.snippet.index, r.answers),
+            inputTokens: r.inputTokens,
+            ms: r.ms,
+            requestId: r.requestId,
+            model: r.model,
+          } satisfies Result);
         });
       } catch (error) {
         const message = describe(error);
         batch.members.forEach((item, position) => {
-          appendLine(outFile, { ...common, corpus: item.corpus, key: item.key, index: item.snippet.index, position, answers: {}, inputTokens: 0, ms: 0, error: message } satisfies Result);
+          appendLine(outFile, {
+            ...common,
+            corpus: item.corpus,
+            key: item.key,
+            index: item.snippet.index,
+            position,
+            answers: {},
+            inputTokens: 0,
+            ms: 0,
+            error: message,
+          } satisfies Result);
         });
       }
     },
@@ -271,7 +372,9 @@ async function batched(): Promise<void> {
   const started = Date.now();
   for (let pass = 1; pass <= repeat; pass += 1) {
     const batches = planBatches(chosen, pass, has(argv, "shuffle"));
-    process.stderr.write(`batched ${arm} pass ${pass}/${repeat}: ${chosen.length} pairs in ${batches.length} requests (batch ${batchSize}, budget ${budget}, variant ${variant}, kinds ${kinds.join(",")})\n`);
+    process.stderr.write(
+      `batched ${arm} pass ${pass}/${repeat}: ${chosen.length} pairs in ${batches.length} requests (batch ${batchSize}, budget ${budget}, variant ${variant}, kinds ${kinds.join(",")})\n`,
+    );
     await runBatches(client, batches, concurrency, pass, `batched ${arm} pass ${pass}`);
   }
   summarize(client, started);
@@ -288,7 +391,19 @@ async function sweep(): Promise<void> {
     await runBatches(client, batches, concurrency, i + 1, `sweep c=${concurrency}`);
     const wall = Date.now() - started;
     const s = client.stats;
-    appendLine(path.join(resultsRoot(), "sweep", `${arm}-summary.jsonl`), { concurrency, requests: s.requests, ok: s.ok, failed: s.failed, retries: s.retries, rateLimited: s.rateLimited, inputTokens: s.inputTokens, wallMs: wall, meanMs: Math.round(s.ms / Math.max(1, s.requests)), requestsPerSecond: s.requests / (wall / 1000), tokensPerSecond: s.inputTokens / (wall / 1000) });
+    appendLine(path.join(resultsRoot(), "sweep", `${arm}-summary.jsonl`), {
+      concurrency,
+      requests: s.requests,
+      ok: s.ok,
+      failed: s.failed,
+      retries: s.retries,
+      rateLimited: s.rateLimited,
+      inputTokens: s.inputTokens,
+      wallMs: wall,
+      meanMs: Math.round(s.ms / Math.max(1, s.requests)),
+      requestsPerSecond: s.requests / (wall / 1000),
+      tokensPerSecond: s.inputTokens / (wall / 1000),
+    });
     summarize(client, started);
   }
 }
@@ -299,5 +414,7 @@ if (chosenExperiment === undefined) {
   process.stderr.write(`unknown experiment ${experiment}\n${USAGE}`);
   process.exit(1);
 }
-process.stderr.write(`corpora root ${process.env.CORPORA_DIR ?? "(default)"}; known corpora: ${Object.keys(CORPORA).join(", ")}\n`);
+process.stderr.write(
+  `corpora root ${process.env.CORPORA_DIR ?? "(default)"}; known corpora: ${Object.keys(CORPORA).join(", ")}\n`,
+);
 await chosenExperiment();
