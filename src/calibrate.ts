@@ -4,7 +4,7 @@ import type { JevReport, JudgedPair, Thresholds } from "./types.ts";
 
 export type Labels = Record<string, boolean>;
 
-export function parseLabels(parsed: unknown, source: string): Labels {
+function parseLabels(parsed: unknown, source: string): Labels {
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))
     throw new Error(
       `${source}: labels must be a JSON object from pair keys to true (merge), false (keep), or { "merge": boolean }`,

@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { auc } from "../../src/calibrate.ts";
 import { flag, readLines, resultsRoot } from "./lib.ts";
-import type { RequestRecord } from "./lib.ts";
+import type { Label, RequestRecord } from "./lib.ts";
 import type { Read } from "./questions-v2.ts";
 
 interface Result {
@@ -20,12 +21,6 @@ interface Result {
   inputTokens: number;
   ms: number;
   error?: string;
-}
-
-interface Label {
-  merge: boolean;
-  shape?: string;
-  note?: string;
 }
 
 const argv = process.argv.slice(2);
@@ -290,6 +285,22 @@ function stability(results: Result[], label: string): Record<string, unknown> {
   return out;
 }
 
+function stabilityRow(name: string, s: Record<string, number>): (string | number)[] {
+  return [
+    name,
+    s.pairs!,
+    s.passes!,
+    s.spreadMean!,
+    s.spreadMedian!,
+    s.spreadP90!,
+    s.spreadMax!,
+    s.logicSpreadMean!,
+    s.conceptSpreadMean!,
+    s.shapeChangedRate!,
+    (s.flipRate as unknown as Record<string, number>)["1.9"] ?? 0,
+  ];
+}
+
 function positionEffect(results: Result[]): Record<string, unknown> {
   const scored = withRefactor(results);
   const groups = byKey(scored);
@@ -375,13 +386,6 @@ function widestGap(values: number[]): { gap: number; low: number; high: number }
     if (gap > best.gap) best = { gap, low: sorted[i - 1]!, high: sorted[i]! };
   }
   return best;
-}
-
-function auc(positives: number[], negatives: number[]): number {
-  if (positives.length === 0 || negatives.length === 0) return Number.NaN;
-  let wins = 0;
-  for (const p of positives) for (const q of negatives) wins += p > q ? 1 : p === q ? 0.5 : 0;
-  return wins / (positives.length * negatives.length);
 }
 
 interface Labeled {
@@ -690,19 +694,7 @@ function main(): void {
     if (new Set(list.map((r) => r.repeat)).size < 2) continue;
     const s = stability(list, `batched ${arm}`) as Record<string, number>;
     stabilities[`batched ${arm}`] = s;
-    stabilityRows.push([
-      `batched ${arm}`,
-      s.pairs!,
-      s.passes!,
-      s.spreadMean!,
-      s.spreadMedian!,
-      s.spreadP90!,
-      s.spreadMax!,
-      s.logicSpreadMean!,
-      s.conceptSpreadMean!,
-      s.shapeChangedRate!,
-      (s.flipRate as unknown as Record<string, number>)["1.9"] ?? 0,
-    ]);
+    stabilityRows.push(stabilityRow(`batched ${arm}`, s));
   }
   const soloPasses = ["all-r1", "all-r2", "all-r3"]
     .filter((a) => solo.has(a))
@@ -710,19 +702,7 @@ function main(): void {
   if (["all-r1", "all-r2"].every((a) => solo.has(a))) {
     const s = stability(soloPasses, "solo all (passes r1..r3)") as Record<string, number>;
     stabilities["solo all"] = s;
-    stabilityRows.push([
-      "solo all",
-      s.pairs!,
-      s.passes!,
-      s.spreadMean!,
-      s.spreadMedian!,
-      s.spreadP90!,
-      s.spreadMax!,
-      s.logicSpreadMean!,
-      s.conceptSpreadMean!,
-      s.shapeChangedRate!,
-      (s.flipRate as unknown as Record<string, number>)["1.9"] ?? 0,
-    ]);
+    stabilityRows.push(stabilityRow("solo all", s));
   }
   summary.stability = stabilities;
   say("## Stability across passes");

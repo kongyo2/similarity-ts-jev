@@ -3,9 +3,10 @@ import { statSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { promisify } from "node:util";
+import type { AnalyzerLocation } from "@kongyo2/similarity-ts";
 import type { CloneGroupFinding, CloneInstance, DupesOutput, ErrorOutput } from "fallow/types";
 import ignore from "ignore";
-import type { AnalyzerLocation, DetectedPair } from "./types.ts";
+import type { DetectedPair } from "./types.ts";
 
 export type FallowMode = "strict" | "mild" | "weak" | "semantic";
 
@@ -41,7 +42,7 @@ export class FallowError extends Error {
 
 const execFileAsync = promisify(execFile);
 
-export async function runFallowBinary(args: string[], cwd: string): Promise<{ stdout: string; code: number }> {
+async function runFallowBinary(args: string[], cwd: string): Promise<{ stdout: string; code: number }> {
   const launcher = createRequire(import.meta.url).resolve("fallow/bin/fallow");
   try {
     const { stdout } = await execFileAsync(process.execPath, [launcher, ...args], {
@@ -202,7 +203,34 @@ function absorb(known: DetectedPair, other: DetectedPair): void {
   known.similarity = Math.max(known.similarity, other.similarity);
 }
 
-export function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation[]): AnalyzerLocation[] {
+export function mergePairs(declarationPairs: DetectedPair[], fragmentPairs: DetectedPair[]): DetectedPair[] {
+  const merged: DetectedPair[] = declarationPairs.map((pair) => ({ ...pair }));
+  const byFiles = new Map<string, DetectedPair[]>();
+  for (const pair of merged) {
+    const key = fileKey(pair);
+    byFiles.set(key, [...(byFiles.get(key) ?? []), pair]);
+  }
+  for (const pair of fragmentPairs) {
+    const candidates = byFiles.get(fileKey(pair)) ?? [];
+    const match = candidates.find((candidate) => samePair(candidate, pair));
+    if (match === undefined) {
+      merged.push(pair);
+      byFiles.set(fileKey(pair), [...candidates, pair]);
+      continue;
+    }
+    absorb(match, pair);
+  }
+  return merged;
+}
+
+function fileKey(pair: DetectedPair): string {
+  return [pair.left.filePath, pair.right.filePath]
+    .map((p) => path.resolve(p))
+    .sort()
+    .join("\n");
+}
+
+function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation[]): AnalyzerLocation[] {
   const members = [...base];
   for (const location of extra) {
     if (!members.some((member) => overlaps(member, location))) members.push(location);
@@ -210,7 +238,7 @@ export function unionLocations(base: AnalyzerLocation[], extra: AnalyzerLocation
   return members;
 }
 
-export function samePair(x: DetectedPair, y: DetectedPair): boolean {
+function samePair(x: DetectedPair, y: DetectedPair): boolean {
   const straight = overlaps(x.left, y.left) && overlaps(x.right, y.right);
   const crossed = overlaps(x.left, y.right) && overlaps(x.right, y.left);
   return straight || crossed;

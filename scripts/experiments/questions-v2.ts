@@ -1,69 +1,26 @@
 import { choice, noul, score } from "@typesafe-ai/sdk";
 import type { Questions } from "@typesafe-ai/sdk";
+import {
+  REFACTOR_LEVELS,
+  REFACTOR_QUESTION,
+  SAME_CONCEPT,
+  SAME_LOGIC,
+  SHAPE_OPTIONS,
+  SHAPE_QUESTION,
+  TASK,
+} from "../../src/questions.ts";
 import type { PairSnippet, Snippet } from "../../src/types.ts";
 
 export type Variant = "long" | "compact" | "state";
 export type Kind = "refactor" | "same_logic" | "same_concept" | "shape";
 export const KINDS: Kind[] = ["refactor", "same_logic", "same_concept", "shape"];
 
-export const TASK =
-  "A structural similarity analyzer reported the two TypeScript declarations `a` and `b` in each question as near-duplicates. " +
-  "Judge each pair the way a careful reviewer of this repository would when deciding whether to have them merged into one shared implementation. " +
-  "The declarations are shown with their file paths, the comment block above them, and their source text. " +
-  "The pairs in this request are unrelated to one another: judge each pair only on its own two declarations, and do not compare or rank pairs against each other.";
-
-export const REFACTOR_QUESTION =
-  "How strongly would a careful reviewer of this repository ask for `a` and `b` to be merged into one shared implementation?";
-
-export const REFACTOR_LEVELS = [
-  "Would not ask for a change: the two are meant to stay separate. Distinct documented operations or public entry points, unrelated concepts that merely share a shape, test fixtures, or generated code",
-  "Would let it pass: the repeated part is a few lines of boilerplate or wiring, and a shared helper would save little while coupling code that has no reason to know about each other",
-  "Would ask for one shared implementation: the same logic or shape is repeated, and one version, parameterized where the two differ, would keep both behaviors and read as well",
-  "Would insist on merging: a copy of a whole implementation with at most cosmetic differences, so two copies will only drift apart",
-] as const;
-
-export const REFACTOR_LABELS = [
+const REFACTOR_LABELS = [
   "would not ask for a change",
   "would let it pass",
   "would ask for one shared implementation",
   "would insist on merging",
 ] as const;
-
-export const SAME_LOGIC = {
-  code: {
-    question:
-      "Setting aside identifier names and data literals (strings, numbers, property names), does `a` perform the same operations in the same order as `b`?",
-    true: "Yes: one could replace the other after renaming identifiers and turning the differing literals into parameters",
-    false: "No: they differ in an operation, a condition, the order of steps, or in what they call",
-  },
-  type: {
-    question:
-      "Setting aside the names, do `a` and `b` describe the same shape: the same members with the same types, in the same roles?",
-    true: "Yes: one could replace the other member for member",
-    false: "No: they differ in a member, a member's type, or what the members are for",
-  },
-} as const;
-
-export const SAME_CONCEPT = {
-  question:
-    "Do `a` and `b` stand for the same concept or responsibility in this codebase, rather than two different things that happen to look alike?",
-  true: "Yes: their names, documentation, and callers point at one and the same thing",
-  false:
-    "No: they stand for different things (different operations, units, entities, or stages) that only share their form",
-} as const;
-
-export const SHAPE_QUESTION = "If a reviewer had `a` and `b` merged, which single change would they ask for?";
-
-export const SHAPE_OPTIONS = {
-  remove_copy:
-    "Keep one declaration and delete the other; whatever used the deleted one uses the survivor instead. Right when the two are the same thing twice, with at most cosmetic differences.",
-  derive:
-    "Keep both names, but write one in terms of the other: one function calls the other with fixed arguments or a small wrapper, or one type is written as an extension, Pick, Omit, or intersection of the other. Right when one is a special case or a subset of the other.",
-  extract_shared:
-    "Introduce a third, shared piece (a helper function or a base type) that carries the common part, parameterized where the two differ, and reduce both `a` and `b` to what is specific to each. Right when both are specializations of something neither of them is.",
-} as const;
-
-export const SHAPE_LABELS = Object.keys(SHAPE_OPTIONS) as (keyof typeof SHAPE_OPTIONS)[];
 
 export interface Options {
   doc?: boolean;
@@ -71,7 +28,7 @@ export interface Options {
   conventions?: string;
 }
 
-export function questionIds(index: number): Record<Kind, string> {
+function questionIds(index: number): Record<Kind, string> {
   return {
     refactor: `p${index}_refactor`,
     same_logic: `p${index}_same_logic`,
@@ -80,7 +37,7 @@ export function questionIds(index: number): Record<Kind, string> {
   };
 }
 
-export function pairRef(index: number): string {
+function pairRef(index: number): string {
   return `p${index}`;
 }
 
@@ -96,11 +53,11 @@ function describe(snippet: Snippet, options: Options, side: "a" | "b"): Record<s
   };
 }
 
-export function kindOf(snippet: PairSnippet): "type" | "code" {
+function kindOf(snippet: PairSnippet): "type" | "code" {
   return snippet.pair.mode === "types" ? "type" : "code";
 }
 
-export function subjectFields(snippet: PairSnippet, variant: Variant, options: Options): Record<string, unknown> {
+function subjectFields(snippet: PairSnippet, variant: Variant, options: Options): Record<string, unknown> {
   if (variant === "state") return { pair: pairRef(snippet.index) };
   const family = snippet.alsoAt !== undefined && snippet.alsoAt.length > 0 ? { also_at: snippet.alsoAt } : {};
   return { a: describe(snippet.a, options, "a"), b: describe(snippet.b, options, "b"), ...family };

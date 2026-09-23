@@ -2,12 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { BadRequestError } from "@typesafe-ai/sdk";
 import type { Questions } from "@typesafe-ai/sdk";
+import { estimateTokens } from "../../src/questions.ts";
 import {
   Asker,
   CORPORA,
   appendLine,
   describe,
-  estimateTokens,
   flag,
   has,
   items,
@@ -143,17 +143,21 @@ async function ceilings(): Promise<void> {
       {},
       ...sample.slice(0, count).map((item) => pairQuestions(item.snippet, "long", ["refactor"], options)),
     );
-  const fits = async (count: number): Promise<{ ok: boolean; tokens: number; estimate: number; error?: string }> => {
-    const questions = questionsFor(count);
-    const estimate = estimateTokens({ state, questions, model: client.model });
+  const probe = async (
+    probeState: unknown,
+    questions: Questions,
+    tag: string,
+  ): Promise<{ ok: boolean; tokens: number; estimate: number; error?: string }> => {
+    const estimate = estimateTokens({ state: probeState, questions, model: client.model });
     try {
-      const result = await client.ask(state, questions, `request-ceiling-${count}`, { split: false });
+      const result = await client.ask(probeState, questions, tag, { split: false });
       return { ok: true, tokens: result.inputTokens, estimate };
     } catch (error) {
       if (!(error instanceof BadRequestError)) throw error;
       return { ok: false, tokens: 0, estimate, error: describe(error) };
     }
   };
+  const fits = (count: number) => probe(state, questionsFor(count), `request-ceiling-${count}`);
   let low = 1;
   let high = 400;
   let lastOk = { count: 0, tokens: 0, estimate: 0 };
@@ -181,19 +185,7 @@ async function ceilings(): Promise<void> {
       .join("\n")
       .slice(0, chars),
   });
-  const stateFits = async (
-    chars: number,
-  ): Promise<{ ok: boolean; tokens: number; estimate: number; error?: string }> => {
-    const s = filler(chars);
-    const estimate = estimateTokens({ state: s, questions: one, model: client.model });
-    try {
-      const result = await client.ask(s, one, `state-ceiling-${chars}`, { split: false });
-      return { ok: true, tokens: result.inputTokens, estimate };
-    } catch (error) {
-      if (!(error instanceof BadRequestError)) throw error;
-      return { ok: false, tokens: 0, estimate, error: describe(error) };
-    }
-  };
+  const stateFits = (chars: number) => probe(filler(chars), one, `state-ceiling-${chars}`);
   let lowChars = 1000;
   let highChars = 400_000;
   let lastOkState = { chars: 0, tokens: 0, estimate: 0 };

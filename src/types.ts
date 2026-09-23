@@ -1,10 +1,4 @@
-import type {
-  AnalyzeReport,
-  AnalyzerLocation,
-  AnalyzerMode,
-  AnalyzerWarning,
-  SimilarityPair,
-} from "@kongyo2/similarity-ts";
+import type { AnalyzerLocation, AnalyzerMode, AnalyzerWarning } from "@kongyo2/similarity-ts";
 
 export type PairMode = AnalyzerMode;
 
@@ -132,5 +126,3 @@ export interface JevReport {
   thresholds: Thresholds;
   stats: DetectionReport["stats"] & JudgeStats;
 }
-
-export type { AnalyzeReport, AnalyzerLocation, AnalyzerMode, AnalyzerWarning, SimilarityPair };

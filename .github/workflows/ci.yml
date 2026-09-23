@@ -31,6 +31,12 @@ jobs:
       - name: Format
         run: npm run format:check
 
+      - name: Unused code
+        run: npm run knip -- --reporter github-actions
+
+      - name: Unused code in production
+        run: npm run knip:production -- --reporter github-actions
+
       - name: Type check
         run: npm run typecheck
 

@@ -449,7 +449,7 @@ export async function runCli(argv: string[], io: CliIO = console, run: RunOption
   }
 }
 
-export function isCliEntrypoint(argvPath: string | undefined, moduleUrl: string): boolean {
+function isCliEntrypoint(argvPath: string | undefined, moduleUrl: string): boolean {
   if (!argvPath) return false;
   let resolved = argvPath;
   try {

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { decide, thresholds } from "./decide.ts";
+import { decidePairs, thresholds } from "./decide.ts";
 import type { DecideOptions } from "./decide.ts";
 import { detect } from "./detect.ts";
 import type { DetectOptions } from "./detect.ts";
@@ -7,9 +7,10 @@ import { groupFamilies } from "./families.ts";
 import { judgePairs } from "./judge.ts";
 import type { JudgeClient, JudgeOptions } from "./judge.ts";
 import { pairTokens } from "./questions.ts";
+import type { RecordedPair } from "./record.ts";
 import { SnippetReader } from "./snippets.ts";
 import type { SnippetOptions } from "./snippets.ts";
-import type { DetectedPair, DetectionReport, JevReport, JudgedPair, PairSnippet, UnjudgedPair } from "./types.ts";
+import type { DetectedPair, DetectionReport, JevReport, PairSnippet, UnjudgedPair } from "./types.ts";
 
 export interface JudgeReportOptions extends JudgeOptions, DecideOptions, SnippetOptions {
   maxPairs?: number;
@@ -74,20 +75,16 @@ export async function judgeReport(
     repository: options.repository ?? path.basename(path.resolve(cwd)),
   });
 
-  const results: JudgedPair[] = [];
-  const rejected: JudgedPair[] = [];
+  const judged: RecordedPair[] = [];
   for (const snippet of snippets) {
     const judgment = judgments.get(snippet.index);
     if (judgment === undefined) {
       unjudged.push({ ...snippet.pair, reason: "api", error: failures.get(snippet.index) ?? "no answer" });
       continue;
     }
-    const verdict = decide(judgment, options);
-    (verdict.refactor ? results : rejected).push({ ...snippet.pair, judgment, verdict });
+    judged.push({ pair: snippet.pair, judgment });
   }
-  const byScore = (x: JudgedPair, y: JudgedPair) => y.judgment.score - x.judgment.score || y.similarity - x.similarity;
-  results.sort(byScore);
-  rejected.sort(byScore);
+  const { results, rejected } = decidePairs(judged, options);
 
   return {
     analyzedFiles: detection.analyzedFiles,

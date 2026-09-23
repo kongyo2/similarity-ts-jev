@@ -2,12 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pairKey } from "../../src/calibrate.ts";
 import { CORPORA, corporaRoot, flag, loadCorpora, resultsRoot } from "./lib.ts";
-
-interface Label {
-  merge: boolean;
-  shape?: string;
-  note?: string;
-}
+import type { Label } from "./lib.ts";
 
 const argv = process.argv.slice(2);
 const labelsFile = flag(argv, "labels") ?? path.join(resultsRoot(), "labels", "labels.json");
@@ -20,7 +15,7 @@ for (const corpus of corpora) {
   const spec = CORPORA[corpus.name]!;
   const cwd = path.join(corporaRoot(), spec.dir);
   const byIndex = new Map(corpus.snippets.map((snippet) => [snippet.index, snippet]));
-  const out: Record<string, { merge: boolean; shape?: string; note?: string }> = {};
+  const out: Record<string, Label> = {};
   let missing = 0;
   for (const [key, label] of Object.entries(labels)) {
     const [name, index] = key.split("#");

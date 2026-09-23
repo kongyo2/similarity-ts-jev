@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { AnalyzerLocation } from "@kongyo2/similarity-ts";
 import type { Questions, SystemOneResult } from "@typesafe-ai/sdk";
 import type { CacheFile } from "../src/cache.ts";
 import type { JudgeClient } from "../src/judge.ts";
-import type { AnalyzerLocation, DetectedPair, Judgment } from "../src/types.ts";
+import type { DetectedPair, Judgment } from "../src/types.ts";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURE_PROJECT = path.join(ROOT, "test", "fixtures", "project");

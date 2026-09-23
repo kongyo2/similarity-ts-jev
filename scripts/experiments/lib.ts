@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { APIError, BadRequestError, RateLimitError, TypeSafeClient } from "@typesafe-ai/sdk";
 import type { Questions, SystemOneResult } from "@typesafe-ai/sdk";
 import { detect, orderPairs, readSnippets } from "../../src/index.ts";
+import { estimateTokens } from "../../src/questions.ts";
 import type { PairSnippet } from "../../src/types.ts";
 
 export interface CorpusSpec {
@@ -50,7 +51,7 @@ export interface Corpus {
   snippets: PairSnippet[];
 }
 
-export async function loadCorpus(spec: CorpusSpec, refresh = false): Promise<Corpus> {
+async function loadCorpus(spec: CorpusSpec, refresh = false): Promise<Corpus> {
   const snapshotDir = path.join(resultsRoot(), "snapshots");
   const file = path.join(snapshotDir, `${spec.name}.json`);
   if (!refresh && fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8")) as Corpus;
@@ -114,35 +115,10 @@ export function subset<T>(list: T[], size: number | undefined, seed: number): T[
   return shuffled(list, seed).slice(0, size);
 }
 
-export function chunk<T>(list: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
-  return out;
-}
-
-const CHARS_PER_TOKEN_TEXT = 3.4;
-const CHARS_PER_TOKEN_STRUCT = 2.2;
-const TEXT_LIKE_LENGTH = 64;
-
-export function estimateTokens(value: unknown): number {
-  return Math.ceil(cost(value));
-}
-
-function cost(value: unknown): number {
-  if (typeof value === "string") {
-    const length = JSON.stringify(value).length;
-    return length / (value.length >= TEXT_LIKE_LENGTH ? CHARS_PER_TOKEN_TEXT : CHARS_PER_TOKEN_STRUCT);
-  }
-  if (value === null || typeof value !== "object") return String(value).length / CHARS_PER_TOKEN_STRUCT;
-  if (Array.isArray(value))
-    return (
-      (2 + Math.max(0, value.length - 1)) / CHARS_PER_TOKEN_STRUCT +
-      value.reduce((sum: number, item) => sum + cost(item), 0)
-    );
-  const entries = Object.entries(value).filter(([, v]) => v !== undefined);
-  let total = (2 + Math.max(0, entries.length - 1)) / CHARS_PER_TOKEN_STRUCT;
-  for (const [key, v] of entries) total += (JSON.stringify(key).length + 1) / CHARS_PER_TOKEN_STRUCT + cost(v);
-  return total;
+export interface Label {
+  merge: boolean;
+  shape?: string;
+  note?: string;
 }
 
 export function appendLine(file: string, record: unknown): void {
@@ -327,7 +303,7 @@ export class Asker {
   }
 }
 
-export function pruneState(state: unknown, questionIds: string[]): unknown {
+function pruneState(state: unknown, questionIds: string[]): unknown {
   if (typeof state !== "object" || state === null) return state;
   const pairs = (state as { pairs?: unknown }).pairs;
   if (typeof pairs !== "object" || pairs === null || Array.isArray(pairs)) return state;
